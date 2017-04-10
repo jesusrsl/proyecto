@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block section %}
+    <h2>{{ object.get_curso_display }} {{ object.unidad}}</h2>
+
+    <a href="{% url 'editar-grupo' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-grupo' object.id %}">Eliminar</a>
+    <br><br>
+{% endblock %}
+
+{% block maincontent %}
+     <div class="row well">
+        <h3>Tutor:</h3>{{ object.tutor.nombre }} {{ object.tutor.apellidos }}
+     </div>
+    <div class="row well">
+        <h3>Alumnado:</h3>
+        {%  for a in object.alumno_set.all %}
+
+            <div>{{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}</div>
+
+        {% endfor %}
+   </div>
+
+
+{% endblock %}
+

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block maincontent %}
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }} <!-- as_table, as_ul -->
+        <button type="submit">Guardar</button>
+        <a class='btn' href="{% url 'lista-grupos' %}">Cancelar</a>
+    </form>
+{% endblock %}

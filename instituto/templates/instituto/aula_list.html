@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block section %}
+
+    <h2>Aulas</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+        {% for a in object_list %}
+            <a href="{% url 'detalle-aula' a.id %}">
+               Planta {{ a.planta }}, pasillo {{ a.pasillo }}, número {{ a.numero }}
+            </a>
+            <br>
+        {% endfor %}
+    <hr>
+    <a href="{%  url 'nueva-aula' %}">Nuevo aula</a>
+    </div>
+
+{% endblock %}

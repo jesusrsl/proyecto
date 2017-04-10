@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block section %}
+    <h2>{{ object.nombre | capfirst }} {{ object.apellidos | capfirst }}</h2>
+
+    <a href="{% url 'editar-profesor' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-profesor' object.id %}">Eliminar</a>
+    <br><br>
+{% endblock %}
+
+{% block maincontent %}
+    <div class="row well">
+        {%  for a in object.asignatura_set.all %}
+
+            <div><a href="{% url 'detalle-asignatura' a.id %}">{{ a.nombre | capfirst }}</a></div>
+
+        {% endfor %}
+   </div>
+
+
+{% endblock %}
+

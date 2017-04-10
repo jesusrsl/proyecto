@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block menu %}
+    <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
+{% endblock %}
+
+
+{% block section %}
+    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.nombre | capfirst }} {{ object.profesor.apellidos | capfirst }}</h2>
+
+    <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
+    <br><br>
+{% endblock %}
+
+{% block maincontent %}
+    <h4>Alumnado matriculado</h4>
+    <!--
+    <div class="row well">
+        {%  for a in object.alumno_set.all %}
+
+            <div>{{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}</div>
+
+        {% endfor %}
+   </div>-->
+
+    <!--
+    <div id="overlay">
+        <div>
+            <p>Content you want the user to see goes here.</p>
+            Click here to [<a href='#' onclick='overlay()'>close</a>]
+        </div>
+    </div>
+
+    <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
+
+    <div class="row well">
+        {% for a in object.alumno_set.all %}
+            <div class="col-md-3 well">
+                <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <!-- valorar-alumno-->
+                            <button id="comment-button" class="btn btn-large">
+                                <h3 class="panel-title">{{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}</h3>
+                            </button>
+
+                        </div>
+                        <div class="panel-body">
+                            {% if a.foto %}
+                                <a href="{% url 'nueva-anotacion' a.id object.id %}">
+                                <img src="{%static a.foto.url %}" style="width:200px;height:200px"/>
+                                </a>
+                            {% else %}
+                                 <a href="{% url 'detalle-alumno' a.id %}">
+                                SIN FOTO
+                                 </a>
+                            {% endif %}
+                        </div>
+                </div>
+            </div>
+        {% endfor %}
+   </div>
+
+    <div id="form-modal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Modal title</h4>
+                </div>
+                <div id="form-modal-body" class="modal-body">
+                    <p>One fine body&hellip;</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+        <script>
+            var formAjaxSubmit = function(form, modal) {
+                $(form).submit(function (e) {
+                    e.preventDefault();
+                    $.ajax({
+                        type: $(this).attr('method'),
+                        url: $(this).attr('action'),
+                        data: $(this).serialize(),
+                        success: function (xhr, ajaxOptions, thrownError) {
+                            if ( $(xhr).find('.has-error').length > 0 ) {
+                                $(modal).find('.modal-body').html(xhr);
+                                formAjaxSubmit(form, modal);
+                            } else {
+                                $(modal).modal('toggle');
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                        }
+                    });
+                });
+            }
+            $('#comment-button').click(function() {
+                $('#form-modal-body').load('{% url 'nueva-anotacion' a.id object.id %}', function () {
+                    $('#form-modal').modal('toggle');
+                    formAjaxSubmit('#form-modal-body form', '#form-modal');
+                });
+            });
+        </script>
+
+{% endblock %}
+

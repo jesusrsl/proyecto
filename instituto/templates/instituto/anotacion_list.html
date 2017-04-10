@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load mis_filtros %}
+
+{% block section %}
+
+    <h2>Valoraciones</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+
+        {% regroup object_list by fecha as anotaciones_list %}
+
+        {% for fecha in anotaciones_list %}
+
+            {{ fecha.grouper |date:"d-m-y"}} <br>
+
+            {% for v in fecha.list %}
+
+                <a href="{% url 'detalle-alumno' v.alumno.id %}">
+                {{ v.alumno.nombre | capfirst}} {{ v.alumno.apellido1 | capfirst}} {{ v.alumno.apellido2 | capfirst}}
+                </a>
+
+                {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
+
+                {% for p in v.positivos|veces %} + {% endfor %} {% for p in v.negativos|veces %} - {% endfor %}
+
+            <br>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <br>
+
+    <div>
+        {% for v in object_list %}
+            {% if forloop.first %} <a href="{% url 'detalle-asignatura' v.asignatura_id %}">Volver</a> {% endif %}
+        {% endfor %}
+    </div>
+
+
+
+{% endblock %}

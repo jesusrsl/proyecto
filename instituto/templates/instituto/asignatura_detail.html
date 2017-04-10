@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load mis_filtros %}
+
+{% block menu %}
+    <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
+    <li><a href="{% url "poner-faltas"  object.id %}">Poner faltas</a></li>
+{% endblock %}
+
+
+{% block section %}
+    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.nombre | capfirst }} {{ object.profesor.apellidos | capfirst }}</h2>
+
+    <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
+    <br><br>
+{% endblock %}
+
+{% block maincontent %}
+    <h4>Alumnado matriculado</h4>
+
+    <!--
+    <div id="overlay">
+        <div>
+            <p>Content you want the user to see goes here.</p>
+            Click here to [<a href='#' onclick='overlay()'>close</a>]
+        </div>
+    </div>
+
+    <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
+
+    <div class="row well">
+        {% for a in object.alumno_set.all %}
+            <div class="col-md-3 well">
+                <div class="panel panel-primary">
+
+                        <div class="panel-heading">
+                            <!-- valorar-alumno-->
+                            <h3 class="panel-title">
+                                <input type="checkbox" name="a.id">
+                                <a href="{% url 'anotar' a.id object.id %}">
+                                    {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
+                                </a>
+                            </h3>
+                        </div>
+
+                            <!-- detalle del alumno -->
+                        <div class="panel-body">
+                            {% if a.foto %}
+                                <a href="{% url 'detalle-alumno' a.id %}">
+                                <img src="{%static a.foto.url %}" style="width:200px;height:200px"/>
+                                </a>
+                            {% else %}
+                                 <a href="{% url 'detalle-alumno' a.id %}">
+                                SIN FOTO
+                                 </a>
+                            {% endif %}
+                        </div>
+
+                    <div class="panel-footer">
+
+                        <!-- anotar al alumno/a -->
+                        {% for anotacion in anotacion_list %}
+                            {% if a.id == anotacion.alumno.id %} <!-- el alumno tiene una anotación creada -->
+
+                                {% define "Yes" as anotacion_creada %}
+
+                                {% if anotacion.falta %}
+                                    <a href="{% url 'poner-falta' a.id object.id %}"><span style="background-color: crimson">Falta</span></a>
+                                {% else %}
+                                    <a href="{% url 'poner-falta' a.id object.id %}">Falta</a>
+                                {% endif %}
+
+                                {% if anotacion.trabaja %}
+                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span style="background-color: greenyellow">Trabaja</span></a>
+                                {% else %}
+                                    <a href="{% url 'poner-trabaja' a.id object.id %}">Trabaja</a>
+                                {% endif %}
+
+                                <a href="{% url 'poner-positivo' a.id object.id %}">Positivo</a>
+                                <a href="{% url 'poner-negativo' a.id object.id %}">Negativo</a>
+
+                            {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
+
+                                <a href="{% url 'poner-falta' a.id object.id %}">Falta</a>
+                                <a href="{% url 'poner-trabaja' a.id object.id %}">Trabaja</a>
+                                <a href="{% url 'poner-positivo' a.id object.id %}">Positivo</a>
+                                <a href="{% url 'poner-negativo' a.id object.id %}">Negativo</a>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+
+{% endblock %}
+

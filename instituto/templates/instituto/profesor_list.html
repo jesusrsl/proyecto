@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block section %}
+
+    <h2>Profesores</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+        {% for p in object_list %}
+            <a href="{% url 'detalle-profesor' p.id %}">
+                {{ p.nombre | capfirst}} {{ p.apellidos | capfirst}}
+            </a>
+            <br>
+        {% endfor %}
+    <hr>
+    <a href="{%  url 'nuevo-profesor' %}">Nuevo profesor/a</a>
+    </div>
+
+{% endblock %}

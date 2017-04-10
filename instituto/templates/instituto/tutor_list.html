@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block section %}
+
+    <h2>Tutores</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+        {% for t in object_list %}
+            <a href="{% url 'detalle-profesor' t.id %}">
+                {{ t.nombre | capfirst}} {{ t.apellidos | capfirst}}
+            </a>
+             tutoriza a
+            {% for g in t.grupo_set.all %}
+                <a href="{% url 'detalle-grupo' g.id %}">
+                    {{g.get_curso_display }} {{ g.unidad}}
+                </a>
+            {% endfor %}
+            <br>
+        {% endfor %}
+    </div>
+
+{% endblock %}

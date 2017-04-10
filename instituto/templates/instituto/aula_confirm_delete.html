@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block maincontent %}
+    <form action="" method="post">{% csrf_token %}
+        <p>¿Borrar el aula de la planta {{ object.planta}}, pasillo {{ object.pasillo }}, número {{ object.numero }}?</p>
+        <input type="submit" value="Confirmar" />
+        <a class='btn' href="{% url 'lista-aulas' %}">Cancelar</a>
+    </form>
+{% endblock %}

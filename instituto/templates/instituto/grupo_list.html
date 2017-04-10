@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block section %}
+
+    <h2>Grupos</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+        {% for g in object_list %}
+            <a href="{% url 'detalle-grupo' g.id %}">
+                {{ g.get_curso_display}} {{ g.unidad}}
+            </a>
+            <br>
+        {% endfor %}
+    <hr>
+    <a href="{%  url 'nuevo-grupo' %}">Nuevo grupo</a>
+    </div>
+
+{% endblock %}
