@@ -145,7 +145,7 @@ class Anotacion(models.Model):
 
 
     def __unicode__(self):
-        return "Anotación de %s %s %s en %s, el %s" % (self.alumno.nombre, self.alumno.apellido1, self.alumno.apellido2, self.asignatura.nombre, self.fecha)
+        return "Anotación de %s %s %s en %s, el %s" % (self.alumno.nombre, self.alumno.apellido1, self.alumno.apellido2, self.asignatura.nombre, unicode(self.fecha))
 
     def get_absolute_url(self):
         return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id})

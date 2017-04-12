@@ -2,6 +2,7 @@
 {% load static %}
 {% load mis_filtros %}
 
+
 {% block menu %}
     <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
     <li><a href="{% url "poner-faltas"  object.id %}">Poner faltas</a></li>
@@ -66,28 +67,34 @@
                                 {% define "Yes" as anotacion_creada %}
 
                                 {% if anotacion.falta %}
-                                    <a href="{% url 'poner-falta' a.id object.id %}"><span style="background-color: crimson">Falta</span></a>
+                                    <a href="{% url 'poner-falta' a.id object.id %}"><span class="red">F</span></a>
                                 {% else %}
-                                    <a href="{% url 'poner-falta' a.id object.id %}">Falta</a>
+                                    <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
                                 {% endif %}
 
                                 {% if anotacion.trabaja %}
-                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span style="background-color: greenyellow">Trabaja</span></a>
+                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="green">T</span></a>
                                 {% else %}
-                                    <a href="{% url 'poner-trabaja' a.id object.id %}">Trabaja</a>
+                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
                                 {% endif %}
 
-                                <a href="{% url 'poner-positivo' a.id object.id %}">Positivo</a>
-                                <a href="{% url 'poner-negativo' a.id object.id %}">Negativo</a>
+                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
 
                             {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
 
-                                <a href="{% url 'poner-falta' a.id object.id %}">Falta</a>
-                                <a href="{% url 'poner-trabaja' a.id object.id %}">Trabaja</a>
-                                <a href="{% url 'poner-positivo' a.id object.id %}">Positivo</a>
-                                <a href="{% url 'poner-negativo' a.id object.id %}">Negativo</a>
+                                <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
 
                             {% endif %}
+
+                            {% empty %} <!-- no hay ninguna anotación -->
+                                <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
 
                         {% endfor %}
 

@@ -1,11 +1,17 @@
 from django.contrib.auth.decorators import login_required
-#from reportlab.pdfgen import canvas
+from reportlab.pdfgen import canvas
 from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak, PageTemplate
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import landscape, letter, A4
 from reportlab.platypus import Table
+from reportlab.lib.units import inch
+
+from math import ceil
+
+from operator import itemgetter
+from itertools import groupby
 
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -26,7 +32,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def base(request):
     return render(request, 'base.html')
 
-def asignaturasPDF(request):
+def AsignaturasPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "asignaturas.pdf"
@@ -34,24 +40,34 @@ def asignaturasPDF(request):
 
     buff = BytesIO()
     doc = SimpleDocTemplate(buff,
-                            pagesize=letter,
+                            pagesize=A4,
+                            showBoundary=0,
                             rightMargin=40,
                             leftMargin=40,
                             topMargin=60,
-                            bottomMargin=18,
+                            bottomMargin=20,
+                            title = "Asignaturas",
+                            author = request.user.username,
+                            pageBreakQuick = 1,
                             )
+
     asignaturas = []
 
     styles = getSampleStyleSheet()
-    header = Paragraph("Listado de Asignaturas", styles['Heading1'])
+    h1 = styles['Heading1']
+    h1.alignment = 1    #centrado
+    h1.spaceAfter = 30
+    #h1.pageBreakBefore=1
+    #h1.backColor=colors.red
+    header = Paragraph("Listado de Asignaturas", h1)
     asignaturas.append(header)
 
-    headings = ('Nombre', 'Nombre del Profesor', 'Apellidos del Profesor', 'Curso', 'Unidad')
+    headings = ['Nombre', 'Nombre del Profesor', 'Apellidos del Profesor', 'Curso', 'Unidad']
     info_asignaturas = [(a.nombre, a.profesor.nombre, a.profesor.apellidos, a.grupo.get_curso_display(), a.grupo.unidad) for a in Asignatura.objects.all()]
     t = Table([headings] + info_asignaturas)
     t.setStyle(TableStyle(
         [
-            ('GRID', (0, 0), (4, -1), 1, colors.dodgerblue),    # bordes de las celdas (de grosor 1)
+            ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),    # bordes de las celdas (de grosor 1)
             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue), # borde inferior (de mayor grosor, 2)
             ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue)  # color de fondo (en este caso, solo la primera fila)
         ]
@@ -63,10 +79,190 @@ def asignaturasPDF(request):
     # ('VALIGN', (0,0), (-1, -1), 'MIDDLE'),
 
     asignaturas.append(t)
+
     doc.build(asignaturas)
     response.write(buff.getvalue())
     buff.close()
     return response
+
+
+def AnotacionesPDF(request, idAsignatura):
+
+    response = HttpResponse(content_type='application/pdf')
+    pdf_name = "anotaciones-%s.pdf" % Asignatura.objects.get(pk=idAsignatura).nombre
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4, # en horizontal --> pagesize=landscape(A4),
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Anotaciones de %s" % Asignatura.objects.get(pk=idAsignatura).nombre,
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            onPageEnd=pie    #NO FUNCIONA
+                            )
+    contenido = []
+
+    #definicion de estilos
+    styles = getSampleStyleSheet()
+    #estilo para el titulo de cabecera
+    h1 = styles['Heading1']
+    h1.alignment = 1  # centrado
+    h1.spaceAfter = 30
+    #estilo para el pie de pagina
+    f1 = styles['Normal']
+    f1.alignment = 1  # centrado
+    f1.fontName = 'Times-Italic'
+    f1.spaceBefore = 20
+
+    header = Paragraph("Valoraciones de la asignatura % s" % Asignatura.objects.get(pk=idAsignatura).nombre, h1)
+    contenido.append(header)
+
+    anotaciones=Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
+
+    #se cuenta el numero de fechas diferentes (= numero de anotaciones de cada alumno)
+    key = itemgetter('fecha')
+    iter = groupby(sorted(anotaciones, key=key), key=key)
+    total_anotaciones = 0
+    for fecha in iter:
+        total_anotaciones += 1
+
+
+    #paginacion de la tabla de anotaciones (5 fechas-columnas por pagina)
+    num_fechas = 0
+    num_pagina = 1
+    fecha_list = []
+    key = itemgetter('fecha')
+    iter = groupby(sorted(anotaciones, key=key), key=key)
+    for fecha in iter:
+        num_fechas += 1
+        fecha_list.append(fecha[0])
+        if (num_fechas % 7) == 0 and num_fechas < total_anotaciones:   #nueva pagina
+            t = AnotacionesPorPagina(idAsignatura, fecha_list, False)
+            contenido.append(t)
+            contenido.append(Paragraph("Pag %d" % num_pagina, f1))
+            #salto de pagina
+            contenido.append(PageBreak())
+            fecha_list = []
+            num_pagina+=1
+        elif num_fechas == total_anotaciones: #ultima pagina
+            t = AnotacionesPorPagina(idAsignatura, fecha_list, True)
+            contenido.append(t)
+            contenido.append(Paragraph("Pag %d" % num_pagina, f1))
+
+    doc.build(contenido)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+
+def AnotacionesPorPagina(idAsignatura, listaFechas, ultimaPag):
+
+    anotaciones=Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
+
+    key = itemgetter('fecha')
+    iter = groupby(sorted(anotaciones, key=key), key=key)
+
+    # CABECERA de la tabla
+    headings = ['Alumno/a']
+    for fecha, lista in iter:
+        if fecha in listaFechas:
+            headings.append(fecha.strftime("%d/%m/%y"))
+    if ultimaPag:
+        headings.append('RESUMEN')
+
+    # Contenido de la tabla --> anotaciones de cada alumno (uno por fila)
+    info_anotaciones = []
+
+    for alumno in Asignatura.objects.get(pk=idAsignatura).alumno_set.all():
+
+        anotaciones = Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+            'fecha').values()
+
+        key = itemgetter('fecha')
+        iter = groupby(sorted(anotaciones, key=key), key=key)
+
+        fila = ["%s %s %s" % (alumno.nombre, alumno.apellido1, alumno.apellido2)]
+
+        for fecha, lista in iter:
+
+            if fecha in listaFechas:
+
+                anotacion = ""
+
+                for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
+
+                    if alumno.id == v['alumno_id']:
+                        if v['falta']:
+                            anotacion += " F"
+                        if v['trabaja']:
+                            anotacion += " T"
+                        if v['positivos'] is not None:
+                            anotacion += " %s+" % v['positivos']
+                        if v['negativos'] is not None:
+                            anotacion += " %s-" % v['negativos']
+
+                if len(anotacion) == 0:
+                    anotacion = " "
+
+                fila.append(anotacion)
+
+        # FIN del bucle con todas las anotaciones del alumno
+
+        if ultimaPag:
+            # se anyade la informacion del resumen
+            resumen_list = DatosResumen(idAsignatura)
+            resumen_anotaciones = ""
+            for resumen in resumen_list:
+                if resumen[0] == alumno.id:
+                    resumen_anotaciones = "%dF, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+
+            fila.append(resumen_anotaciones)
+
+        # FILA COMPLETA
+        info_anotaciones.append(fila)
+
+    #se han terminado todos los alumnos
+
+    tabla = Table([headings] + info_anotaciones)  # , colWidths='50'
+    if ultimaPag is False:
+        tabla.setStyle(TableStyle(
+        [
+            ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),  # bordes de las celdas (de grosor 1)
+            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue)  # color de fondo (en este caso, solo la primera fila)
+        ]
+        ))
+    else:
+        tabla.setStyle(TableStyle(
+            [
+                ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),  # bordes de las celdas (de grosor 1)
+                ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
+                ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue),
+                ('BACKGROUND', (-1, 1), (-1, -1), colors.lightgrey)
+                # color de fondo (en este caso, solo la primera fila)
+            ]
+        ))
+
+    # NOTA de TableStyle: las filas y columnas empiezan en 0. -1 para la ultima posicion (aunque sea desconocida)
+    # (columna, fila)
+    # otras opciones:
+    # ('TEXTCOLOR', (0, 0), (-1, -1), colors.blue),
+    # ('VALIGN', (0,0), (-1, -1), 'MIDDLE'),
+
+
+    return tabla
+
+
+def pie(canvas,doc):
+    canvas.saveState()
+    canvas.setFont('Times-Roman',9)
+    canvas.drawString(inch, 0.75 * inch, "Page %d" % doc.page)
+    canvas.restoreState()
 
 
 #PROFESORES
@@ -255,8 +451,41 @@ class AnotacionListView(ListView):
     model = Anotacion
 
     def get_queryset(self):
-        queryset = super(AnotacionListView, self).get_queryset().filter(asignatura=self.kwargs['idAsignatura']).order_by('fecha', 'alumno')
+        queryset = super(AnotacionListView, self).get_queryset().filter(asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura'])).order_by('fecha', 'alumno')
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(AnotacionListView, self).get_context_data(**kwargs)
+        resumen = DatosResumen(self.kwargs['idAsignatura'])
+        context.update({'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
+        return context
+
+
+def DatosResumen(idAsignatura):
+
+    asignatura = Asignatura.objects.get(pk=idAsignatura)
+    resumen_anotaciones = [] #lista de listas
+    for alumno in asignatura.alumno_set.all():
+        numFaltas = 0
+        numTrabaja = 0
+        numPositivos = 0
+        numNegativos = 0
+
+        for anotacion in Anotacion.objects.filter(asignatura=idAsignatura):
+            if (anotacion.alumno_id == alumno.id):
+                if (anotacion.falta):
+                    numFaltas+=1
+                if (anotacion.trabaja):
+                    numTrabaja+=1
+                if (anotacion.positivos is not None):
+                    numPositivos+=anotacion.positivos
+                if (anotacion.negativos is not None):
+                    numNegativos+=anotacion.negativos
+
+        #se anyade una sublista con la informacion del alumno
+        resumen_anotaciones.append([alumno.id, numFaltas, numTrabaja, numPositivos, numNegativos])
+
+    return resumen_anotaciones
 
 class AnotacionDetailView(DetailView):
     model = Anotacion

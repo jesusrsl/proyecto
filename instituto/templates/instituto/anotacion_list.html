@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load mis_filtros %}
 
+{% block menu %}
+    <li><a href="{% url "anotaciones-pdf" idAsignatura %}">Exportar a PDF</a></li>
+{% endblock %}
+
 {% block section %}
 
     <h2>Valoraciones</h2>
@@ -13,31 +17,71 @@
 
         {% regroup object_list by fecha as anotaciones_list %}
 
-        {% for fecha in anotaciones_list %}
+        <table border="1">
 
-            {{ fecha.grouper |date:"d-m-y"}} <br>
+            <!-- Cabecera: con todas las fechas -->
+            <tr>
+            <td class="cabecera">Alumno/a</td>
+            {% for fecha in anotaciones_list%}
 
-            {% for v in fecha.list %}
+                <td class="cabecera">{{ fecha.grouper |date:"d-m-y"}}</td>
 
-                <a href="{% url 'detalle-alumno' v.alumno.id %}">
-                {{ v.alumno.nombre | capfirst}} {{ v.alumno.apellido1 | capfirst}} {{ v.alumno.apellido2 | capfirst}}
-                </a>
-
-                {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
-
-                {% for p in v.positivos|veces %} + {% endfor %} {% for p in v.negativos|veces %} - {% endfor %}
-
-            <br>
             {% endfor %}
-        {% endfor %}
+            <td class="cabecera">RESUMEN</td>
+
+            </tr>
+
+            {% for alumno in alumno_list %}
+
+                <tr>
+                <td><a href="{% url 'detalle-alumno' alumno.id %}">
+                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</a></td>
+
+
+                {% for fecha in anotaciones_list %}
+
+                {% for v in fecha.list %}
+
+                    {%if alumno.id == v.alumno.id %}
+                        {% define "Yes" as existe_anotacion %}
+                        <td>
+                        <a href="{% url 'editar-anotacion' v.pk %}">
+                            {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
+
+                            {% if v.positivos is not None %} {{ v.positivos }}+ {% endif %}
+
+                            {% if v.negativos is not None %} {{ v.negativos }}- {% endif %}
+
+                           <!-- {% for p in v.positivos|veces %} + {% endfor %} {% for p in v.negativos|veces %} - {% endfor %}-->
+                        </a>
+                        </td>
+
+                    {% elif existe_anotacion is None and forloop.last%}
+                        <td></td> <!--celda en blanco-->
+
+                    {% endif %}
+
+                {% endfor %}
+                {% endfor %}
+
+                <!--datos de resumen -->
+                {% for resumen in resumen_list %}
+                    {% if resumen.0 == alumno.id %} <!-- NOTA: el índice se pone con . y NO con [] -->
+                        <td class="resumen">{{ resumen.1 }} F, {{ resumen.2 }} T, {{ resumen.3 }} +, {{ resumen.4 }} -</td>
+                    {% endif %}
+
+                {% endfor %}
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
     </div>
 
     <br>
-
     <div>
-        {% for v in object_list %}
-            {% if forloop.first %} <a href="{% url 'detalle-asignatura' v.asignatura_id %}">Volver</a> {% endif %}
-        {% endfor %}
+        <a href="{% url 'detalle-asignatura' idAsignatura %}">Volver</a>
     </div>
 
 
