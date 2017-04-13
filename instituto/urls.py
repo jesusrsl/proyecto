@@ -52,9 +52,10 @@ urlpatterns = [
     url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
     url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.AnotacionesPDF, name="anotaciones-pdf"),
     url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
+
     url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
+
     url(r'^anotar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/$', views.AnotacionCreateUpdate.as_view(), name='anotar'),
-    #url(r'^anotacion/editar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/$', views.AnotacionCreate.as_view(),name='editar-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
 
@@ -63,6 +64,6 @@ urlpatterns = [
     url(r'^anotacion/positivo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/$', views.ponerPositivo, name='poner-positivo'),
     url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/$', views.ponerNegativo, name='poner-negativo'),
 
-    url(r'^anotacion/faltas/(?P<idAsignatura>\d+)/$', views.ponerFaltas, name='poner-faltas'),
+    url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/$', views.ponerAnotaciones, name='poner-anotaciones'),
 
 ]

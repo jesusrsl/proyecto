@@ -3,9 +3,10 @@
 {% load mis_filtros %}
 
 
+
 {% block menu %}
     <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
-    <li><a href="{% url "poner-faltas"  object.id %}">Poner faltas</a></li>
+    <li><a href="{% url "poner-anotaciones" object.id %}">Poner anotaciones</a></li>
 {% endblock %}
 
 
@@ -30,7 +31,24 @@
 
     <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
 
+    <form action="{% url "poner-anotaciones" object.id %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+        <p style="text-align: center">
+            <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-info">
+            <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-info">
+            <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-info">
+            <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-info">
+
+            <br><br>
+
+            <div id="enlaces_seleccion">
+                <span onclick="seleccionar_checkbox(document.anotaciones_form,1)">Seleccionar todos</span> |
+                <span onclick="seleccionar_checkbox(document.anotaciones_form,0)">No seleccionar ninguno</span> |
+                <span onclick="invertir_seleccion(document.anotaciones_form,0)">Invertir selección</span>
+            </div>
+        </p>
+
     <div class="row well">
+
         {% for a in object.alumno_set.all %}
             <div class="col-md-3 well">
                 <div class="panel panel-primary">
@@ -38,7 +56,7 @@
                         <div class="panel-heading">
                             <!-- valorar-alumno-->
                             <h3 class="panel-title">
-                                <input type="checkbox" name="a.id">
+                                <input type="checkbox" name="listaAlumnado" value="{{ a.id }}">
                                 <a href="{% url 'anotar' a.id object.id %}">
                                     {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
                                 </a>
@@ -102,7 +120,10 @@
                 </div>
             </div>
         {% endfor %}
+
     </div>
+
+    </form>
 
 
 {% endblock %}
