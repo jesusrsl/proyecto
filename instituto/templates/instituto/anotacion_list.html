@@ -13,23 +13,25 @@
 {% endblock %}
 
 {% block maincontent %}
-    <div>
+    <div class="table-responsive">
 
         {% regroup object_list by fecha as anotaciones_list %}
 
-        <table border="1">
+        <table class="table users table-hover">
+
 
             <!-- Cabecera: con todas las fechas -->
-            <tr>
-            <td class="cabecera">Alumno/a</td>
+            <tr id="tablaAnotaciones">
+            <th class="alumno">Alumno/a</th>
             {% for fecha in anotaciones_list%}
 
-                <td class="cabecera">{{ fecha.grouper |date:"d-m-y"}}</td>
+                <th class="fechas">{{ fecha.grouper |date:"d-m-y"}}</th>
 
             {% endfor %}
-            <td class="cabecera">RESUMEN</td>
+            <th class="resumen">RESUMEN</th>
 
             </tr>
+
 
             {% for alumno in alumno_list %}
 
@@ -81,7 +83,7 @@
 
     <br>
     <div>
-        <a href="{% url 'detalle-asignatura' idAsignatura %}">Volver</a>
+        <a href="{% url 'detalle-asignatura' idAsignatura fecha%}">Volver</a>
     </div>
 
 

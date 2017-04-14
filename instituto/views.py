@@ -21,7 +21,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 
 from .models import Profesor, Asignatura, Grupo, Alumno, Aula, Anotacion
 
-from datetime import date
+from datetime import date, datetime
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -303,14 +303,32 @@ class TutorListView(ListView):
 class AsignaturaListView(ListView):
     model = Asignatura
 
-class AsignaturaDetailView(DetailView):
+    #se le pasa la fecha actual para poder mostrar el detalle de cada asignatura
+    def get_context_data(self, **kwargs):
+        context = super(AsignaturaListView, self).get_context_data(**kwargs)
+        context.update({'fecha': date.today().strftime('%d/%m/%Y')})
+        return context
+
+"""class AsignaturaDetailView(DetailView):
     model = Asignatura
 
     def get_context_data(self, **kwargs):
         context = super(AsignaturaDetailView, self).get_context_data(**kwargs)
         anotaciones = Anotacion.objects.filter(fecha=date.today(),asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
 
-        context.update({'anotacion_list': anotaciones})
+        context.update({'anotacion_list': anotaciones, 'fecha':date.today().strftime('%d/%m/%Y')})
+        return context
+"""
+
+class AsignaturaDetailView(DetailView):
+    model = Asignatura
+
+    def get_context_data(self, **kwargs):
+        context = super(AsignaturaDetailView, self).get_context_data(**kwargs)
+        fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
+
+        context.update({'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha']})
         return context
 
 class AsignaturaCreate(SuccessMessageMixin, CreateView):
@@ -433,19 +451,6 @@ class AlumnoDelete(DeleteView):
         return super(AlumnoDelete, self).delete(request, *args, **kwargs)
 
 
-"""#BOOTSTRAP MODALS --> para utilizar vistas basadas en clases junto con modals (ventanas emergentes)
-class AjaxTemplateMixin(object):
-    def dispatch(self, request, *args, **kwargs):
-        if not hasattr(self, 'ajax_template_name'):
-            split = self.template_name.split('.html')
-            split[-1] = '_inner'
-            split.append('.html')
-            self.ajax_template_name = ''.join(split)
-        if request.is_ajax():
-                self.template_name = self.ajax_template_name
-        return super(AjaxTemplateMixin, self).dispatch(request, *args, **kwargs)
-"""
-
 #ANOTACIONES
 class AnotacionListView(ListView):
     model = Anotacion
@@ -457,7 +462,8 @@ class AnotacionListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(AnotacionListView, self).get_context_data(**kwargs)
         resumen = DatosResumen(self.kwargs['idAsignatura'])
-        context.update({'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
+        fecha = datetime.strftime(date.today(), '%d/%m/%Y')
+        context.update({'fecha': fecha, 'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
         return context
 
 
@@ -490,37 +496,38 @@ def DatosResumen(idAsignatura):
 class AnotacionDetailView(DetailView):
     model = Anotacion
 
-#Vista para redirigir y dedcidir si crear una nueva anotacion o editar la ya existente --> debe haber una anotacion por alumno, asignatura y fecha
+#Vista para redirigir y decidir si crear una nueva anotacion o editar la ya existente --> debe haber una anotacion por alumno, asignatura y fecha
 class AnotacionCreateUpdate(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         try:
-            anotacion=Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=kwargs['idAlumno']), asignatura=Asignatura.objects.get(pk=kwargs['idAsignatura'])).first()
+            anotacion=Anotacion.objects.filter(fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y'), alumno=Alumno.objects.get(pk=kwargs['idAlumno']), asignatura=Asignatura.objects.get(pk=kwargs['idAsignatura'])).first()
             if anotacion is None:
-                return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], })
+                return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
             else:
                 return reverse('editar-anotacion', kwargs={'pk': anotacion.id,})
         except ObjectDoesNotExist:
-            return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], })
+            return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
 
 #class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
 class AnotacionCreate(SuccessMessageMixin, CreateView):
     model = Anotacion
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
-    success_message = 'Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
+    success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
 
     def get_success_message(self, cleaned_data):
         alumno = Alumno.objects.get(pk=self.kwargs['idAlumno'])
-        return self.success_message % dict(nombre_alumno=alumno.nombre, apellido1_alumno=alumno.apellido1, apellido2_alumno=alumno.apellido2)
+        return self.success_message % dict(fecha_str=self.kwargs['fecha'],nombre_alumno=alumno.nombre, apellido1_alumno=alumno.apellido1, apellido2_alumno=alumno.apellido2)
 
     def get_context_data(self, **kwargs):
         context = super(AnotacionCreate, self).get_context_data(**kwargs)
-        context.update({'alumno': self.kwargs['idAlumno'], 'asignatura': self.kwargs['idAsignatura']})
+        context.update({'fecha': self.kwargs['fecha'], 'alumno': self.kwargs['idAlumno'], 'asignatura': self.kwargs['idAsignatura']})
         return context
 
     def form_valid(self, form):
         form.instance.alumno = Alumno.objects.get(pk=self.kwargs['idAlumno'])
         form.instance.asignatura = Asignatura.objects.get(pk=self.kwargs['idAsignatura'])
+        form.instance.fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
         return super(AnotacionCreate, self).form_valid(form)
 
 
@@ -528,16 +535,16 @@ class AnotacionCreate(SuccessMessageMixin, CreateView):
 class AnotacionUpdate(SuccessMessageMixin, UpdateView):
     model = Anotacion
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
-    success_message = 'Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
+    success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
 
     def get_success_message(self, cleaned_data):
         obj = self.get_object()
-        return self.success_message % dict(nombre_alumno=obj.alumno.nombre, apellido1_alumno=obj.alumno.apellido1, apellido2_alumno=obj.alumno.apellido2)
+        return self.success_message % dict(fecha_str=datetime.strftime(obj.fecha, '%d/%m/%Y'), nombre_alumno=obj.alumno.nombre, apellido1_alumno=obj.alumno.apellido1, apellido2_alumno=obj.alumno.apellido2)
 
     #a partir del pk de anotacion pasado en la url, se obtiene el alumno y la asignatura y se anaden al contexto con el que renderizara la plantilla
     def get_context_data(self, **kwargs):
         context = super(AnotacionUpdate, self).get_context_data(**kwargs)
-        context.update({'alumno': Anotacion.objects.get(id=self.kwargs['pk']).alumno_id, 'asignatura': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id})
+        context.update({'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y'), 'alumno': Anotacion.objects.get(id=self.kwargs['pk']).alumno_id, 'asignatura': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id})
         return context
 
 
@@ -548,7 +555,12 @@ class AnotacionDelete(SuccessMessageMixin, DeleteView):
     success_message = 'Anotacion elimanada correctamente'
 
     def get_success_url(self):
-        return reverse_lazy('detalle-asignatura', kwargs={'pk': Anotacion.objects.get(pk=self.kwargs['pk']).asignatura_id}) #comprobar
+        return reverse_lazy('detalle-asignatura', kwargs={'pk': Anotacion.objects.get(pk=self.kwargs['pk']).asignatura_id, 'fecha': datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
+
+    def get_context_data(self, **kwargs):
+        context = super(AnotacionDelete, self).get_context_data(**kwargs)
+        context.update({'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
+        return context
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -558,18 +570,18 @@ class AnotacionDelete(SuccessMessageMixin, DeleteView):
 
 #Vistas para crear anotaciones individuales
 
-def ponerFalta(request, idAlumno, idAsignatura):
+def ponerFalta(request, idAlumno, idAsignatura,fecha):
 
     ha_faltado = False
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
             anotacion.save()
             ha_faltado = True
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             falta = anotacion.first().falta
             ha_faltado = not falta
@@ -580,24 +592,24 @@ def ponerFalta(request, idAlumno, idAsignatura):
 
     alumno = Alumno.objects.get(pk=idAlumno)
     if ha_faltado:
-        messages.add_message(request, messages.SUCCESS, 'Se le ha puesto falta al alumno %s %s %s' %(alumno.nombre, alumno.apellido1, alumno.apellido2))
+        messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
     else:
-        messages.add_message(request, messages.SUCCESS, 'Se le ha quitado la falta al alumno %s %s %s' %(alumno.nombre, alumno.apellido1, alumno.apellido2))
+        messages.add_message(request, messages.SUCCESS, '[%s] Se le ha quitado la falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura,fecha)))
 
 #funcion para poner falta al alumno (la tenga o no la tenga ya). No muestra mensaje ni redirige
-def falta(request, idAlumno, idAsignatura):
+def falta(request, idAlumno, idAsignatura, fecha):
 
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
             anotacion.save()
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             anotacion.update(falta=True)
 
@@ -605,18 +617,18 @@ def falta(request, idAlumno, idAsignatura):
         pass
 
 
-def ponerTrabaja(request, idAlumno, idAsignatura):
+def ponerTrabaja(request, idAlumno, idAsignatura, fecha):
 
     ha_trabajado = False
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), trabaja=True)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), trabaja=True)
             anotacion.save()
             ha_trabajado = True
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             trabaja = anotacion.first().trabaja
             ha_trabajado = not trabaja
@@ -627,51 +639,51 @@ def ponerTrabaja(request, idAlumno, idAsignatura):
 
     alumno = Alumno.objects.get(pk=idAlumno)
     if ha_trabajado:
-        messages.add_message(request, messages.SUCCESS, 'El alumno %s %s %s ha trabajado correctamente' % (
-        alumno.nombre, alumno.apellido1, alumno.apellido2))
+        messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s ha trabajado correctamente' % (
+        fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
     else:
-        messages.add_message(request, messages.SUCCESS, 'El alumno %s %s %s no ha trabajado correctamente' % (
-        alumno.nombre, alumno.apellido1, alumno.apellido2))
+        messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s no ha trabajado correctamente' % (
+        fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
 
 #funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No muestra mensaje ni redirige
-def trabaja(request, idAlumno, idAsignatura):
+def trabaja(request, idAlumno, idAsignatura, fecha):
 
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), trabaja=True)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), trabaja=True)
             anotacion.save()
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             anotacion.update(trabaja=True)
 
     except ObjectDoesNotExist:
         pass
 
-def ponerPositivo(request, idAlumno, idAsignatura):
+def ponerPositivo(request, idAlumno, idAsignatura, fecha):
 
-    positivo(request,idAlumno,idAsignatura)
+    positivo(request,idAlumno,idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    messages.add_message(request, messages.SUCCESS, 'Se le ha puesto un positivo al alumno %s %s %s' %(alumno.nombre, alumno.apellido1, alumno.apellido2))
+    messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
 
 #funcion para poner un positivo al alumno, sin mostrar mensaje ni redirigir
-def positivo(request, idAlumno, idAsignatura):
+def positivo(request, idAlumno, idAsignatura, fecha):
 
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), positivos=1)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'),alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), positivos=1)
             anotacion.save()
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             positivos = anotacion.first().positivos
             if positivos is None:
@@ -686,26 +698,26 @@ def positivo(request, idAlumno, idAsignatura):
 
 
 
-def ponerNegativo(request, idAlumno, idAsignatura):
+def ponerNegativo(request, idAlumno, idAsignatura, fecha):
 
-    negativo(request, idAlumno, idAsignatura)
+    negativo(request, idAlumno, idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    messages.add_message(request, messages.SUCCESS, 'Se le ha puesto un negativo al alumno %s %s %s' % (alumno.nombre, alumno.apellido1, alumno.apellido2))
+    messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
 
 #funcion para poner un negativo al alumno, sin mostrar mensaje ni redirigir
-def negativo(request, idAlumno, idAsignatura):
+def negativo(request, idAlumno, idAsignatura, fecha):
 
     try:
-        anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+        anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), negativos=1)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), negativos=1)
             anotacion.save()
         else:
-            anotacion = Anotacion.objects.filter(fecha=date.today(), alumno=Alumno.objects.get(pk=idAlumno),
+            anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             negativos = anotacion.first().negativos
             if negativos is None:
@@ -719,32 +731,29 @@ def negativo(request, idAlumno, idAsignatura):
         pass
 
 #vista para realizar anotaciones a multiples alumnos a la vez
-def ponerAnotaciones(request, idAsignatura):
-
+def ponerAnotaciones(request, idAsignatura, fecha):
     if "listaAlumnado" in request.POST and "poner_faltas" in request.POST:
         lista = request.POST.getlist('listaAlumnado')
         for alumno in lista:
-            falta(request, alumno, idAsignatura)
-        messages.add_message(request, messages.SUCCESS, 'Falta(s) puesta(s) correctamente')
-
+            falta(request, alumno, idAsignatura, fecha)
+        messages.add_message(request, messages.SUCCESS, '[%s] Falta(s) puesta(s) correctamente' % fecha)
     elif "listaAlumnado" in request.POST and "poner_trabaja" in request.POST:
         lista = request.POST.getlist('listaAlumnado')
         for alumno in lista:
-            trabaja(request, alumno, idAsignatura)
-        messages.add_message(request, messages.SUCCESS, 'Anotacion(es) de trabajo puesta(s) correctamente')
-
-    if "listaAlumnado" in request.POST and "poner_positivo" in request.POST:
+            trabaja(request, alumno, idAsignatura, fecha)
+        messages.add_message(request, messages.SUCCESS, '[%s] Anotacion(es) de trabajo puesta(s) correctamente' % fecha)
+    elif "listaAlumnado" in request.POST and "poner_positivo" in request.POST:
         lista = request.POST.getlist('listaAlumnado')
         for alumno in lista:
-            positivo(request, alumno, idAsignatura)
-        messages.add_message(request, messages.SUCCESS, 'Positivo(s) puesto(s) correctamente')
-
-    if "listaAlumnado" in request.POST and "poner_negativo" in request.POST:
+            positivo(request, alumno, idAsignatura, fecha)
+        messages.add_message(request, messages.SUCCESS, '[%s] Positivo(s) puesto(s) correctamente' % fecha)
+    elif "listaAlumnado" in request.POST and "poner_negativo" in request.POST:
         lista = request.POST.getlist('listaAlumnado')
         for alumno in lista:
-            negativo(request, alumno, idAsignatura)
-        messages.add_message(request, messages.SUCCESS, 'Negativo(s) puesto(s) correctamente')
-
+            negativo(request, alumno, idAsignatura, fecha)
+        messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
+    elif "fecha" in request.POST and "cambiar_fecha"  in request.POST:
+        fecha = request.POST.get('fecha')
 
     #FALTA CONSERVAR la seleccion
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))

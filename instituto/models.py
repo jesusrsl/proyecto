@@ -5,6 +5,9 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from django.utils import timezone
+from datetime import date, datetime
+
 
 # Create your models here.
 from django.urls import reverse
@@ -137,7 +140,7 @@ def foto_delete(sender, instance, **kwargs):
 class Anotacion(models.Model):
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now_add=True)
+    fecha = models.DateField(default=date.today)
     falta = models.BooleanField(default=False)
     trabaja = models.BooleanField(default=False)
     positivos = models.PositiveIntegerField(null=True, blank=True)
@@ -148,7 +151,10 @@ class Anotacion(models.Model):
         return "Anotación de %s %s %s en %s, el %s" % (self.alumno.nombre, self.alumno.apellido1, self.alumno.apellido2, self.asignatura.nombre, unicode(self.fecha))
 
     def get_absolute_url(self):
-        return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id})
+        """if self.fecha == date.today():
+            return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id})
+        else:"""
+        return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id, 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
         #return reverse('lista-alumnos')
 
 

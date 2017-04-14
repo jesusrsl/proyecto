@@ -6,7 +6,7 @@
 
 {% block menu %}
     <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
-    <li><a href="{% url "poner-anotaciones" object.id %}">Poner anotaciones</a></li>
+
 {% endblock %}
 
 
@@ -31,21 +31,28 @@
 
     <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
 
-    <form action="{% url "poner-anotaciones" object.id %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+    <form action="{% url "poner-anotaciones" object.id fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+
+        <p style="text-align: right">
+            <input type="date" name="fecha" id="fecha" step="1" value="{{ fecha }}">
+            <input type="submit" name="cambiar_fecha" id="cambiar_fecha" value="Cambiar fecha" class="btn btn-info">
+            <!-- primer botón, por si se le da al Intro en el cuadro de texto-->
+        </p>
+
         <p style="text-align: center">
             <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-info">
             <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-info">
             <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-info">
             <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-info">
 
-            <br><br>
-
-            <div id="enlaces_seleccion">
-                <span onclick="seleccionar_checkbox(document.anotaciones_form,1)">Seleccionar todos</span> |
-                <span onclick="seleccionar_checkbox(document.anotaciones_form,0)">No seleccionar ninguno</span> |
-                <span onclick="invertir_seleccion(document.anotaciones_form,0)">Invertir selección</span>
-            </div>
         </p>
+
+        <div id="enlaces_seleccion">
+            <span onclick="seleccionar_checkbox(document.anotaciones_form,1)">Seleccionar todos</span> |
+            <span onclick="seleccionar_checkbox(document.anotaciones_form,0)">No seleccionar ninguno</span> |
+            <span onclick="invertir_seleccion(document.anotaciones_form,0)">Invertir selección</span>
+        </div>
+
 
     <div class="row well">
 
@@ -57,7 +64,7 @@
                             <!-- valorar-alumno-->
                             <h3 class="panel-title">
                                 <input type="checkbox" name="listaAlumnado" value="{{ a.id }}">
-                                <a href="{% url 'anotar' a.id object.id %}">
+                                <a href="{% url 'anotar' a.id object.id fecha %}">
                                     {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
                                 </a>
                             </h3>
@@ -85,34 +92,34 @@
                                 {% define "Yes" as anotacion_creada %}
 
                                 {% if anotacion.falta %}
-                                    <a href="{% url 'poner-falta' a.id object.id %}"><span class="red">F</span></a>
+                                    <a href="{% url 'poner-falta' a.id object.id fecha %}"><span class="red">F</span></a>
                                 {% else %}
-                                    <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
+                                    <a href="{% url 'poner-falta' a.id object.id fecha%}"><span class="blue">F</span></a>
                                 {% endif %}
 
                                 {% if anotacion.trabaja %}
-                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="green">T</span></a>
+                                    <a href="{% url 'poner-trabaja' a.id object.id fecha %}"><span class="green">T</span></a>
                                 {% else %}
-                                    <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
+                                    <a href="{% url 'poner-trabaja' a.id object.id fecha %}"><span class="blue">T</span></a>
                                 {% endif %}
 
-                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
-                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id fecha %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id fecha %}"><span class="blue">-</span></a>
 
                             {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
 
-                                <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
-                                <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
-                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
-                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
+                                <a href="{% url 'poner-falta' a.id object.id fecha %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id fecha %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id fecha %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id fecha %}"><span class="blue">-</span></a>
 
                             {% endif %}
 
                             {% empty %} <!-- no hay ninguna anotación -->
-                                <a href="{% url 'poner-falta' a.id object.id %}"><span class="blue">F</span></a>
-                                <a href="{% url 'poner-trabaja' a.id object.id %}"><span class="blue">T</span></a>
-                                <a href="{% url 'poner-positivo' a.id object.id %}"><span class="blue">+</span></a>
-                                <a href="{% url 'poner-negativo' a.id object.id %}"><span class="blue">-</span></a>
+                                <a href="{% url 'poner-falta' a.id object.id fecha %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id fecha %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id fecha %}"><span class="blue">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id fecha %}"><span class="blue">-</span></a>
 
                         {% endfor %}
 
