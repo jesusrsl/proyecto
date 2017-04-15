@@ -2,6 +2,44 @@
 {% load static %}
 {% load mis_filtros %}
 
+{% block js %}
+<script>
+
+jQuery(function($){
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '&#x3c;Ant ',
+		nextText: ' Sig&#x3e;',
+		currentText: 'Hoy',
+		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
+		'Jul','Ago','Sep','Oct','Nov','Dic'],
+		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+	$("#datepicker").datepicker({
+        showAnim: 'slideDown',
+        beforeShowDay: jQuery.datepicker.noWeekends,
+        onSelect: function(date, inst) {
+            document.anotaciones_form.submit();
+        },
+    });
+});
+
+
+$(document).ready(function() {
+   $("#datepicker").datepicker();
+ });
+</script>
+{% endblock %}
 
 
 {% block menu %}
@@ -19,7 +57,20 @@
 {% endblock %}
 
 {% block maincontent %}
-    <h4>Alumnado matriculado</h4>
+
+    <form action="{% url "poner-anotaciones" object.id fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+
+        <p style="text-align: right">
+        <span style="font-weight: bold">Fecha:</span>
+            <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
+        </p>
+
+
+    {% if not lectivo %}
+        <h4>Día no lectivo</h4>
+    {% else %}
+
+        <h4>Alumnado matriculado</h4>
 
     <!--
     <div id="overlay">
@@ -31,30 +82,23 @@
 
     <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
 
-    <form action="{% url "poner-anotaciones" object.id fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
 
-        <p style="text-align: right">
-            <input type="date" name="fecha" id="fecha" step="1" value="{{ fecha }}">
-            <input type="submit" name="cambiar_fecha" id="cambiar_fecha" value="Cambiar fecha" class="btn btn-info">
-            <!-- primer botón, por si se le da al Intro en el cuadro de texto-->
-        </p>
+            <p style="text-align: center">
+                <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-info">
+                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-info">
+                <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-info">
+                <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-info">
 
-        <p style="text-align: center">
-            <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-info">
-            <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-info">
-            <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-info">
-            <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-info">
+            </p>
 
-        </p>
-
-        <div id="enlaces_seleccion">
-            <span onclick="seleccionar_checkbox(document.anotaciones_form,1)">Seleccionar todos</span> |
-            <span onclick="seleccionar_checkbox(document.anotaciones_form,0)">No seleccionar ninguno</span> |
-            <span onclick="invertir_seleccion(document.anotaciones_form,0)">Invertir selección</span>
-        </div>
+            <div id="enlaces_seleccion">
+                <span onclick="seleccionar_checkbox(document.anotaciones_form,1)">Seleccionar todos</span> |
+                <span onclick="seleccionar_checkbox(document.anotaciones_form,0)">No seleccionar ninguno</span> |
+                <span onclick="invertir_seleccion(document.anotaciones_form,0)">Invertir selección</span>
+            </div>
 
 
-    <div class="row well">
+        <div class="row well">
 
         {% for a in object.alumno_set.all %}
             <div class="col-md-3 well">
@@ -128,10 +172,11 @@
             </div>
         {% endfor %}
 
-    </div>
+        </div>
+
+    {% endif %}
 
     </form>
-
 
 {% endblock %}
 

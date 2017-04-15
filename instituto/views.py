@@ -21,7 +21,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 
 from .models import Profesor, Asignatura, Grupo, Alumno, Aula, Anotacion
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -326,9 +326,14 @@ class AsignaturaDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(AsignaturaDetailView, self).get_context_data(**kwargs)
         fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        if fecha.strftime('%A') == "Saturday" or fecha.strftime('%A') == "Sunday":
+            lectivo = False
+        else:
+            lectivo = True
+
         anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
 
-        context.update({'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha']})
+        context.update({'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
         return context
 
 class AsignaturaCreate(SuccessMessageMixin, CreateView):
@@ -752,7 +757,7 @@ def ponerAnotaciones(request, idAsignatura, fecha):
         for alumno in lista:
             negativo(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
-    elif "fecha" in request.POST and "cambiar_fecha"  in request.POST:
+    elif "fecha" in request.POST:
         fecha = request.POST.get('fecha')
 
     #FALTA CONSERVAR la seleccion

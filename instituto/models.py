@@ -154,6 +154,8 @@ class Anotacion(models.Model):
         """if self.fecha == date.today():
             return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id})
         else:"""
+
+
         return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id, 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
         #return reverse('lista-alumnos')
 
