@@ -1,0 +1,55 @@
+span.red {
+    background: red;
+    border-radius: 0.8em;
+    -moz-border-radius: 0.8em;
+    -webkit-border-radius: 0.8em;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: bold;
+    line-height: 1.6em;
+    margin-right: 10px;
+    margin-left: 10px;
+    text-align: center;
+    width: 1.6em;
+}
+
+span.green {
+    background: #5EA226;
+    border-radius: 0.8em;
+    -moz-border-radius: 0.8em;
+    -webkit-border-radius: 0.8em;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: bold;
+    line-height: 1.6em;
+    margin-right: 10px;
+    margin-left: 10px;
+    text-align: center;
+    width: 1.6em;
+}
+
+span.blue {
+    background: #5178D0;
+    border-radius: 0.8em;
+    -moz-border-radius: 0.8em;
+    -webkit-border-radius: 0.8em;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: bold;
+    /*font-size: large;*/
+    line-height: 1.6em;
+    margin-right: 10px;
+    margin-left: 10px;
+    text-align: center;
+    width: 1.6em;
+    /*  -webkit-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    7px 7px 5px 0px rgba(50, 50, 50, 0.75);
+    box-shadow:         7px 7px 5px 0px rgba(50, 50, 50, 0.75);*/
+}
+div#enlaces_seleccion {
+    text-align: center;
+}
+div#enlaces_seleccion span {
+    cursor:pointer;
+    color: #5178D0;
+}

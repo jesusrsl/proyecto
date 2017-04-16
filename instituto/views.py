@@ -30,7 +30,7 @@ from django.core.exceptions import ObjectDoesNotExist
 def base(request):
     return render(request, 'base.html')
 
-def AsignaturasPDF(request):
+def asignaturasPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "asignaturas.pdf"
@@ -84,7 +84,7 @@ def AsignaturasPDF(request):
     return response
 
 
-def AnotacionesPDF(request, idAsignatura):
+def anotacionesPDF(request, idAsignatura, inicio, fin):
 
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "anotaciones-%s.pdf" % Asignatura.objects.get(pk=idAsignatura).nombre
@@ -117,10 +117,10 @@ def AnotacionesPDF(request, idAsignatura):
     f1.fontName = 'Times-Italic'
     f1.spaceBefore = 20
 
-    header = Paragraph("Valoraciones de la asignatura % s" % Asignatura.objects.get(pk=idAsignatura).nombre, h1)
+    header = Paragraph("Anotaciones de la asignatura % s" % Asignatura.objects.get(pk=idAsignatura).nombre, h1)
     contenido.append(header)
 
-    anotaciones=Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
+    anotaciones=Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin, asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
 
     #se cuenta el numero de fechas diferentes (= numero de anotaciones de cada alumno)
     key = itemgetter('fecha')
@@ -140,7 +140,7 @@ def AnotacionesPDF(request, idAsignatura):
         num_fechas += 1
         fecha_list.append(fecha[0])
         if (num_fechas % 7) == 0 and num_fechas < total_anotaciones:   #nueva pagina
-            t = AnotacionesPorPagina(idAsignatura, fecha_list, False)
+            t = anotacionesPorPagina(idAsignatura, fecha_list, inicio, fin, False)
             contenido.append(t)
             contenido.append(Paragraph("Pag %d" % num_pagina, f1))
             #salto de pagina
@@ -148,7 +148,7 @@ def AnotacionesPDF(request, idAsignatura):
             fecha_list = []
             num_pagina+=1
         elif num_fechas == total_anotaciones: #ultima pagina
-            t = AnotacionesPorPagina(idAsignatura, fecha_list, True)
+            t = anotacionesPorPagina(idAsignatura, fecha_list, inicio, fin, True)
             contenido.append(t)
             contenido.append(Paragraph("Pag %d" % num_pagina, f1))
 
@@ -158,9 +158,9 @@ def AnotacionesPDF(request, idAsignatura):
     return response
 
 
-def AnotacionesPorPagina(idAsignatura, listaFechas, ultimaPag):
+def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
 
-    anotaciones=Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
+    anotaciones=Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin, asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha').values()
 
     key = itemgetter('fecha')
     iter = groupby(sorted(anotaciones, key=key), key=key)
@@ -178,7 +178,7 @@ def AnotacionesPorPagina(idAsignatura, listaFechas, ultimaPag):
 
     for alumno in Asignatura.objects.get(pk=idAsignatura).alumno_set.all():
 
-        anotaciones = Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+        anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin, asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
             'fecha').values()
 
         key = itemgetter('fecha')
@@ -213,7 +213,7 @@ def AnotacionesPorPagina(idAsignatura, listaFechas, ultimaPag):
 
         if ultimaPag:
             # se anyade la informacion del resumen
-            resumen_list = DatosResumen(idAsignatura)
+            resumen_list = datosResumen(idAsignatura, inicio, fin)
             resumen_anotaciones = ""
             for resumen in resumen_list:
                 if resumen[0] == alumno.id:
@@ -457,22 +457,65 @@ class AlumnoDelete(DeleteView):
 
 
 #ANOTACIONES
+
+"""
+    IMPORTANE:
+    puede que no sea necesaria esta clase
+"""
 class AnotacionListView(ListView):
     model = Anotacion
 
     def get_queryset(self):
+        #inicio = datetime.strptime(self.kwargs['inicio'], '%d/%m/%Y')
+        #fin = datetime.strptime(self.kwargs['fin'], '%d/%m/%Y')
+        #queryset = super(AnotacionListView, self).get_queryset().filter(fecha__gte=inicio, fecha__lte=fin, asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura'])).order_by('fecha', 'alumno')
         queryset = super(AnotacionListView, self).get_queryset().filter(asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura'])).order_by('fecha', 'alumno')
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super(AnotacionListView, self).get_context_data(**kwargs)
-        resumen = DatosResumen(self.kwargs['idAsignatura'])
+
+        inicio = Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura'])).order_by('fecha').first().fecha
+        fin = Anotacion.objects.filter(asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura'])).order_by('-fecha').first().fecha
+        resumen = datosResumen(self.kwargs['idAsignatura'], inicio, fin)
+
         fecha = datetime.strftime(date.today(), '%d/%m/%Y')
+
         context.update({'fecha': fecha, 'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
         return context
 
+def anotacionesFechas(request, idAsignatura):
+    error = False
+    mensaje_error = ""
+    if 'inicio' in request.POST and 'fin' in request.POST:
+        f_inicio = request.POST['inicio']
+        f_fin = request.POST['fin']
+        try:
+            inicio = datetime.strptime(f_inicio, '%d/%m/%Y')
+            fin = datetime.strptime(f_fin, '%d/%m/%Y')
+            fecha = datetime.strftime(date.today(), '%d/%m/%Y')
+            resumen = datosResumen(idAsignatura, inicio, fin)
+            anotaciones= Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                  asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha','alumno')
 
-def DatosResumen(idAsignatura):
+            #return HttpResponseRedirect(reverse('lista-anotaciones', args=(idAsignatura)))
+            if anotaciones.count() == 0:    #no existen anotaciones en esas fechas
+                error = True
+                mensaje_error = "No existen anotaciones en las fechas indicadas. Por favor, intentelo de nuevo."
+            elif "ver_anotaciones" in request.POST:
+                return render(request, 'instituto/anotacion_list.html', {'fecha': fecha, 'object_list':anotaciones, 'idAsignatura': idAsignatura,'alumno_list': Asignatura.objects.get(pk=idAsignatura).alumno_set.all, 'resumen_list':resumen })
+            elif "anotaciones_pdf" in request.POST:
+                #return HttpResponseRedirect(reverse('anotaciones-pdf', args=(idAsignatura)))
+                return anotacionesPDF(request, idAsignatura, inicio, fin)
+
+        except ValueError:
+            error = True
+            mensaje_error = "Por favor, introduzca fechas de inicio y fin validas."
+
+
+    return render(request,'instituto/fechas_anotaciones.html', {'error':error, 'mensaje_error':mensaje_error, 'idAsignatura':idAsignatura, 'fecha': datetime.strftime(date.today(), '%d/%m/%Y')})
+
+def datosResumen(idAsignatura, inicio, fin):
 
     asignatura = Asignatura.objects.get(pk=idAsignatura)
     resumen_anotaciones = [] #lista de listas
@@ -482,7 +525,7 @@ def DatosResumen(idAsignatura):
         numPositivos = 0
         numNegativos = 0
 
-        for anotacion in Anotacion.objects.filter(asignatura=idAsignatura):
+        for anotacion in Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin, asignatura=idAsignatura):
             if (anotacion.alumno_id == alumno.id):
                 if (anotacion.falta):
                     numFaltas+=1

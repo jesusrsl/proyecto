@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^asignatura/nueva/$', views.AsignaturaCreate.as_view(), name='nueva-asignatura'),
     url(r'^asignatura/(?P<pk>\d+)/editar/$', views.AsignaturaUpdate.as_view(), name='editar-asignatura'),
     url(r'^asignatura/(?P<pk>\d+)/eliminar/$', views.AsignaturaDelete.as_view(), name='eliminar-asignatura'),
-    url(r'^asignaturas/PDF/$', views.AsignaturasPDF, name="asignaturas-pdf"),
+    url(r'^asignaturas/PDF/$', views.asignaturasPDF, name="asignaturas-pdf"),
 
     #GRUPOS
     url(r'^grupos/$', views.GrupoListView.as_view(), name='lista-grupos'),
@@ -55,7 +55,12 @@ urlpatterns = [
 
     #ANOTACIONES
     url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
-    url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.AnotacionesPDF, name="anotaciones-pdf"),
+    url(r'^anotaciones/fechas/(?P<idAsignatura>\d+)/$', views.anotacionesFechas, name='fechas-anotaciones'),
+    #url(r'^anotaciones/(?P<idAsignatura>\d+)/(?P<inicio>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/(?P<fin>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
+
+    #url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.anotacionesPDF, name="anotaciones-pdf"),
+    #NOTA: es llamado desde fecha-anotaciones
+
     url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
 
     url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),

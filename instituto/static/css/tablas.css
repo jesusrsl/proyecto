@@ -1,0 +1,38 @@
+table {
+    border: gray 2px solid;
+    table-layout: fixed;
+}
+
+#tablaAnotaciones th.alumno{
+    width: 250px;
+    border: gray 1px solid;
+    overflow: auto;
+    background-color: dodgerblue;
+    color: darkblue;
+}
+
+#tablaAnotaciones th.resumen{
+    width: 150px;
+    border: gray 1px solid;
+    overflow: auto;
+    background-color: dodgerblue;
+    color: darkblue;
+}
+
+#tablaAnotaciones th.fechas{
+    width: 80px;
+    border: gray 1px solid;
+    overflow: auto;
+    background-color: dodgerblue;
+    color: darkblue;
+}
+
+td {
+    margin: 5px;
+    padding: 5px;
+    border: gray 1px solid;
+}
+
+td.resumen{
+    background-color: lightgray;
+}
