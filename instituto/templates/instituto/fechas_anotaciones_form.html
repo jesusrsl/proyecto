@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 
+{% block section %}
 
+    <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
+    <hr>
+
+{% endblock %}
 
 {% block maincontent %}
 
@@ -10,15 +15,16 @@
 
     <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" method="post">{% csrf_token %}
         <p>
-            <span style="font-weight: bold">Fecha de inicio:</span>
-            <input type="text" name="inicio" value="{{ fecha }}" size="8">
+            <span style="font-weight: bold"><label for="id_inicio">Fecha de inicio:</label></span>
+            <input type="text" name="inicio" id="id_inicio" value="{{ fecha }}" size="8">
         </p>
         <p>
-            <span style="font-weight: bold">Fecha de fin:</span>
-            <input type="text" name="fin"  value="{{ fecha }}" size="8">
+            <span style="font-weight: bold"><label for="id_fin">Fecha de fin:</label></span>
+            <input type="text" name="fin"  id="id_fin" value="{{ fecha }}" size="8">
         </p>
         <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-info">
         <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-info">
+
         <a class='btn' href="{% url 'detalle-asignatura' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
     </form>
 {% endblock %}

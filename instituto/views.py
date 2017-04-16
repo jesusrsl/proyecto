@@ -461,7 +461,7 @@ class AlumnoDelete(DeleteView):
 """
     IMPORTANE:
     puede que no sea necesaria esta clase
-"""
+
 class AnotacionListView(ListView):
     model = Anotacion
 
@@ -483,27 +483,29 @@ class AnotacionListView(ListView):
 
         context.update({'fecha': fecha, 'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
         return context
+"""
 
 def anotacionesFechas(request, idAsignatura):
     error = False
     mensaje_error = ""
+    asignatura = Asignatura.objects.get(pk=idAsignatura)
+    fecha = datetime.strftime(date.today(), '%d/%m/%Y')
+
     if 'inicio' in request.POST and 'fin' in request.POST:
         f_inicio = request.POST['inicio']
         f_fin = request.POST['fin']
         try:
             inicio = datetime.strptime(f_inicio, '%d/%m/%Y')
             fin = datetime.strptime(f_fin, '%d/%m/%Y')
-            fecha = datetime.strftime(date.today(), '%d/%m/%Y')
             resumen = datosResumen(idAsignatura, inicio, fin)
             anotaciones= Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
                                   asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha','alumno')
 
-            #return HttpResponseRedirect(reverse('lista-anotaciones', args=(idAsignatura)))
             if anotaciones.count() == 0:    #no existen anotaciones en esas fechas
                 error = True
                 mensaje_error = "No existen anotaciones en las fechas indicadas. Por favor, intentelo de nuevo."
             elif "ver_anotaciones" in request.POST:
-                return render(request, 'instituto/anotacion_list.html', {'fecha': fecha, 'object_list':anotaciones, 'idAsignatura': idAsignatura,'alumno_list': Asignatura.objects.get(pk=idAsignatura).alumno_set.all, 'resumen_list':resumen })
+                return render(request, 'instituto/anotacion_list.html', {'fecha': fecha, 'object_list':anotaciones, 'nombreAsignatura': asignatura.nombre, 'idAsignatura': idAsignatura,'alumno_list': asignatura.alumno_set.all, 'resumen_list':resumen })
             elif "anotaciones_pdf" in request.POST:
                 #return HttpResponseRedirect(reverse('anotaciones-pdf', args=(idAsignatura)))
                 return anotacionesPDF(request, idAsignatura, inicio, fin)
@@ -513,7 +515,7 @@ def anotacionesFechas(request, idAsignatura):
             mensaje_error = "Por favor, introduzca fechas de inicio y fin validas."
 
 
-    return render(request,'instituto/fechas_anotaciones.html', {'error':error, 'mensaje_error':mensaje_error, 'idAsignatura':idAsignatura, 'fecha': datetime.strftime(date.today(), '%d/%m/%Y')})
+    return render(request, 'instituto/fechas_anotaciones_form.html', {'error':error, 'mensaje_error':mensaje_error, 'nombreAsignatura': asignatura.nombre, 'idAsignatura':idAsignatura, 'fecha': fecha})
 
 def datosResumen(idAsignatura, inicio, fin):
 

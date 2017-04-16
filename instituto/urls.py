@@ -54,10 +54,8 @@ urlpatterns = [
     url(r'^alumno/(?P<pk>\d+)/eliminar/$', views.AlumnoDelete.as_view(), name='eliminar-alumno'),
 
     #ANOTACIONES
-    url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
-    url(r'^anotaciones/fechas/(?P<idAsignatura>\d+)/$', views.anotacionesFechas, name='fechas-anotaciones'),
-    #url(r'^anotaciones/(?P<idAsignatura>\d+)/(?P<inicio>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/(?P<fin>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
-
+    #url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
+    url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.anotacionesFechas, name='lista-anotaciones'),
     #url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.anotacionesPDF, name="anotaciones-pdf"),
     #NOTA: es llamado desde fecha-anotaciones
 

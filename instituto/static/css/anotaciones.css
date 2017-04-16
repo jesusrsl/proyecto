@@ -28,6 +28,21 @@ span.green {
     width: 1.6em;
 }
 
+span.orange {
+    background: orange;
+    border-radius: 0.8em;
+    -moz-border-radius: 0.8em;
+    -webkit-border-radius: 0.8em;
+    color: #ffffff;
+    display: inline-block;
+    font-weight: bold;
+    line-height: 1.6em;
+    margin-right: 10px;
+    margin-left: 10px;
+    text-align: center;
+    width: 1.6em;
+}
+
 span.blue {
     background: #5178D0;
     border-radius: 0.8em;

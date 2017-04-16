@@ -4,7 +4,7 @@
 
 {% block section %}
 
-    <h2>Valoraciones</h2>
+    <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
     <hr>
 
 {% endblock %}
@@ -80,7 +80,7 @@
 
     <br>
     <div>
-        <a href="{% url 'detalle-asignatura' idAsignatura fecha%}">Volver</a>
+        <a href="{% url 'detalle-asignatura' idAsignatura fecha %}">Volver</a>
     </div>
 
 
