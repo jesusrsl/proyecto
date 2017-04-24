@@ -1,6 +1,15 @@
-table {
+/*TABLA DE ANOTACIONES*/
+table#tablaAnotaciones {
     border: gray 2px solid;
     table-layout: fixed;
+}
+
+#tablaAnotaciones tr.fila1{
+    background-color: lightgrey;
+}
+
+#tablaAnotaciones tr.fila2{
+    background-color: white;
 }
 
 #tablaAnotaciones th.alumno{
@@ -27,12 +36,66 @@ table {
     color: darkblue;
 }
 
-td {
-    margin: 5px;
-    padding: 5px;
+#tablaAnotaciones td{
     border: gray 1px solid;
 }
 
-td.resumen{
+#tablaAnotaciones td.resumen{
     background-color: lightgray;
 }
+
+/*TABLA DE ALUMNADO de una asignatura*/
+table#tablaAlumnado {
+    border: steelblue 2px solid;
+    table-layout: auto;
+}
+
+#tablaAlumnado th {
+    color: steelblue;
+    text-indent: 10%;
+}
+
+#tablaAlumnado td {
+    border: steelblue 1px solid;
+}
+
+#tablaAlumnado tr.fila1 {
+    background-color: lightgrey;
+}
+
+#tablaAlumnado tr.fila2 {
+    background-color: white;
+}
+
+#tablaAlumnado tr.error {
+    background-color: lightpink;
+    color: darkred;
+}
+
+#tablaAlumnado td.blue {
+    background-color: lightsteelblue;
+    text-align: center;
+}
+
+#tablaAlumnado td.red {
+    background-color: lightcoral;
+    text-align: center;
+}
+
+#tablaAlumnado td.green {
+    background-color: lightgreen;
+    text-align: center;
+}
+
+#tablaAlumnado td.orange {
+    background-color: moccasin;
+    text-align: center;
+}
+
+.boton, a:link.boton, a:active.boton, a:visited.boton, a:hover.boton {
+    text-decoration:none;
+    color:steelblue;
+    font-weight: bolder;
+    display:block;
+}
+

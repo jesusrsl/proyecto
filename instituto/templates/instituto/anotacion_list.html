@@ -14,11 +14,11 @@
 
         {% regroup object_list by fecha as anotaciones_list %}
 
-        <table class="table users table-hover">
+        <table id="tablaAnotaciones" class="table users table-hover">
 
 
             <!-- Cabecera: con todas las fechas -->
-            <tr id="tablaAnotaciones">
+            <tr>
             <th class="alumno">Alumno/a</th>
             {% for fecha in anotaciones_list%}
 
@@ -32,7 +32,7 @@
 
             {% for alumno in alumno_list %}
 
-                <tr>
+                <tr class="{% cycle 'fila1' 'fila2' %}">
                 <td><a href="{% url 'detalle-alumno' alumno.id %}">
                 {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</a></td>
 
@@ -50,8 +50,6 @@
                             {% if v.positivos is not None %} {{ v.positivos }}+ {% endif %}
 
                             {% if v.negativos is not None %} {{ v.negativos }}- {% endif %}
-
-                           <!-- {% for p in v.positivos|veces %} + {% endfor %} {% for p in v.negativos|veces %} - {% endfor %}-->
                         </a>
                         </td>
 
@@ -80,7 +78,7 @@
 
     <br>
     <div>
-        <a href="{% url 'detalle-asignatura' idAsignatura fecha %}">Volver</a>
+        <a href="{% url 'detalle-asignatura' idAsignatura 'true' fecha %}">Volver</a>
     </div>
 
 

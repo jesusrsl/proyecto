@@ -5,6 +5,6 @@
         <p>¿Borrar la anotacion del alumno "{{ object.alumno.nombre}} {{ object.alumno.apellido1 }} {{ object.alumno.apellido2 }}"
             del día {{ object.fecha }} en la asignatura {{ object.asignatura.nombre}}?</p>
         <input type="submit" value="Confirmar" />
-        <a class='btn' href="{% url 'detalle-asignatura' object.asignatura_id fecha%}">Cancelar</a>
+        <a class='btn' href="{% url 'detalle-asignatura' object.asignatura_id 'true' fecha%}">Cancelar</a>
     </form>
 {% endblock %}

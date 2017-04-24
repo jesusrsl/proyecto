@@ -53,6 +53,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'proyecto.urls'
 
+# Redirect when login is correct.
+LOGIN_REDIRECT_URL = "inicio"
+# Redirect when login is not correct.
+LOGIN_URL = 'login'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

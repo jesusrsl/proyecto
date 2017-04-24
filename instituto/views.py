@@ -309,6 +309,20 @@ class AsignaturaListView(ListView):
         context.update({'fecha': date.today().strftime('%d/%m/%Y')})
         return context
 
+class AsignaturaProfesorListView(ListView):
+    model = Asignatura
+    template_name = 'instituto/asignatura_profesor_list.html'
+
+    def get_queryset(self):
+        queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=Profesor.objects.get(pk=self.kwargs['idProfesor']))
+        return queryset
+
+    #se le pasa la fecha actual para poder mostrar el detalle de cada asignatura
+    def get_context_data(self, **kwargs):
+        context = super(AsignaturaProfesorListView, self).get_context_data(**kwargs)
+        context.update({'fecha': date.today().strftime('%d/%m/%Y')})
+        return context
+
 """class AsignaturaDetailView(DetailView):
     model = Asignatura
 
@@ -333,7 +347,7 @@ class AsignaturaDetailView(DetailView):
 
         anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
 
-        context.update({'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
+        context.update({'vista':self.kwargs['vista'],'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
         return context
 
 class AsignaturaCreate(SuccessMessageMixin, CreateView):
@@ -620,7 +634,7 @@ class AnotacionDelete(SuccessMessageMixin, DeleteView):
 
 #Vistas para crear anotaciones individuales
 
-def ponerFalta(request, idAlumno, idAsignatura,fecha):
+def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
 
     ha_faltado = False
     try:
@@ -647,7 +661,7 @@ def ponerFalta(request, idAlumno, idAsignatura,fecha):
         messages.add_message(request, messages.SUCCESS, '[%s] Se le ha quitado la falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura,fecha)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
 
 #funcion para poner falta al alumno (la tenga o no la tenga ya). No muestra mensaje ni redirige
 def falta(request, idAlumno, idAsignatura, fecha):
@@ -667,7 +681,7 @@ def falta(request, idAlumno, idAsignatura, fecha):
         pass
 
 
-def ponerTrabaja(request, idAlumno, idAsignatura, fecha):
+def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
 
     ha_trabajado = False
     try:
@@ -695,7 +709,7 @@ def ponerTrabaja(request, idAlumno, idAsignatura, fecha):
         messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s no ha trabajado correctamente' % (
         fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
 
 #funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No muestra mensaje ni redirige
 def trabaja(request, idAlumno, idAsignatura, fecha):
@@ -714,14 +728,14 @@ def trabaja(request, idAlumno, idAsignatura, fecha):
     except ObjectDoesNotExist:
         pass
 
-def ponerPositivo(request, idAlumno, idAsignatura, fecha):
+def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
 
     positivo(request,idAlumno,idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
     messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
 
 #funcion para poner un positivo al alumno, sin mostrar mensaje ni redirigir
 def positivo(request, idAlumno, idAsignatura, fecha):
@@ -748,14 +762,14 @@ def positivo(request, idAlumno, idAsignatura, fecha):
 
 
 
-def ponerNegativo(request, idAlumno, idAsignatura, fecha):
+def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
 
     negativo(request, idAlumno, idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
     messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
 
 #funcion para poner un negativo al alumno, sin mostrar mensaje ni redirigir
 def negativo(request, idAlumno, idAsignatura, fecha):
@@ -781,29 +795,41 @@ def negativo(request, idAlumno, idAsignatura, fecha):
         pass
 
 #vista para realizar anotaciones a multiples alumnos a la vez
-def ponerAnotaciones(request, idAsignatura, fecha):
-    if "listaAlumnado" in request.POST and "poner_faltas" in request.POST:
+def ponerAnotaciones(request, idAsignatura, vista, fecha):
+
+    if "cuadriculaAlumnado" in request.POST: #vista cuadricula
+        lista = request.POST.getlist('cuadriculaAlumnado')
+    elif "listaAlumnado" in request.POST:   #vista lista
         lista = request.POST.getlist('listaAlumnado')
+    else:
+        lista = None
+
+
+    if lista is not None and "poner_faltas" in request.POST:
         for alumno in lista:
-            falta(request, alumno, idAsignatura, fecha)
+            falta\
+                (request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Falta(s) puesta(s) correctamente' % fecha)
-    elif "listaAlumnado" in request.POST and "poner_trabaja" in request.POST:
-        lista = request.POST.getlist('listaAlumnado')
+
+    elif lista is not None and "poner_trabaja" in request.POST:
         for alumno in lista:
             trabaja(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Anotacion(es) de trabajo puesta(s) correctamente' % fecha)
-    elif "listaAlumnado" in request.POST and "poner_positivo" in request.POST:
-        lista = request.POST.getlist('listaAlumnado')
+
+    elif lista is not None and "poner_positivo" in request.POST:
         for alumno in lista:
             positivo(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Positivo(s) puesto(s) correctamente' % fecha)
-    elif "listaAlumnado" in request.POST and "poner_negativo" in request.POST:
-        lista = request.POST.getlist('listaAlumnado')
+
+    elif lista is not None and "poner_negativo" in request.POST:
         for alumno in lista:
             negativo(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
-    elif "fecha" in request.POST:
+
+    elif "fecha" in request.POST and "vista" in request.POST:
         fecha = request.POST.get('fecha')
+        vista = request.POST.get('vista')
 
     #FALTA CONSERVAR la seleccion
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, fecha)))
+    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
+

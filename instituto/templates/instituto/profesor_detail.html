@@ -12,7 +12,7 @@
     <div class="row well">
         {%  for a in object.asignatura_set.all %}
 
-            <div><a href="{% url 'detalle-asignatura' a.id %}">{{ a.nombre | capfirst }}</a></div>
+            <div>{{ a.nombre | capfirst }} de {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}</div>
 
         {% endfor %}
    </div>

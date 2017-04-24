@@ -14,9 +14,9 @@
 {% block maincontent %}
     <div>
         {% for a in object_list %}
-            <a href="{% url 'detalle-asignatura' a.id fecha%}">
+            <a href="{% url 'detalle-asignatura' a.id 'true' fecha %}">
                 {{ a.nombre | capfirst}} impartida por {{ a.profesor.nombre | capfirst}} {{ a.profesor.apellidos | capfirst}}
-            en {{ a.grupo.get_curso_display }}, {{ a.grupo.unidad }}
+            en {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
             </a>
             <br>
         {% endfor %}

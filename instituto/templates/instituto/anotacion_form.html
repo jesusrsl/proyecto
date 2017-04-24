@@ -4,7 +4,7 @@
     <form method="post">{% csrf_token %}
         {{ form.as_p }} <!-- as_table, as_ul -->
         <button type="submit">Guardar</button>
-        <a class='btn' href="{% url 'detalle-asignatura' asignatura fecha %}">Cancelar</a> <!--asignatura pasada por el contexto-->
+        <a class='btn' href="{% url 'detalle-asignatura' asignatura 'true' fecha %}">Cancelar</a> <!--asignatura pasada por el contexto-->
     </form>
 {% endblock %}
 

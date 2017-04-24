@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.contrib.auth.models import User
+
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
@@ -87,6 +89,7 @@ class Grupo(models.Model):
 class Asignatura(models.Model):
     nombre = models.CharField(max_length=50)
     profesor = models.ForeignKey(Profesor, on_delete=models.PROTECT)
+    #profesor = models.ForeignKey(User, on_delete=models.PROTECT)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
     aula = models.ForeignKey(Aula, null=True, blank=True, on_delete=models.SET_NULL)
 
@@ -156,7 +159,7 @@ class Anotacion(models.Model):
         else:"""
 
 
-        return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id, 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
+        return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id, 'vista': "true", 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
         #return reverse('lista-alumnos')
 
 

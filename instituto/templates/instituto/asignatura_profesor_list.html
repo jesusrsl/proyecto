@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block section %}
+
+    <h2>Asignaturas</h2>
+    <hr>
+
+{% endblock %}
+
+{% block maincontent %}
+    <div>
+        {% for a in object_list %}
+            <a href="{% url 'detalle-asignatura' a.id fecha%}">
+                {{ a.nombre | capfirst}}, {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
+            </a>
+            <br>
+        {% endfor %}
+    <hr>
+
+{% endblock %}

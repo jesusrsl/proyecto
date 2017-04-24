@@ -2,14 +2,64 @@
  * Created by jesus on 13/04/17.
  */
 
-function seleccionar_checkbox(form,activar){
-   for (i=0;i<form.elements.length;i++)
-      if(form.elements[i].type == "checkbox")
-         form.elements[i].checked=activar
+function seleccionar_checkbox(activar){
+
+   if (document.getElementById("vista").value=="true")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+    for (i=0;i<document.anotaciones_form.elements.length;i++)
+      if(document.anotaciones_form.elements[i].type == "checkbox")
+         if(document.anotaciones_form.elements[i].name == nombre)
+            document.anotaciones_form.elements[i].checked=activar
 }
 
-function invertir_seleccion(form){
-   for (i=0;i<form.elements.length;i++)
-      if(form.elements[i].type == "checkbox")
-         form.elements[i].checked=!form.elements[i].checked
+function invertir_seleccion(){
+
+   if (document.getElementById("vista").value=="true")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+   for (i=0;i<document.anotaciones_form.elements.length;i++)
+      if(document.anotaciones_form.elements[i].name == nombre)
+         document.anotaciones_form.elements[i].checked=!document.anotaciones_form.elements[i].checked
+}
+
+/*function mostrar(bloq, activar) {
+   obj = document.getElementById(bloq);
+   if (bloq =="cuadricula"){
+      obj.style.display = (activar) ? 'block' : 'none';
+      mostrar("lista", !activar);
+   }
+   else {
+      obj.style.display = (activar) ? 'block' : 'none';
+      mostrar("cuadricula", !activar);
+   }
+
+}*/
+
+function cambiarVista(bloq) {
+   //se deseleccionan todos los alumnos
+    for (i=0;i<document.anotaciones_form.elements.length;i++)
+      if(document.anotaciones_form.elements[i].type == "checkbox")
+          document.anotaciones_form.elements[i]=0
+
+   if (bloq =="cuadricula"){
+      document.getElementById("vista").value = "true"
+      document.anotaciones_form.submit()
+
+   }
+   else {
+      document.getElementById("vista").value = "false"
+      document.anotaciones_form.submit()
+   }
+
 }

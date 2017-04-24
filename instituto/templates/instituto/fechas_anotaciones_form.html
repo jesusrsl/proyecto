@@ -1,5 +1,38 @@
 {% extends 'base.html' %}
 
+{% block js %}
+<script>
+
+jQuery(function($){
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '&#x3c;Ant ',
+		nextText: ' Sig&#x3e;',
+		currentText: 'Hoy',
+		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
+		'Jul','Ago','Sep','Oct','Nov','Dic'],
+		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+});
+
+
+$(document).ready(function() {
+   $("#datepicker_inicio").datepicker();
+   $("#datepicker_fin").datepicker();
+ });
+</script>
+{% endblock %}
+
 {% block section %}
 
     <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
@@ -15,17 +48,19 @@
 
     <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" method="post">{% csrf_token %}
         <p>
-            <span style="font-weight: bold"><label for="id_inicio">Fecha de inicio:</label></span>
-            <input type="text" name="inicio" id="id_inicio" value="{{ fecha }}" size="8">
+            <span style="font-weight: bold"><label for="datepicker_inicio">Fecha de inicio:</label></span>
+            <input type="text" name="inicio" id="datepicker_inicio" step="1" value="{{ fecha }}" size="8">
         </p>
+
         <p>
-            <span style="font-weight: bold"><label for="id_fin">Fecha de fin:</label></span>
-            <input type="text" name="fin"  id="id_fin" value="{{ fecha }}" size="8">
+            <span style="font-weight: bold"><label for="datepicker_fin">Fecha de fin:</label></span>
+            <input type="text" name="fin"  id="datepicker_fin" value="{{ fecha }}" size="8">
         </p>
         <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-info">
         <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-info">
+        <input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="btn btn-info">
 
-        <a class='btn' href="{% url 'detalle-asignatura' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
+        <a class='btn' href="{% url 'detalle-asignatura' idAsignatura 'true' fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
     </form>
 {% endblock %}
 
