@@ -1,0 +1,301 @@
+<!-- vista = 'cuad' -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% load mis_filtros %}
+
+
+    {% block js %}
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        <!--se repite porque si no da error -->
+    <script>
+
+    jQuery(function($){
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '&#x3c;Ant ',
+		nextText: ' Sig&#x3e;',
+		currentText: 'Hoy',
+		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
+		'Jul','Ago','Sep','Oct','Nov','Dic'],
+		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+	$("#datepicker").datepicker({
+        showAnim: 'slideDown',
+        beforeShowDay: jQuery.datepicker.noWeekends,
+        onSelect: function(date, inst) {
+            document.anotaciones_form.submit();
+        },
+    });
+});
+
+
+$(document).ready(function() {
+   $("#datepicker").datepicker();
+ });
+
+
+    var formAjaxSubmit = function(form, modal, div, num) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                     $(modal).modal('toggle');
+
+                     alert("Anotación grabada correctamente");
+
+                     //se recarga el div #panel-alumnoX --> pero se pierde el enlace a la ventana modal
+                     //$(div).load(' #panel-alumno'+num, function(){$(this).children().unwrap()});
+                     location.reload(); //se recarga la página completa
+
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    }
+
+
+    </script>
+
+{% endblock %}
+
+{% block menu %}
+    <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
+
+{% endblock %}
+
+
+
+{% block section %}
+    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.nombre | capfirst }} {{ object.profesor.apellidos | capfirst }}</h2>
+
+    <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
+    <br><br>
+{% endblock %}
+
+{% block maincontent %}
+
+    <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+
+        <div id="enlaces_fecha">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default" onclick="cambiarVista('cuadricula')">
+                    <span class="glyphicon glyphicon-th"></span>
+                </button>
+
+                <button type="button" class="btn btn-default"  value="lista" onclick="cambiarVista('lista')">
+                    <span class="glyphicon glyphicon-list"></span>
+                </button>
+
+                <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
+
+            </div>
+
+            <div class="btn-group">
+                <label for="datepicker"> Fecha: </label>
+                <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
+            </div>
+        </div>
+
+
+    {% if not lectivo %}
+        <h4>Día no lectivo</h4>
+    {% else %}
+
+        <h4>Alumnado matriculado</h4>
+
+
+            <p style="text-align: center">
+                <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-primary" style="margin: 0.5%">
+                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-primary" style="margin: 0.5%">
+                <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-primary" style="margin: 0.5%">
+                <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-primary" style="margin: 0.5%">
+            </p>
+
+            <div id="enlaces_seleccion">
+                <span onclick="seleccionar_checkbox(1)">Seleccionar todos</span> |
+                <span onclick="seleccionar_checkbox(0)">No seleccionar ninguno</span> |
+                <span onclick="invertir_seleccion()">Invertir selección</span>
+                <br><br>
+            </div>
+
+
+        <!-- VISTA CUADRÍCULA -->
+        <div class="row" id="cuadricula">
+
+        {% for a in object.alumno_set.all %}
+            <!--div class="col-xs-4 col-sm-3 col-md-8r"-->
+            <div class="col-xs-4 col-sm-3 col-md-8r">
+                <div class="panel panel-primary" id="panel-alumno{{ a.id }}">
+
+                    <div class="panel-heading"  style="height: 50px;padding: 2px;overflow: auto">
+                        <!-- valorar-alumno-->
+                        <h3 class="panel-title">
+                            <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}">
+                            <a style="cursor: pointer" id="anotacion-button{{ a.id }}">
+                                    {{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }}. {{ a.apellido2 |first }}.
+                            </a>
+                            <script>
+                                $('#anotacion-button{{ a.id }}').click(function() {
+                                    $('#form-modal-title').html("[{{ fecha }}] {{ asignatura.nombre }}: <br> {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}")
+
+                                    $('#form-modal-body').load(document.getElementById("url{{ a.id }}").value, function () {
+                                        $('#form-modal').modal('toggle');
+                                        $("body").addClass("overflow");
+                                        formAjaxSubmit('#form-modal-body form', '#form-modal', '#panel-alumno{{ a.id }}', '{{ a.id }}');
+                                        $("body").removeClass("overflow");
+                                    });
+                            });
+                            </script>
+
+                        </h3>
+                    </div>
+
+                    <input type="hidden" id="url{{ a.id }}" name="url{{ a.id }}" value="{% url 'anotar' a.id object.id fecha %}" readonly>
+
+                    <!-- detalle del alumno -->
+                    <div class="panel-body" style="padding: 5px">
+                        {% if a.foto %}
+                            <a href="{% url 'detalle-alumno' a.id %}">
+                                <img src="{%static a.foto.url %}" class="img-rounded" style="width:100%;"/>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'detalle-alumno' a.id %}">
+                                <img src="{%static "sinfoto.png" %}" class="img-rounded" style="width:100%;"/>
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="panel-footer" style="text-align: center">
+
+<!--
+<div class="btn-group">
+  <button type="button" class="btn btn-default dropdown-toggle"
+          data-toggle="dropdown">
+    F <span class="caret"></span>
+  </button>
+
+  <ul class="dropdown-menu" role="menu">
+    <li><a href="#">R</a></li>
+    <li><a href="#">I</a></li>
+    <li><a href="#">J</a></li>
+  </ul>
+</div>-->
+
+
+                    <!-- anotar al alumno/a -->
+                        {% for anotacion in anotacion_list %}
+                            {% if a.id == anotacion.alumno.id %} <!-- el alumno tiene una anotación creada -->
+
+                                {% define "Yes" as anotacion_creada %}
+
+                                {% if anotacion.falta %}
+                                    <a href="{% url 'poner-falta' a.id object.id vista fecha %}"><span class="red">F</span></a>
+                                {% else %}
+                                    <a href="{% url 'poner-falta' a.id object.id vista fecha%}"><span class="blue">F</span></a>
+                                {% endif %}
+
+                                {% if anotacion.trabaja %}
+                                    <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="green">T</span></a>
+                                {% else %}
+                                    <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
+                                {% endif %}
+
+                                {% if anotacion.positivos %}
+                                    <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="orange">{{ anotacion.positivos }}+</span></a>
+                                {% else %}
+                                     <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="blue2">+</span></a>
+                                {% endif %}
+
+                                {% if anotacion.negativos %}
+                                    <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="orange">{{ anotacion.negativos }}-</span></a>
+                                {% else %}
+                                     <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="blue2">-</span></a>
+                                {% endif %}
+
+                                {% if anotacion.falta %}
+                                    {% if anotacion.trabaja or anotacion.positivos or anotacion.negativos %}
+                                        <!--ERROR: si ha faltado, no debe tener anotaciones -->
+                                        <script>
+			                            $(function(){
+                                            $("#panel-alumno{{ a.id }}").removeClass("panel-primary")
+                                            $("#panel-alumno{{ a.id }}").addClass("panel-danger")});
+		                                </script>
+                                    {% endif %}
+                                {% endif %}
+
+
+                            {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
+
+                                <a href="{% url 'poner-falta' a.id object.id vista fecha %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="blue2">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="blue2">-</span></a>
+
+                            {% endif %}
+
+                            {% empty %} <!-- no hay ninguna anotación -->
+                                <a href="{% url 'poner-falta' a.id object.id vista fecha %}"><span class="blue">F</span></a>
+                                <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
+                                <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="blue2">+</span></a>
+                                <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="blue2">-</span></a>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+            </div>
+
+        {% endfor %}
+
+        </div>
+
+
+    {% endif %}
+
+    </form>
+
+
+
+    <!-- Ventana MODAL para las anotaciones -->
+
+    <div id="form-modal" tabindex="-1" class="modal fade ">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 id="form-modal-title" class="modal-title">Anotación invidual</h4>
+                </div>
+                <div id="form-modal-body" class="modal-body">
+                    <p>Contenido del formulario</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+{% endblock %}

@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 from datetime import date, datetime
 
+from PIL import Image
 
 # Create your models here.
 from django.urls import reverse
@@ -131,6 +132,16 @@ class Alumno(models.Model):
         #otra opción -->
         # return reverse('detalle-alumno', kwargs={'pk': self.id})
 
+    def save(self):
+
+        super(Alumno, self).save()
+
+        image = Image.open(self.foto)
+
+        size = (100, 100)
+        image = image.resize(size, Image.ANTIALIAS)
+        image.save(self.foto.path)
+
     class Meta:
         ordering = ['apellido1', 'apellido2', 'nombre']
         verbose_name_plural = 'alumnos'
@@ -159,7 +170,7 @@ class Anotacion(models.Model):
         else:"""
 
 
-        return reverse('detalle-asignatura', kwargs={'pk': self.asignatura.id, 'vista': "true", 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
+        return reverse('detalle-asignatura-cuad', kwargs={'pk': self.asignatura.id, 'fecha': datetime.strftime(self.fecha, '%d/%m/%Y')})
         #return reverse('lista-alumnos')
 
 

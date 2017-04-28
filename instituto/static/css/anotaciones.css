@@ -9,6 +9,7 @@ span.red {
     line-height: 1.6em;
     margin-right: 5px;
     margin-left: 5px;
+    margin-top: 5px;
     text-align: center;
     width: 1.6em;
 }
@@ -24,6 +25,7 @@ span.green {
     line-height: 1.6em;
     margin-right: 5px;
     margin-left: 5px;
+    margin-top: 5px;
     text-align: center;
     width: 1.6em;
 }
@@ -56,6 +58,7 @@ span.blue {
     line-height: 1.6em;
     margin-right: 5px;
     margin-left: 5px;
+    margin-top: 5px;
     text-align: center;
     width: 1.6em;
     /*  -webkit-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);

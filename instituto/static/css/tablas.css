@@ -99,3 +99,10 @@ table#tablaAlumnado {
     display:block;
 }
 
+.overflow{
+   overflow:hidden;
+}
+
+td.errorAnotaciones{
+    background-color: lightpink;
+}

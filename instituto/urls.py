@@ -12,6 +12,11 @@ urlpatterns = [
     url(r'^profesor/(?P<pk>\d+)/detalle/$', views.ProfesorDetailView.as_view(), name='detalle-profesor'),
     #create
     url(r'^profesor/nuevo/$', views.ProfesorCreate.as_view(), name='nuevo-profesor'),
+
+    ################################# PRUEBA #######################################
+    url(r'^profesor/new/$', views.TeacherCreate.as_view(), name='new-teacher'),
+    ################################################################################
+
     #update
     url(r'^profesor/(?P<pk>\d+)/editar/$', views.ProfesorUpdate.as_view(), name='editar-profesor'),
     #delete
@@ -28,7 +33,11 @@ urlpatterns = [
     #detalle de la asignatura en la fecha actual
     #url(r'^asignatura/(?P<pk>\d+)/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),
     #detalle de la asignatura en la fecha indicada
-    url(r'^asignatura/(?P<pk>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),
+    url(r'^asignatura/(?P<pk>\d+)/cuad/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$', views.AsignaturaCuadView.as_view(), name='detalle-asignatura-cuad'),
+
+    url(
+        r'^asignatura/(?P<pk>\d+)/lista/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$',
+        views.AsignaturaListaView.as_view(), name='detalle-asignatura-lista'),
 
     url(r'^asignatura/nueva/$', views.AsignaturaCreate.as_view(), name='nueva-asignatura'),
     url(r'^asignatura/(?P<pk>\d+)/editar/$', views.AsignaturaUpdate.as_view(), name='editar-asignatura'),
@@ -70,11 +79,11 @@ urlpatterns = [
     url(r'^anotacion/(?P<pk>\d+)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
 
-    url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerFalta, name='poner-falta'),
-    url(r'^anotacion/trabaja/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerTrabaja, name='poner-trabaja'),
-    url(r'^anotacion/positivo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerPositivo, name='poner-positivo'),
-    url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerNegativo, name='poner-negativo'),
+    url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerFalta, name='poner-falta'),
+    url(r'^anotacion/trabaja/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerTrabaja, name='poner-trabaja'),
+    url(r'^anotacion/positivo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerPositivo, name='poner-positivo'),
+    url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerNegativo, name='poner-negativo'),
 
-    url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/(?P<vista>true|false)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerAnotaciones, name='poner-anotaciones'),
+    url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerAnotaciones, name='poner-anotaciones'),
 
 ]

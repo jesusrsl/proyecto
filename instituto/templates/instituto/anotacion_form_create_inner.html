@@ -1,0 +1,5 @@
+<form class="form-horizontal" action="{% url 'nueva-anotacion' alumno asignatura fecha %}" method="post">{% csrf_token %}
+    {{ form.as_p }} <!-- as_table, as_ul -->
+    <button class="btn btn-default" type="submit">Guardar</button>
+</form>
+

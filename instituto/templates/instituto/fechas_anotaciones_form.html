@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block js %}
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 <script>
 
 jQuery(function($){
@@ -56,11 +57,12 @@ $(document).ready(function() {
             <span style="font-weight: bold"><label for="datepicker_fin">Fecha de fin:</label></span>
             <input type="text" name="fin"  id="datepicker_fin" value="{{ fecha }}" size="8">
         </p>
-        <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-info">
-        <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-info">
-        <input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="btn btn-info">
+        <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-primary">
+        <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-primary">
+        <input type="submit" name="anotaciones_csv" id="anotaciones_csv" value="Exportar a CSV" class="btn btn-primary">
+        <input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="btn btn-primary">
 
-        <a class='btn' href="{% url 'detalle-asignatura' idAsignatura 'true' fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
+        <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
     </form>
 {% endblock %}
 

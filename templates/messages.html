@@ -1,0 +1,10 @@
+<div class="container" id="mensajes">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}"{% endif %}>
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>

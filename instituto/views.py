@@ -8,6 +8,9 @@ from reportlab.lib.pagesizes import landscape, letter, A4
 from reportlab.platypus import Table
 from reportlab.lib.units import inch
 
+import csv
+import xlwt
+
 from operator import itemgetter
 from itertools import groupby
 
@@ -23,6 +26,8 @@ from .models import Profesor, Asignatura, Grupo, Alumno, Aula, Anotacion
 
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
+
+from .forms import TestForm
 
 
 # Create your views here.
@@ -130,7 +135,7 @@ def anotacionesPDF(request, idAsignatura, inicio, fin):
         total_anotaciones += 1
 
 
-    #paginacion de la tabla de anotaciones (5 fechas-columnas por pagina)
+    #paginacion de la tabla de anotaciones (7 fechas-columnas por pagina)
     num_fechas = 0
     num_pagina = 1
     fecha_list = []
@@ -255,13 +260,188 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
 
     return tabla
 
-
+"""NO FUNCIONA"""
 def pie(canvas,doc):
     canvas.saveState()
     canvas.setFont('Times-Roman',9)
     canvas.drawString(inch, 0.75 * inch, "Page %d" % doc.page)
     canvas.restoreState()
 
+def utf_8_encoder(unicode_csv_data):
+    for line in unicode_csv_data:
+        return line.encode('utf-8')
+
+def anotacionesCSV(request, idAsignatura, inicio, fin):
+
+    response = HttpResponse(content_type='text/csv')
+    csv_name = "anotaciones-%s.csv" % Asignatura.objects.get(pk=idAsignatura).nombre
+    response['Content-Disposition'] = 'attachment; filename=%s' % csv_name
+
+    writer = csv.writer(response)
+
+    anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                           asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+        'fecha').values()
+
+    key = itemgetter('fecha')
+    iter = groupby(sorted(anotaciones, key=key), key=key)
+
+    # CABECERA
+    headings = ['Alumno/a']
+    for fecha,lista in iter:
+        headings.append(fecha.strftime("%d/%m/%y"))
+    headings.append('RESUMEN')
+
+    writer.writerow(headings)
+
+
+    # CONTENIDO --> anotaciones de cada alumno (uno por fila)
+    for alumno in Asignatura.objects.get(pk=idAsignatura).alumno_set.all():
+
+        anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                               asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+            'fecha').values()
+
+        key = itemgetter('fecha')
+        iter = groupby(sorted(anotaciones, key=key), key=key)
+
+        nombre = ['%s %s %s' % (alumno.nombre, alumno.apellido1, alumno.apellido2)]
+        fila = []
+        fila.append(utf_8_encoder(nombre))
+
+        for fecha, lista in iter:
+
+            anotacion = ""
+
+            for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
+
+                if alumno.id == v['alumno_id']:
+                    if v['falta']:
+                        anotacion += " F"
+                    if v['trabaja']:
+                        anotacion += " T"
+                    if v['positivos'] is not None:
+                        anotacion += " %s+" % v['positivos']
+                    if v['negativos'] is not None:
+                        anotacion += " %s-" % v['negativos']
+
+            if len(anotacion) == 0:
+                anotacion = " "
+
+            fila.append(anotacion)
+
+
+        # FIN del bucle con todas las anotaciones del alumno
+
+        # se anyade la informacion del resumen
+        resumen_list = datosResumen(idAsignatura, inicio, fin)
+        resumen_anotaciones = ""
+        for resumen in resumen_list:
+            if resumen[0] == alumno.id:
+                resumen_anotaciones = "%dF %dT %d+ %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+                #NOTA: no se pueden utilizar comas para separar la informacion de resumen
+
+        fila.append(resumen_anotaciones)
+
+
+        # FILA COMPLETA
+        writer.writerow(fila)
+
+    return response
+
+def anotacionesXLS(request, idAsignatura, inicio, fin):
+
+    response = HttpResponse(content_type='text/ms-excel')
+    xls_name = "anotaciones-%s.xls" % Asignatura.objects.get(pk=idAsignatura).nombre
+    response['Content-Disposition'] = 'attachment; filename=%s' % xls_name
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Anotaciones')
+
+    # ENCABEZADO, primera fila
+    num_fila = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    pattern = xlwt.Pattern()
+    pattern.pattern = xlwt.Pattern.SOLID_PATTERN
+    pattern.pattern_fore_colour = 0x2B
+    font_style.pattern = pattern
+    font_style.num_format_str = 'DD/MM/YY'  #formato para el objeto date
+
+    anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                           asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+        'fecha').values()
+
+    key = itemgetter('fecha')
+    iter = groupby(sorted(anotaciones, key=key), key=key)
+
+    headings = ['Alumno/a']
+    for fecha, lista in iter:
+        headings.append(fecha)  #se pasa el objeto, y no la cadena
+    headings.append('RESUMEN')
+
+    for num_col in range(len(headings)):
+        ws.write(num_fila, num_col, headings[num_col], font_style)   #fila 0, columna x, celda a escribir y estilo
+
+
+    # CONTENIDO --> anotaciones de cada alumno (uno por fila)
+    font_style = xlwt.XFStyle()
+
+    for alumno in Asignatura.objects.get(pk=idAsignatura).alumno_set.all():
+
+        num_fila += 1    #nueva fila
+
+        anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                               asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by(
+            'fecha').values()
+
+        key = itemgetter('fecha')
+        iter = groupby(sorted(anotaciones, key=key), key=key)
+
+        fila = ['%s %s %s' % (alumno.nombre, alumno.apellido1, alumno.apellido2)]
+
+        for fecha, lista in iter:
+
+            anotacion = ""
+
+            for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
+
+                if alumno.id == v['alumno_id']:
+                    if v['falta']:
+                        anotacion += " F"
+                    if v['trabaja']:
+                        anotacion += " T"
+                    if v['positivos'] is not None:
+                        anotacion += " %s+" % v['positivos']
+                    if v['negativos'] is not None:
+                        anotacion += " %s-" % v['negativos']
+
+            if len(anotacion) == 0:
+                anotacion = " "
+
+            fila.append(anotacion)
+
+
+        # FIN del bucle con todas las anotaciones del alumno
+
+        # se anyade la informacion del resumen
+        resumen_list = datosResumen(idAsignatura, inicio, fin)
+        resumen_anotaciones = ""
+        for resumen in resumen_list:
+            if resumen[0] == alumno.id:
+                resumen_anotaciones = "%dF, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+
+
+        fila.append(resumen_anotaciones)
+
+
+        # FILA COMPLETA --> se escribe celda a celda
+        for num_col in range(len(fila)):
+            ws.write(num_fila, num_col, fila[num_col], font_style)
+
+    wb.save(response)
+    return response
 
 #PROFESORES
 class ProfesorListView(ListView):
@@ -274,6 +454,26 @@ class ProfesorCreate(SuccessMessageMixin,CreateView):
     model = Profesor
     fields = '__all__'
     success_message = 'El profesor %(nombre)s %(apellidos)s se ha grabado correctamente' # %(field_name)s
+
+class AjaxTemplateMixin(object):
+    def dispatch(self, request, *args, **kwargs):
+        if not hasattr(self, 'ajax_template_name'):
+            split = self.template_name.split('.html')
+            split[-1] = '_inner'
+            split.append('.html')
+            self.ajax_template_name = ''.join(split)
+        if request.is_ajax():
+            self.template_name = self.ajax_template_name
+
+        return super(AjaxTemplateMixin, self).dispatch(request, *args, **kwargs)
+
+class TeacherCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
+    template_name = 'instituto/test_form.html'
+    model = Profesor
+    fields = '__all__'
+    success_message = 'El profesor %(nombre)s %(apellidos)s se ha grabado correctamente' # %(field_name)s
+
+
 
 class ProfesorUpdate(SuccessMessageMixin, UpdateView):
     model = Profesor
@@ -334,11 +534,12 @@ class AsignaturaProfesorListView(ListView):
         return context
 """
 
-class AsignaturaDetailView(DetailView):
+class AsignaturaCuadView(DetailView):
     model = Asignatura
+    template_name = 'instituto/asignatura_detail_cuad.html'
 
     def get_context_data(self, **kwargs):
-        context = super(AsignaturaDetailView, self).get_context_data(**kwargs)
+        context = super(AsignaturaCuadView, self).get_context_data(**kwargs)
         fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
         if fecha.strftime('%A') == "Saturday" or fecha.strftime('%A') == "Sunday":
             lectivo = False
@@ -347,7 +548,24 @@ class AsignaturaDetailView(DetailView):
 
         anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
 
-        context.update({'vista':self.kwargs['vista'],'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
+        context.update({'vista':"cuad",'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
+        return context
+
+class AsignaturaListaView(DetailView):
+    model = Asignatura
+    template_name = 'instituto/asignatura_detail_lista.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AsignaturaListaView, self).get_context_data(**kwargs)
+        fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        if fecha.strftime('%A') == "Saturday" or fecha.strftime('%A') == "Sunday":
+            lectivo = False
+        else:
+            lectivo = True
+
+        anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
+
+        context.update({'vista':"lista",'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
         return context
 
 class AsignaturaCreate(SuccessMessageMixin, CreateView):
@@ -523,6 +741,10 @@ def anotacionesFechas(request, idAsignatura):
             elif "anotaciones_pdf" in request.POST:
                 #return HttpResponseRedirect(reverse('anotaciones-pdf', args=(idAsignatura)))
                 return anotacionesPDF(request, idAsignatura, inicio, fin)
+            elif "anotaciones_csv" in request.POST:
+                return anotacionesCSV(request, idAsignatura, inicio, fin)
+            elif "anotaciones_xls" in request.POST:
+                return anotacionesXLS(request, idAsignatura, inicio, fin)
 
         except ValueError:
             error = True
@@ -574,8 +796,9 @@ class AnotacionCreateUpdate(RedirectView):
             return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
 
 #class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
-class AnotacionCreate(SuccessMessageMixin, CreateView):
+class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
     model = Anotacion
+    template_name = 'instituto/anotacion_form_create.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
     success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
 
@@ -596,8 +819,9 @@ class AnotacionCreate(SuccessMessageMixin, CreateView):
 
 
 
-class AnotacionUpdate(SuccessMessageMixin, UpdateView):
+class AnotacionUpdate(SuccessMessageMixin, AjaxTemplateMixin, UpdateView):
     model = Anotacion
+    template_name = 'instituto/anotacion_form_update.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
     success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
 
@@ -619,7 +843,7 @@ class AnotacionDelete(SuccessMessageMixin, DeleteView):
     success_message = 'Anotacion elimanada correctamente'
 
     def get_success_url(self):
-        return reverse_lazy('detalle-asignatura', kwargs={'pk': Anotacion.objects.get(pk=self.kwargs['pk']).asignatura_id, 'fecha': datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
+        return reverse_lazy('detalle-asignatura-cuad', kwargs={'pk': Anotacion.objects.get(pk=self.kwargs['pk']).asignatura_id, 'fecha': datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
 
     def get_context_data(self, **kwargs):
         context = super(AnotacionDelete, self).get_context_data(**kwargs)
@@ -660,8 +884,11 @@ def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
     else:
         messages.add_message(request, messages.SUCCESS, '[%s] Se le ha quitado la falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
+    if vista == "cuad":
+        return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
+    else:
+        return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
 
 #funcion para poner falta al alumno (la tenga o no la tenga ya). No muestra mensaje ni redirige
 def falta(request, idAlumno, idAsignatura, fecha):
@@ -709,7 +936,10 @@ def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
         messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s no ha trabajado correctamente' % (
         fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
+    if vista == "cuad":
+        return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
+    else:
+        return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No muestra mensaje ni redirige
 def trabaja(request, idAlumno, idAsignatura, fecha):
@@ -735,7 +965,10 @@ def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
     alumno = Alumno.objects.get(pk=idAlumno)
     messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
+    if vista == "cuad":
+        return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
+    else:
+        return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner un positivo al alumno, sin mostrar mensaje ni redirigir
 def positivo(request, idAlumno, idAsignatura, fecha):
@@ -769,7 +1002,10 @@ def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
     alumno = Alumno.objects.get(pk=idAlumno)
     messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
+    if vista == "cuad":
+        return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
+    else:
+        return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner un negativo al alumno, sin mostrar mensaje ni redirigir
 def negativo(request, idAlumno, idAsignatura, fecha):
@@ -831,5 +1067,8 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
         vista = request.POST.get('vista')
 
     #FALTA CONSERVAR la seleccion
-    return HttpResponseRedirect(reverse('detalle-asignatura', args=(idAsignatura, vista, fecha)))
+    if vista == "cuad":
+        return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
+    else:
+        return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 

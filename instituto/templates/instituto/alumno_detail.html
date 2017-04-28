@@ -16,7 +16,7 @@
     <div class="row well">
         {%  for a in object.asignaturas.all%}
 
-            <div>{{ a.nombre }} {{ a.profesor.nombre }} {{ a.profesor.apellidos }}</div>
+            <div>{{ a.nombre }} impartida por {{ a.profesor.nombre }} {{ a.profesor.apellidos }}</div>
 
         {% endfor %}
    </div>

@@ -4,7 +4,7 @@
 
 function seleccionar_checkbox(activar){
 
-   if (document.getElementById("vista").value=="true")
+   if (document.getElementById("vista").value=="cuad")
     {
        nombre = "cuadriculaAlumnado"
     }
@@ -20,7 +20,7 @@ function seleccionar_checkbox(activar){
 
 function invertir_seleccion(){
 
-   if (document.getElementById("vista").value=="true")
+   if (document.getElementById("vista").value=="cuad")
     {
        nombre = "cuadriculaAlumnado"
     }
@@ -53,12 +53,12 @@ function cambiarVista(bloq) {
           document.anotaciones_form.elements[i]=0
 
    if (bloq =="cuadricula"){
-      document.getElementById("vista").value = "true"
+      document.getElementById("vista").value = "cuad"
       document.anotaciones_form.submit()
 
    }
    else {
-      document.getElementById("vista").value = "false"
+      document.getElementById("vista").value = "lista"
       document.anotaciones_form.submit()
    }
 

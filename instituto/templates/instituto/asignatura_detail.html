@@ -2,45 +2,6 @@
 {% load static %}
 {% load mis_filtros %}
 
-{% block js %}
-<script>
-
-jQuery(function($){
-	$.datepicker.regional['es'] = {
-		closeText: 'Cerrar',
-		prevText: '&#x3c;Ant ',
-		nextText: ' Sig&#x3e;',
-		currentText: 'Hoy',
-		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
-		'Jul','Ago','Sep','Oct','Nov','Dic'],
-		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
-		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
-		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
-		weekHeader: 'Sm',
-		dateFormat: 'dd/mm/yy',
-		firstDay: 1,
-		isRTL: false,
-		showMonthAfterYear: false,
-		yearSuffix: ''};
-	$.datepicker.setDefaults($.datepicker.regional['es']);
-	$("#datepicker").datepicker({
-        showAnim: 'slideDown',
-        beforeShowDay: jQuery.datepicker.noWeekends,
-        onSelect: function(date, inst) {
-            document.anotaciones_form.submit();
-        },
-    });
-});
-
-
-$(document).ready(function() {
-   $("#datepicker").datepicker();
- });
-</script>
-{% endblock %}
-
 
 {% block menu %}
     <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
@@ -87,16 +48,6 @@ $(document).ready(function() {
 
         <h4>Alumnado matriculado</h4>
 
-    <!--
-    <div id="overlay">
-        <div>
-            <p>Content you want the user to see goes here.</p>
-            Click here to [<a href='#' onclick='overlay()'>close</a>]
-        </div>
-    </div>
-
-    <a href='#' onclick='overlay()'>Click here to show the overlay</a>-->
-
 
             <p style="text-align: center">
                 <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-info">
@@ -125,11 +76,22 @@ $(document).ready(function() {
                         <!-- valorar-alumno-->
                         <h3 class="panel-title">
                             <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}">
-                            <a href="{% url 'anotar' a.id object.id fecha %}">
+                            <a id="anotacion-button{{ a.id }}" href="#">
                                     {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
                             </a>
+                            <script>
+                                $('#anotacion-button{{ a.id }}').click(function() {
+                                    $('#form-modal-body').load(document.getElementById("url{{ a.id }}").value, function () {
+                                        $('#form-modal').modal('toggle');
+                                        formAjaxSubmit('#form-modal-body form', '#form-modal');
+                                    });
+                            });
+                            </script>
+
                         </h3>
                     </div>
+
+                    <input type="hidden" id="url{{ a.id }}" name="url{{ a.id }}" value="{% url 'anotar' a.id object.id fecha %}" readonly>
 
                     <!-- detalle del alumno -->
                     <div class="panel-body">
@@ -304,5 +266,102 @@ $(document).ready(function() {
     {% endif %}
 
     </form>
+
+
+
+    <!-- Ventana MODAL para las anotaciones -->
+
+    <div id="form-modal" tabindex="-1" class="modal fade ">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">Anotación invidual</h4>
+                    </div>
+                    <div id="form-modal-body" class="modal-body">
+                        <p>Contenido del formulario</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+
+
+    </div>
+
+
+    {% block js %}
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        <!--se repite porque si no da error -->
+    <script>
+
+    jQuery(function($){
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '&#x3c;Ant ',
+		nextText: ' Sig&#x3e;',
+		currentText: 'Hoy',
+		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
+		'Jul','Ago','Sep','Oct','Nov','Dic'],
+		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+	$("#datepicker").datepicker({
+        showAnim: 'slideDown',
+        beforeShowDay: jQuery.datepicker.noWeekends,
+        onSelect: function(date, inst) {
+            document.anotaciones_form.submit();
+        },
+    });
+});
+
+
+$(document).ready(function() {
+   $("#datepicker").datepicker();
+ });
+
+
+    var formAjaxSubmit = function(form, modal) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                     $(modal).modal('toggle');
+
+                     alert("Anotación creada correctamente")
+
+                     location.reload(); //se recarga la página (en AJAX NO es recomendable)
+
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    }
+
+
+    </script>
+
+{% endblock %}
 
 {% endblock %}

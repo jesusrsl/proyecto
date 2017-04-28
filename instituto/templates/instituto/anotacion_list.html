@@ -1,6 +1,41 @@
 {% extends 'base.html' %}
 {% load mis_filtros %}
 
+{% block js %}
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        <!--se repite porque si no da error -->
+    <script>
+
+    var formAjaxSubmit = function(form, modal) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                     $(modal).modal('toggle');
+
+                     alert("Anotación editada correctamente.\n\nRecargue la página si desea visualizar los cambios.");
+
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    }
+
+
+
+    </script>
+
+{% endblock %}
 
 {% block section %}
 
@@ -43,14 +78,38 @@
 
                     {%if alumno.id == v.alumno.id %}
                         {% define "Yes" as existe_anotacion %}
-                        <td>
-                        <a href="{% url 'editar-anotacion' v.pk %}">
+                        <td id="celda{{ v.id}}">
+                        <a style="cursor: pointer" id="anotacion-button{{ v.id }}">
                             {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
 
                             {% if v.positivos is not None %} {{ v.positivos }}+ {% endif %}
 
                             {% if v.negativos is not None %} {{ v.negativos }}- {% endif %}
                         </a>
+                            <script>
+                                $('#anotacion-button{{ v.id }}').click(function() {
+                                    $('#form-modal-title').html("[{{ v.fecha |date:"d/m/Y"}}] {{ v.asignatura.nombre }}: <br> {{ v.alumno.nombre | capfirst }} {{ v.alumno.apellido1 |capfirst }} {{ v.alumno.apellido2 |capfirst }}")
+
+                                    $('#form-modal-body').load(document.getElementById("url{{ v.id }}").value, function () {
+                                        $('#form-modal').modal('toggle');
+                                        $("body").addClass("overflow");
+                                        formAjaxSubmit('#form-modal-body form', '#form-modal');
+                                        $("body").removeClass("overflow");
+                                    });
+                            });
+                            </script>
+                        <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'editar-anotacion' v.pk %}" readonly>
+
+
+                        {% if v.falta %}
+                            {% if v.trabaja or v.positivos or v.negativos %}
+                                <!--ERROR: si ha faltado, no debe tener anotaciones -->
+                                <script>
+                                    $(function(){
+                                        $("#celda{{ v.id }}").addClass("errorAnotaciones")});
+                                </script>
+                            {% endif %}
+                        {% endif %}
                         </td>
 
                     {% elif existe_anotacion is None and forloop.last%}
@@ -78,9 +137,28 @@
 
     <br>
     <div>
-        <a href="{% url 'detalle-asignatura' idAsignatura 'true' fecha %}">Volver</a>
+        <a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a>
     </div>
 
+
+        <!-- Ventana MODAL para las anotaciones -->
+
+    <div id="form-modal" tabindex="-1" class="modal fade ">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 id="form-modal-title" class="modal-title">Anotación invidual</h4>
+                </div>
+                <div id="form-modal-body" class="modal-body">
+                    <p>Contenido del formulario</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
 
 {% endblock %}
