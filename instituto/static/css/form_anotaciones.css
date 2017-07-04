@@ -1,0 +1,24 @@
+#enlaces_seleccion {
+    text-align: center;
+}
+#enlaces_seleccion span {
+    cursor:pointer;
+    color: #5178D0;
+}
+
+#enlaces_fecha {
+    text-align: right;
+    text-indent: 5px;
+}
+
+#enlaces_fecha span {
+    cursor:pointer;
+    color: #5178D0;
+}
+
+.botones-form{
+    margin-left: 0.5%;
+    margin-right: 0.5%;
+    margin-top: 1%;
+    margin-bottom: 1%;
+}

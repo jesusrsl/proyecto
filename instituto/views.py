@@ -144,7 +144,7 @@ def anotacionesPDF(request, idAsignatura, inicio, fin):
     for fecha in iter:
         num_fechas += 1
         fecha_list.append(fecha[0])
-        if (num_fechas % 7) == 0 and num_fechas < total_anotaciones:   #nueva pagina
+        if ((num_fechas % 7) == 0 and num_fechas < total_anotaciones) or ((num_fechas % 7) == 6 and num_fechas == total_anotaciones-1):   #nueva pagina
             t = anotacionesPorPagina(idAsignatura, fecha_list, inicio, fin, False)
             contenido.append(t)
             contenido.append(Paragraph("Pag %d" % num_pagina, f1))
@@ -189,7 +189,14 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
         key = itemgetter('fecha')
         iter = groupby(sorted(anotaciones, key=key), key=key)
 
-        fila = ["%s %s %s" % (alumno.nombre, alumno.apellido1, alumno.apellido2)]
+        nombre_completo = alumno.nombre + " " +  alumno.apellido1 + " " + alumno.apellido2
+
+        #elipsis para nombres mayores de 30 caracteres
+        if len(nombre_completo) > 30:
+            nuevo_nombre = nombre_completo[0:30] + "..."
+            nombre_completo = nuevo_nombre
+
+        fila = ["%s" % nombre_completo]
 
         for fecha, lista in iter:
 
@@ -235,7 +242,7 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
     if ultimaPag is False:
         tabla.setStyle(TableStyle(
         [
-            ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),  # bordes de las celdas (de grosor 1)
+            ('GRID', (0, 0), (-1, -1), 1, colors._enforceRGB('#428BCA')),  # bordes de las celdas (de grosor 1)
             ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
             ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue)  # color de fondo (en este caso, solo la primera fila)
         ]
@@ -454,25 +461,6 @@ class ProfesorCreate(SuccessMessageMixin,CreateView):
     model = Profesor
     fields = '__all__'
     success_message = 'El profesor %(nombre)s %(apellidos)s se ha grabado correctamente' # %(field_name)s
-
-class AjaxTemplateMixin(object):
-    def dispatch(self, request, *args, **kwargs):
-        if not hasattr(self, 'ajax_template_name'):
-            split = self.template_name.split('.html')
-            split[-1] = '_inner'
-            split.append('.html')
-            self.ajax_template_name = ''.join(split)
-        if request.is_ajax():
-            self.template_name = self.ajax_template_name
-
-        return super(AjaxTemplateMixin, self).dispatch(request, *args, **kwargs)
-
-class TeacherCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
-    template_name = 'instituto/test_form.html'
-    model = Profesor
-    fields = '__all__'
-    success_message = 'El profesor %(nombre)s %(apellidos)s se ha grabado correctamente' # %(field_name)s
-
 
 
 class ProfesorUpdate(SuccessMessageMixin, UpdateView):
@@ -795,7 +783,19 @@ class AnotacionCreateUpdate(RedirectView):
         except ObjectDoesNotExist:
             return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
 
-#class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
+class AjaxTemplateMixin(object):
+    def dispatch(self, request, *args, **kwargs):
+        if not hasattr(self, 'ajax_template_name'):
+            split = self.template_name.split('.html')
+            split[-1] = '_inner'
+            split.append('.html')
+            self.ajax_template_name = ''.join(split)
+        if request.is_ajax():
+            self.template_name = self.ajax_template_name
+
+        return super(AjaxTemplateMixin, self).dispatch(request, *args, **kwargs)
+
+
 class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
     model = Anotacion
     template_name = 'instituto/anotacion_form_create.html'
@@ -1061,6 +1061,8 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
         for alumno in lista:
             negativo(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
+
+    #Cambio de numero de columnas
 
     elif "fecha" in request.POST and "vista" in request.POST:
         fecha = request.POST.get('fecha')

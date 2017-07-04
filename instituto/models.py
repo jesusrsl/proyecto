@@ -120,6 +120,7 @@ class Alumno(models.Model):
     foto = models.ImageField(upload_to='fotografias/', blank=True)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
     asignaturas = models.ManyToManyField(Asignatura)
+    #asignaturas = models.ManyToManyField(Asignatura, limit_choices_to = {'grupo':grupo})
 
     def __unicode__(self):
         return "%s %s %s" % (self.nombre, self.apellido1, self.apellido2)
@@ -136,11 +137,12 @@ class Alumno(models.Model):
 
         super(Alumno, self).save()
 
-        image = Image.open(self.foto)
+        if self.foto != "":
+            image = Image.open(self.foto)
 
-        size = (100, 100)
-        image = image.resize(size, Image.ANTIALIAS)
-        image.save(self.foto.path)
+            size = (100, 100)
+            image = image.resize(size, Image.ANTIALIAS)
+            image.save(self.foto.path)
 
     class Meta:
         ordering = ['apellido1', 'apellido2', 'nombre']

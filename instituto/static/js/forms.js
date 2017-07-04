@@ -63,3 +63,21 @@ function cambiarVista(bloq) {
    }
 
 }
+
+function seleccionar_alumno(idAlumno){
+
+    if (document.getElementById("vista").value=="cuad")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+   for (i=0;i<document.anotaciones_form.elements.length;i++)
+       if(document.anotaciones_form.elements[i].name == nombre)
+           if(document.anotaciones_form.elements[i].value == idAlumno)
+               document.anotaciones_form.elements[i].checked=!document.anotaciones_form.elements[i].checked
+
+
+}

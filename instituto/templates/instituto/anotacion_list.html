@@ -45,16 +45,39 @@
 {% endblock %}
 
 {% block maincontent %}
-    <div class="table-responsive">
+    <div id="lateral" class="table-responsive">
 
-        {% regroup object_list by fecha as anotaciones_list %}
-
-        <table id="tablaAnotaciones" class="table users table-hover">
-
+        <table class="tablaAnotaciones table users table-hover">
 
             <!-- Cabecera: con todas las fechas -->
             <tr>
             <th class="alumno">Alumno/a</th>
+            </tr>
+
+            {% for alumno in alumno_list %}
+
+                <tr class="{% cycle 'fila1' 'fila2' %}">
+                <td><a  id="col{{ alumno.id }}" href="{% url 'detalle-alumno' alumno.id %}">
+                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</a></td>
+
+
+                </tr>
+            {% endfor %}
+        </table>
+
+   </div>
+
+
+    <div id="principal" class="table-responsive">
+
+        {% regroup object_list by fecha as anotaciones_list %}
+
+        <table class="tablaAnotaciones table users table-hover">
+
+
+            <!-- Cabecera: con todas las fechas -->
+            <tr>
+
             {% for fecha in anotaciones_list%}
 
                 <th class="fechas">{{ fecha.grouper |date:"d-m-y"}}</th>
@@ -68,8 +91,7 @@
             {% for alumno in alumno_list %}
 
                 <tr class="{% cycle 'fila1' 'fila2' %}">
-                <td><a href="{% url 'detalle-alumno' alumno.id %}">
-                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</a></td>
+
 
 
                 {% for fecha in anotaciones_list %}

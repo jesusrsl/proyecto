@@ -1,62 +1,100 @@
+ @media screen and (min-width: 775px) {
+
+     #lateral {
+         width: 250px;
+         float: left;
+     }
+
+     #principal {
+         margin-left: 250px;
+         position: relative;
+     }
+
+ }
+
+ @media screen and (max-width: 775px) {
+
+     #lateral {
+         width: 150px;
+         float: left;
+     }
+
+     #principal {
+         margin-left: 150px;
+         position: absolute;
+     }
+
+ }
+
 /*TABLA DE ANOTACIONES*/
-table#tablaAnotaciones {
-    border: gray 2px solid;
+table.tablaAnotaciones {
+    /*border: #428BCA 1px solid;
     table-layout: fixed;
+    overflow: hidden;*/
+    white-space:nowrap;
+    text-overflow: ellipsis;
 }
 
-#tablaAnotaciones tr.fila1{
-    background-color: lightgrey;
+.tablaAnotaciones tr.fila1{
+    background-color: lightgoldenrodyellow;
 }
 
-#tablaAnotaciones tr.fila2{
+.tablaAnotaciones tr.fila2{
     background-color: white;
 }
 
-#tablaAnotaciones th.alumno{
+.tablaAnotaciones th.alumno{
     width: 250px;
-    border: gray 1px solid;
-    overflow: auto;
-    background-color: dodgerblue;
-    color: darkblue;
+    border: #428BCA 1px solid;
+    /*overflow: auto;*/
+    background-color: #428BCA;
+    color: white;
 }
 
-#tablaAnotaciones th.resumen{
+.tablaAnotaciones th.resumen{
     width: 150px;
-    border: gray 1px solid;
-    overflow: auto;
-    background-color: dodgerblue;
-    color: darkblue;
+    border: #428BCA 1px solid;
+   /*overflow: auto;*/
+    background-color: #428BCA;
+    color: white;
 }
 
-#tablaAnotaciones th.fechas{
+.tablaAnotaciones th.fechas{
     width: 80px;
-    border: gray 1px solid;
-    overflow: auto;
-    background-color: dodgerblue;
-    color: darkblue;
+    border: #428BCA 1px solid;
+    /*overflow: auto;*/
+    background-color: #428BCA;
+    color: white;
 }
 
-#tablaAnotaciones td{
-    border: gray 1px solid;
+.tablaAnotaciones td{
+    border: #428BCA 1px solid;
 }
 
-#tablaAnotaciones td.resumen{
+.tablaAnotaciones td.resumen{
     background-color: lightgray;
 }
 
 /*TABLA DE ALUMNADO de una asignatura*/
 table#tablaAlumnado {
-    border: steelblue 2px solid;
+    border: #428BCA 2px solid;
     table-layout: auto;
 }
 
 #tablaAlumnado th {
-    color: steelblue;
-    text-indent: 10%;
+    color: #428BCA;
+    text-align: center;
 }
 
-#tablaAlumnado td {
-    border: steelblue 1px solid;
+#tablaAlumnado td.anotacion {
+    border: #428BCA 1px solid;
+    vertical-align: middle;
+    white-space:nowrap;
+    text-overflow: ellipsis;
+}
+
+#tablaAlumnado td.alumno {
+    border: #428BCA 1px solid;
 }
 
 #tablaAlumnado tr.fila1 {
@@ -94,9 +132,10 @@ table#tablaAlumnado {
 
 .boton, a:link.boton, a:active.boton, a:visited.boton, a:hover.boton {
     text-decoration:none;
-    color:steelblue;
+    color:#428BCA;
     font-weight: bolder;
     display:block;
+    cursor: pointer;
 }
 
 .overflow{

@@ -47,7 +47,8 @@ span.orange {
 }
 
 span.blue {
-    background: #5178D0;
+    /*background: #5178D0;*/
+    background: #428BCA;
     border-radius: 0.8em;
     -moz-border-radius: 0.8em;
     -webkit-border-radius: 0.8em;
@@ -67,7 +68,7 @@ span.blue {
 }
 
 span.blue2 {
-    background: #5178D0;
+    background: #428BCA;
     border-radius: 0.8em;
     -moz-border-radius: 0.8em;
     -webkit-border-radius: 0.8em;
@@ -80,22 +81,4 @@ span.blue2 {
     margin-top: 5px;
     text-align: center;
     width: 2em;   /*más ancho, para + y -*/
-}
-
-div#enlaces_seleccion {
-    text-align: center;
-}
-div#enlaces_seleccion span {
-    cursor:pointer;
-    color: #5178D0;
-}
-
-div#enlaces_fecha {
-    text-align: right;
-    text-indent: 5px;
-}
-
-div#enlaces_fecha span {
-    cursor:pointer;
-    color: #5178D0;
 }

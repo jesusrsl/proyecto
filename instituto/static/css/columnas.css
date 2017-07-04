@@ -4,8 +4,8 @@
 .col-lg-8r {
     position: relative;
     min-height: 1px;
-    padding-right: 15px;
-    padding-left: 15px;
+    padding-right: 1%;
+    padding-left: 1%;
 }
 
 .col-xs-8r {

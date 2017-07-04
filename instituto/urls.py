@@ -13,10 +13,6 @@ urlpatterns = [
     #create
     url(r'^profesor/nuevo/$', views.ProfesorCreate.as_view(), name='nuevo-profesor'),
 
-    ################################# PRUEBA #######################################
-    url(r'^profesor/new/$', views.TeacherCreate.as_view(), name='new-teacher'),
-    ################################################################################
-
     #update
     url(r'^profesor/(?P<pk>\d+)/editar/$', views.ProfesorUpdate.as_view(), name='editar-profesor'),
     #delete
@@ -73,9 +69,9 @@ urlpatterns = [
 
     url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
 
-    url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
-
     url(r'^anotar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreateUpdate.as_view(), name='anotar'),
+
+    url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
 

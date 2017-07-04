@@ -96,22 +96,23 @@ $(document).ready(function() {
     <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
 
         <div id="enlaces_fecha">
-            <div class="btn-group">
+
+            <div class="btn-group botones-form">
+                <label for="datepicker"> Fecha: </label>
+                <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
+            </div>
+
+            <div class="btn-group botones-form">
                 <button type="button" class="btn btn-default" onclick="cambiarVista('cuadricula')">
                     <span class="glyphicon glyphicon-th"></span>
                 </button>
 
-                <button type="button" class="btn btn-default"  value="lista" onclick="cambiarVista('lista')">
+                <button type="button" class="btn btn-default"  onclick="cambiarVista('lista')">
                     <span class="glyphicon glyphicon-list"></span>
                 </button>
 
                 <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
-            </div>
-
-            <div class="btn-group">
-                <label for="datepicker"> Fecha: </label>
-                <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
             </div>
         </div>
 
@@ -124,10 +125,10 @@ $(document).ready(function() {
 
 
             <p style="text-align: center">
-                <input type="submit" name="poner_faltas" id="poner_faltas" value="Poner faltas" class="btn btn-primary" style="margin: 0.5%">
-                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Poner trabajo" class="btn btn-primary" style="margin: 0.5%">
-                <input type="submit" name="poner_positivo" id="poner_positivo" value="Poner positivo" class="btn btn-primary" style="margin: 0.5%">
-                <input type="submit" name="poner_negativo" id="poner_negativo" value="Poner negativo" class="btn btn-primary" style="margin: 0.5%">
+                <input type="submit" name="poner_faltas" id="poner_faltas" value="Falta" class="btn btn-primary botones-form">
+                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Trabajo" class="btn btn-primary botones-form">
+                <input type="submit" name="poner_positivo" id="poner_positivo" value="Positivo" class="btn btn-primary botones-form">
+                <input type="submit" name="poner_negativo" id="poner_negativo" value="Negativo" class="btn btn-primary botones-form">
             </p>
 
             <div id="enlaces_seleccion">
@@ -143,17 +144,21 @@ $(document).ready(function() {
         <table class="table table-hover" id="tablaAlumnado">
             <tr>
                 <th>Alumno/a</th>
-                <th colspan="4">Observación diaria</th>
+                <th colspan="5">Observación diaria</th>
             </tr>
 
             {% for a in object.alumno_set.all %}
 
             <tr class="{% cycle 'fila1' 'fila2' %}" id="filaAlumno{{ a.id }}">
-                <td>
+                <td class="alumno">
                     <input type="checkbox" name="listaAlumnado" value="{{ a.id }}">
-                    <a style="cursor: pointer" id="anotacion-button{{ a.id }}">
+                    <span style="cursor: pointer; color: #428BCA" onclick="seleccionar_alumno({{ a.id }})">
                         {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
-                    </a>
+                    </span>
+                </td>
+
+                <td class="blue anotacion">
+                    <span class="glyphicon glyphicon-edit boton" id="anotacion-button{{ a.id }}"></span>
 
                     <script>
                         $('#anotacion-button{{ a.id }}').click(function() {
@@ -177,27 +182,27 @@ $(document).ready(function() {
                         {% define "Yes" as anotacion_creada %}
 
                         {% if anotacion.falta %}
-                            <td class="red"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                            <td class="red anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
                         {% else %}
-                            <td class="blue"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
                         {% endif %}
 
                         {% if anotacion.trabaja %}
-                            <td class="green"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
+                            <td class="green anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
                         {% else %}
-                            <td class="blue"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
                         {% endif %}
 
                         {% if anotacion.positivos %}
-                            <td class="orange"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">{{ anotacion.positivos }} +</a></td>
+                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">{{ anotacion.positivos }} +</a></td>
                         {% else %}
-                            <td class="blue"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
                         {% endif %}
 
                         {% if anotacion.negativos %}
-                            <td class="orange"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">{{ anotacion.negativos }} -</a></td>
+                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">{{ anotacion.negativos }} -</a></td>
                         {% else %}
-                            <td class="blue"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
                         {% endif %}
 
                         {% if anotacion.falta %}
@@ -215,18 +220,18 @@ $(document).ready(function() {
 
                     {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
 
-                        <td class="blue"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
-                        <td class="blue"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
-                        <td class="blue"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
-                        <td class="blue"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
+                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
+                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
 
                     {% endif %}
 
                 {% empty %} <!-- no hay ninguna anotación -->
-                    <td class="blue"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
-                    <td class="blue"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
-                    <td class="blue"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
-                    <td class="blue"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
+                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
+                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
 
                 {% endfor %}
 
