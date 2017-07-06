@@ -1,27 +1,17 @@
 {% extends 'base.html' %}
 
 {% block section %}
-    <h2>Planta {{ object.planta }}, pasillo {{ object.pasillo}}, número {{ object.numero }}</h2>
+    <h2> {{ object.alumno.nombre }} {{ object.alumno.apellido1 }} {{ object.alumno.apellido2 }} matriculado en {{ object.asignatura.nombre}}</h2>
 
-    <a href="{% url 'editar-aula' object.id %}">Editar</a>
-    <a href="{% url 'eliminar-aula' object.id %}">Eliminar</a>
+    <a href="{% url 'editar-matricula' object.id %}">Editar</a>
+    <a href="{% url 'eliminar-matricula' object.id %}">Eliminar</a>
     <br><br>
 {% endblock %}
 
 {% block maincontent %}
      <div class="row well">
-        <h3>Distribución:</h3> {{ object.filas }} X {{ object.columnas }}
+        <h3>Orden:</h3> {{ object.orden }}
      </div>
-    <div class="row well">
-        <h3>Asignaturas que se imparten en este aula:</h3>
-        {%  for a in object.asignatura_set.all %}
-
-            <div>{{ a.nombre }} impartida por {{ a.profesor.nombre }} {{ a.profesor.apellidos }}
-                a {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}</div>
-
-        {% endfor %}
-   </div>
-
 
 {% endblock %}
 

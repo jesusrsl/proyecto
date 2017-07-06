@@ -11,7 +11,7 @@
     <div>
         {% for t in object_list %}
             <a href="{% url 'detalle-profesor' t.id %}">
-                {{ t.nombre | capfirst}} {{ t.apellidos | capfirst}}
+                {{ t.first_name | capfirst}} {{ t.last_name | capfirst}}
             </a>
              tutoriza a
             {% for g in t.grupo_set.all %}

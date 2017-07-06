@@ -2,7 +2,7 @@
 
 {% block maincontent %}
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar la asignatura "{{ object.nombre }} impartida por {{ object.profesor.nombre }} {{ object.profesor.apellidos }}"?</p>
+        <p>¿Borrar la asignatura "{{ object.nombre }} impartida por {{ object.profesor.first_name }} {{ object.profesor.last_name }}"?</p>
         <input type="submit" value="Confirmar" />
         <a class='btn' href="{% url 'lista-asignaturas' %}">Cancelar</a>
     </form>

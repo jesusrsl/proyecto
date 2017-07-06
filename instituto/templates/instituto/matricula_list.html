@@ -2,21 +2,21 @@
 
 {% block section %}
 
-    <h2>Aulas</h2>
+    <h2>Matrículas</h2>
     <hr>
 
 {% endblock %}
 
 {% block maincontent %}
     <div>
-        {% for a in object_list %}
-            <a href="{% url 'detalle-aula' a.id %}">
-               Planta {{ a.planta }}, pasillo {{ a.pasillo }}, número {{ a.numero }}
+        {% for m in object_list %}
+            <a href="{% url 'detalle-matricula' m.id %}">
+               {{ m.alumno.nombre }} {{ m.alumno.apellido1 }} {{ m.alumno.apellido2 }} matriculado en {{ m.asignatura.nombre }}
             </a>
             <br>
         {% endfor %}
     <hr>
-    <a href="{%  url 'nueva-aula' %}">Nuevo aula</a>
+    <a href="{%  url 'nueva-matricula' %}">Nueva matrícula</a>
     </div>
 
 {% endblock %}

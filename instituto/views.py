@@ -18,15 +18,16 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, TemplateView, RedirectView
 from django.core.urlresolvers import reverse, reverse_lazy
+from django.shortcuts import get_object_or_404
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 
-from .models import Profesor, Asignatura, Grupo, Alumno, Aula, Anotacion
+from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.views.decorators.csrf import csrf_exempt
 from .forms import TestForm
 
 
@@ -65,7 +66,7 @@ def asignaturasPDF(request):
     header = Paragraph("Listado de Asignaturas", h1)
     asignaturas.append(header)
 
-    headings = ['Nombre', 'Nombre del Profesor', 'Apellidos del Profesor', 'Curso', 'Unidad']
+    headings = ['Nombre', 'Nombre del ProfesorUser', 'Apellidos del ProfesorUser', 'Curso', 'Unidad']
     info_asignaturas = [(a.nombre, a.profesor.nombre, a.profesor.apellidos, a.grupo.get_curso_display(), a.grupo.unidad) for a in Asignatura.objects.all()]
     t = Table([headings] + info_asignaturas)
     t.setStyle(TableStyle(
@@ -452,26 +453,26 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
 
 #PROFESORES
 class ProfesorListView(ListView):
-    model = Profesor
+    model = ProfesorUser
 
 class ProfesorDetailView(DetailView):
-    model = Profesor
+    model = ProfesorUser
 
 class ProfesorCreate(SuccessMessageMixin,CreateView):
-    model = Profesor
-    fields = '__all__'
-    success_message = 'El profesor %(nombre)s %(apellidos)s se ha grabado correctamente' # %(field_name)s
+    model = ProfesorUser
+    fields = ['username', 'password', 'first_name', 'last_name', 'email']
+    success_message = 'El profesor %(first_name)s %(last_name)s se ha grabado correctamente' # %(field_name)s
 
 
 class ProfesorUpdate(SuccessMessageMixin, UpdateView):
-    model = Profesor
-    fields = '__all__'
-    success_message = 'El profesor %(nombre)s %(apellidos)s  se ha modificado correctamente'
+    model = ProfesorUser
+    fields = ['username', 'password', 'first_name', 'last_name', 'email']
+    success_message = 'El profesor %(first_name)s %(last_name)s  se ha modificado correctamente'
 
 class ProfesorDelete(DeleteView):
-    model = Profesor
+    model = ProfesorUser
     success_url = reverse_lazy('lista-profesores')
-    success_message = 'El profesor %(nombre)s %(apellidos)s  se ha elimiando correctamente'
+    success_message = 'El profesor %(first_name)s %(last_name)s  se ha elimiando correctamente'
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -480,7 +481,7 @@ class ProfesorDelete(DeleteView):
 
 #PROFESORES TUTORES
 class TutorListView(ListView):
-    model = Profesor
+    model = ProfesorUser
     template_name = 'instituto/tutor_list.html'
 
     def get_queryset(self):
@@ -502,7 +503,7 @@ class AsignaturaProfesorListView(ListView):
     template_name = 'instituto/asignatura_profesor_list.html'
 
     def get_queryset(self):
-        queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=Profesor.objects.get(pk=self.kwargs['idProfesor']))
+        queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=ProfesorUser.objects.get(pk=self.kwargs['idProfesor']))
         return queryset
 
     #se le pasa la fecha actual para poder mostrar el detalle de cada asignatura
@@ -534,9 +535,13 @@ class AsignaturaCuadView(DetailView):
         else:
             lectivo = True
 
+        alumnado = Asignatura.objects.get(pk=self.kwargs['pk']).alumno_set.order_by('matricula__orden')
+
         anotaciones = Anotacion.objects.filter(fecha=fecha,asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
 
-        context.update({'vista':"cuad",'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
+        columnas = Asignatura.objects.get(pk=self.kwargs['pk']).distribucion
+
+        context.update({'vista':"cuad",'alumnado_list':alumnado, 'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo, 'cols': columnas})
         return context
 
 class AsignaturaListaView(DetailView):
@@ -617,6 +622,7 @@ class GrupoDelete(DeleteView):
         return super(GrupoDelete, self).delete(request, *args, **kwargs)
 
 #AULAS
+"""
 class AulaListView(ListView):
     model = Aula
 
@@ -642,6 +648,7 @@ class AulaDelete(DeleteView):
         obj = self.get_object()
         messages.success(self.request, self.success_message % obj.__dict__)
         return super(AulaDelete, self).delete(request, *args, **kwargs)
+"""
 
 #ALUMNOS
 class AlumnoListView(ListView):
@@ -657,12 +664,12 @@ class AlumnoDetailView(DetailView):
 
 class AlumnoCreate(SuccessMessageMixin, CreateView):
     model = Alumno
-    fields = '__all__'
+    fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha grabado correctamente'
 
 class AlumnoUpdate(SuccessMessageMixin, UpdateView):
     model = Alumno
-    fields = '__all__'
+    fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
 
 class AlumnoDelete(DeleteView):
@@ -674,6 +681,48 @@ class AlumnoDelete(DeleteView):
         obj = self.get_object()
         messages.success(self.request, self.success_message % obj.__dict__)
         return super(AlumnoDelete, self).delete(request, *args, **kwargs)
+
+# MATRICULAS
+class MatriculaListView(ListView):
+    model = Matricula
+
+class MatriculaDetailView(DetailView):
+    model = Matricula
+
+class MatriculaCreate(SuccessMessageMixin, CreateView):
+    model = Matricula
+    fields = ['alumno', 'asignatura']
+    success_message = 'El alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s se ha matriculado correctamente en %(nombre_asignatura)s'  # %(field_name)s
+
+    def get_success_message(self, cleaned_data):
+        return self.success_message % dict(
+            cleaned_data, nombre_alumno=self.object.alumno.nombre,
+                                           apellido1_alumno=self.object.alumno.apellido1,
+            apellido2_alumno=self.object.alumno.apellido2, nombre_asignatura=self.object.asignatura.nombre)
+
+class MatriculaUpdate(SuccessMessageMixin, UpdateView):
+    model = Matricula
+    fields = ['alumno', 'asignatura']
+    success_message = 'Se ha modificado correctamente la matricula del alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s  en %(nombre_asignatura)s'  # %(field_name)s
+
+    def get_success_message(self, cleaned_data):
+        alumno = self.object.alumno
+        asignatura = self.object.asignatura
+        return self.success_message % dict(nombre_alumno=alumno.nombre,
+                                           apellido1_alumno=alumno.apellido1, apellido2_alumno=alumno.apellido2,
+                                           nombre_asignatura=asignatura.nombre)
+
+
+class MatriculaDelete(DeleteView):
+    model = Matricula
+    success_url = reverse_lazy('lista-matriculas')
+    success_message = 'La matricula del alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s  en %(nombre_asignatura)s se ha eliminado correctamente'  # %(field_name)s
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        messages.success(self.request, self.success_message % dict(nombre_alumno=obj.alumno.nombre, apellido1_alumno=obj.alumno.apellido1,
+                                                                   apellido2_alumno=obj.alumno.apellido2, nombre_asignatura=obj.asignatura.nombre))
+        return super(MatriculaDelete, self).delete(request, *args, **kwargs)
 
 
 #ANOTACIONES
@@ -1062,9 +1111,13 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
             negativo(request, alumno, idAsignatura, fecha)
         messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
 
-    #Cambio de numero de columnas
-
     elif "fecha" in request.POST and "vista" in request.POST:
+        # Cambio de numero de columnas de la asignatura
+        if "columnas" in request.POST:
+            asignatura = Asignatura.objects.get(pk=idAsignatura)
+            asignatura.distribucion = request.POST.get('columnas')
+            asignatura.save()
+
         fecha = request.POST.get('fecha')
         vista = request.POST.get('vista')
 
@@ -1074,3 +1127,18 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
     else:
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
+@csrf_exempt
+def ordenarAsignatura(request, pk):
+
+    asignatura = Asignatura.objects.get(pk=pk)
+    for index, alumno_pk in enumerate(request.POST.getlist('alumno[]')):
+        #alumno a ordenar
+        alumno = get_object_or_404(Alumno, pk=int(str(alumno_pk)))
+
+        #matricula cuyo orden se va a cambiar
+        matricula = Matricula.objects.get(asignatura=asignatura, alumno=alumno)
+
+        matricula.orden = int(str(index)) + 1
+        matricula.save()
+
+    return HttpResponse('')

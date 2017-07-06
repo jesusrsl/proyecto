@@ -1,30 +1,30 @@
 from django.contrib import admin
 from django.forms import ModelForm
-from .models import Profesor, Grupo, Aula, Asignatura, Alumno, Anotacion
+from .models import ProfesorUser, Grupo, Asignatura, Alumno, Matricula, Anotacion
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.core.exceptions import ObjectDoesNotExist
 
-class ProfesorResource(resources.ModelResource):
+class ProfesorUserResource(resources.ModelResource):
 
     class Meta:
-        model = Profesor
+        model = ProfesorUser
 
 class AsignaturaResource(resources.ModelResource):
 
     class Meta:
         model = Asignatura
-        fields = ('id', 'nombre', 'profesor__nombre', 'profesor__apellidos', 'grupo__curso', 'grupo__unidad',)
+        fields = ('id', 'nombre', 'profesor__first_name', 'profesor__last_name', 'grupo__curso', 'grupo__unidad',)
         #exclude = ('campo_a_excluir',)
         #export_order = ('id', 'profesor', 'nombre')
 
 
-class ProfesorAdmin(ImportExportModelAdmin):
-    resource_class = ProfesorResource
+class ProfesorUserAdmin(ImportExportModelAdmin):
+    resource_class = ProfesorUserResource
 
 class AsignaturaAdmin(ImportExportModelAdmin):
     resource_class = AsignaturaResource
-
+"""
 class AlumnoAdminForm(ModelForm):
 
     class Meta:
@@ -41,12 +41,12 @@ class AlumnoAdminForm(ModelForm):
 class AlumnoAdmin(admin.ModelAdmin):
     form = AlumnoAdminForm
     filter_horizontal = ('asignaturas',)
-
+"""
 # Register your models here.
 
-admin.site.register(Profesor, ProfesorAdmin)
+admin.site.register(ProfesorUser, ProfesorUserAdmin)
 admin.site.register(Grupo)
-admin.site.register(Aula)
 admin.site.register(Asignatura, AsignaturaAdmin)
-admin.site.register(Alumno, AlumnoAdmin)
+admin.site.register(Alumno)
+admin.site.register(Matricula)
 admin.site.register(Anotacion)

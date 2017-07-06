@@ -10,7 +10,7 @@
 
 
 {% block section %}
-    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.nombre | capfirst }} {{ object.profesor.apellidos | capfirst }}</h2>
+    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.first_name | capfirst }} {{ object.profesor.last_name | capfirst }}</h2>
 
     <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
     <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>

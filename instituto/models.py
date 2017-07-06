@@ -6,17 +6,37 @@ from django.contrib.auth.models import User
 
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
-
+from django.urls import reverse
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 from datetime import date, datetime
 
 from PIL import Image
 
 # Create your models here.
-from django.urls import reverse
 
+class ProfesorUser(User):
+    #username, password, email, first_name, last_name
 
-class Profesor(models.Model):
+    def __init__(self, *args, **kwargs):
+        super(ProfesorUser, self).__init__(*args, **kwargs)
+        self._meta.get_field('username').verbose_name = 'usuario'
+        self._meta.get_field('password').verbose_name = 'contraseña'
+        self._meta.get_field('first_name').verbose_name = 'nombre'
+        self._meta.get_field('last_name').verbose_name = 'apellidos'
+
+    def __unicode__(self):
+        return self.first_name + " " + self.last_name + " (" + self.username + ")"
+
+    def get_absolute_url(self):
+        return reverse('lista-profesores')
+
+    class Meta:
+        ordering = ['last_name', 'first_name']
+        verbose_name_plural = 'profesores'
+
+"""
+class ProfesorUser(models.Model):
     nombre = models.CharField(max_length=50)
     apellidos = models.CharField(max_length=100)
 
@@ -32,7 +52,8 @@ class Profesor(models.Model):
     class Meta:
         ordering = ['apellidos', 'nombre']
         verbose_name_plural = 'profesores'
-
+"""
+"""
 class Aula(models.Model):
     planta = models.PositiveSmallIntegerField()
     pasillo = models.CharField(max_length=20, blank = True)
@@ -52,7 +73,7 @@ class Aula(models.Model):
     class Meta:
         ordering = ['planta', 'pasillo', 'numero']
         verbose_name_plural = 'aulas'
-
+"""
 
 class Grupo(models.Model):
     CURSO_CHOICES = (
@@ -70,8 +91,7 @@ class Grupo(models.Model):
     )
     curso = models.PositiveSmallIntegerField(choices=CURSO_CHOICES)
     unidad = models.CharField(max_length=10, blank=True)
-    tutor = models.ForeignKey(Profesor, on_delete=models.PROTECT)
-    aula = models.ForeignKey(Aula, blank=True, null=True, on_delete=models.SET_NULL)
+    tutor = models.ForeignKey(ProfesorUser, on_delete=models.PROTECT)
 
     def __unicode__(self):
         return "%s %s" % (self.get_curso_display(), self.unidad)
@@ -89,14 +109,14 @@ class Grupo(models.Model):
 
 class Asignatura(models.Model):
     nombre = models.CharField(max_length=50)
-    profesor = models.ForeignKey(Profesor, on_delete=models.PROTECT)
+    profesor = models.ForeignKey(ProfesorUser, on_delete=models.PROTECT)
     #profesor = models.ForeignKey(User, on_delete=models.PROTECT)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
-    aula = models.ForeignKey(Aula, null=True, blank=True, on_delete=models.SET_NULL)
+    distribucion = models.PositiveSmallIntegerField(default=6, validators=[MaxValueValidator(8), MinValueValidator(1)])
 
     def __unicode__(self):
         return "%s %s %s %s %s" % (
-            self.nombre, self.profesor.nombre, self.profesor.apellidos, self.grupo.get_curso_display(),
+            self.nombre, self.profesor.first_name, self.profesor.last_name, self.grupo.get_curso_display(),
             self.grupo.unidad)
 
     #def __str__(self):
@@ -119,7 +139,7 @@ class Alumno(models.Model):
     email = models.EmailField(null=True, blank=True)
     foto = models.ImageField(upload_to='fotografias/', blank=True)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
-    asignaturas = models.ManyToManyField(Asignatura)
+    asignaturas = models.ManyToManyField(Asignatura, through='Matricula')
     #asignaturas = models.ManyToManyField(Asignatura, limit_choices_to = {'grupo':grupo})
 
     def __unicode__(self):
@@ -140,7 +160,7 @@ class Alumno(models.Model):
         if self.foto != "":
             image = Image.open(self.foto)
 
-            size = (100, 100)
+            size = (200, 200)
             image = image.resize(size, Image.ANTIALIAS)
             image.save(self.foto.path)
 
@@ -152,6 +172,32 @@ class Alumno(models.Model):
 def foto_delete(sender, instance, **kwargs):
     # Borra los ficheros de las fotos de los alumnos que se eliminan.
     instance.foto.delete(False)
+
+class Matricula(models.Model):
+    alumno = models.ForeignKey(Alumno, on_delete=models.PROTECT)
+    asignatura = models.ForeignKey(Asignatura, on_delete=models.PROTECT)
+    orden = models.PositiveIntegerField(default=0)
+
+    def save(self):
+        if self.orden == 0:
+            max = 0
+            for m in Matricula.objects.filter(asignatura=self.asignatura):
+                if max <= m.orden:
+                    max = m.orden
+            self.orden = max + 1
+
+        #se guarda el objeto
+        super(Matricula, self).save()  # Call the "real" save() method."""
+
+    def __unicode__(self):
+        return "%s %s %s matriculado en %s" % (self.alumno.nombre, self.alumno.apellido1, self.alumno.apellido2, self.asignatura.nombre)
+
+    def get_absolute_url(self):
+        return reverse('lista-matriculas')
+
+    class Meta:
+        ordering = ['asignatura','orden']
+        verbose_name_plural = 'matriculas'
 
 class Anotacion(models.Model):
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)

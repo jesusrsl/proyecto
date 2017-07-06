@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^asignatura/(?P<pk>\d+)/editar/$', views.AsignaturaUpdate.as_view(), name='editar-asignatura'),
     url(r'^asignatura/(?P<pk>\d+)/eliminar/$', views.AsignaturaDelete.as_view(), name='eliminar-asignatura'),
     url(r'^asignaturas/PDF/$', views.asignaturasPDF, name="asignaturas-pdf"),
+    url(r'^asignatura/(?P<pk>\d+)/ordenar/$', views.ordenarAsignatura, name='ordenar-asignatura'),
 
     #GRUPOS
     url(r'^grupos/$', views.GrupoListView.as_view(), name='lista-grupos'),
@@ -48,11 +49,11 @@ urlpatterns = [
     url(r'^grupo/(?P<pk>\d+)/eliminar/$', views.GrupoDelete.as_view(), name='eliminar-grupo'),
 
     #AULAS
-    url(r'^aulas/$', views.AulaListView.as_view(), name='lista-aulas'),
-    url(r'^aula/(?P<pk>\d+)/detalle/$', views.AulaDetailView.as_view(), name='detalle-aula'),
-    url(r'^aula/nueva/$', views.AulaCreate.as_view(), name='nueva-aula'),
-    url(r'^aula/(?P<pk>\d+)/editar/$', views.AulaUpdate.as_view(), name='editar-aula'),
-    url(r'^aula/(?P<pk>\d+)/eliminar/$', views.AulaDelete.as_view(), name='eliminar-aula'),
+    #url(r'^aulas/$', views.AulaListView.as_view(), name='lista-aulas'),
+    #url(r'^aula/(?P<pk>\d+)/detalle/$', views.AulaDetailView.as_view(), name='detalle-aula'),
+    #url(r'^aula/nueva/$', views.AulaCreate.as_view(), name='nueva-aula'),
+    #url(r'^aula/(?P<pk>\d+)/editar/$', views.AulaUpdate.as_view(), name='editar-aula'),
+    #url(r'^aula/(?P<pk>\d+)/eliminar/$', views.AulaDelete.as_view(), name='eliminar-aula'),
 
     #ALUMNOS
     url(r'^alumnos/$', views.AlumnoListView.as_view(), name='lista-alumnos'),
@@ -60,6 +61,13 @@ urlpatterns = [
     url(r'^alumno/nuevo/$', views.AlumnoCreate.as_view(), name='nuevo-alumno'),
     url(r'^alumno/(?P<pk>\d+)/editar/$', views.AlumnoUpdate.as_view(), name='editar-alumno'),
     url(r'^alumno/(?P<pk>\d+)/eliminar/$', views.AlumnoDelete.as_view(), name='eliminar-alumno'),
+
+    #MATRICULAS
+    url(r'^matriculas/$', views.MatriculaListView.as_view(), name='lista-matriculas'),
+    url(r'^matricula/(?P<pk>\d+)/detalle/$', views.MatriculaDetailView.as_view(), name='detalle-matricula'),
+    url(r'^matricula/nueva/$', views.MatriculaCreate.as_view(), name='nueva-matricula'),
+    url(r'^matricula/(?P<pk>\d+)/editar/$', views.MatriculaUpdate.as_view(), name='editar-matricula'),
+    url(r'^matricula/(?P<pk>\d+)/eliminar/$', views.MatriculaDelete.as_view(), name='eliminar-matricula'),
 
     #ANOTACIONES
     #url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),

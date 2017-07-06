@@ -1,3 +1,199 @@
+/*2 COLUMNAS*/
+.col-xs-2r,
+.col-sm-2r,
+.col-md-2r,
+.col-lg-2r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-2r {
+    width: 50%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-2r {
+        width: 50%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-2r {
+        width: 50%;
+        float: left;
+    }
+}
+
+/*3 COLUMNAS*/
+.col-xs-3r,
+.col-sm-3r,
+.col-md-3r,
+.col-lg-3r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-3r {
+    width: 33.33%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-3r {
+        width: 33.33%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-3r {
+        width: 33.33%;
+        float: left;
+    }
+}
+
+/*4 COLUMNAS*/
+.col-xs-4r,
+.col-sm-4r,
+.col-md-4r,
+.col-lg-4r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-4r {
+    width: 25%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-4r {
+        width: 25%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-4r {
+        width: 25%;
+        float: left;
+    }
+}
+
+/*5 COLUMNAS*/
+.col-xs-5r,
+.col-sm-5r,
+.col-md-5r,
+.col-lg-5r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-5r {
+    width: 20%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-5r {
+        width: 20%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-5r {
+        width: 20%;
+        float: left;
+    }
+}
+
+@media (min-width: 1200px) {
+    .col-lg-5r {
+        width: 20%;
+        float: left;
+    }
+}
+
+/*6 COLUMNAS*/
+.col-xs-6r,
+.col-sm-6r,
+.col-md-6r,
+.col-lg-6r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-6r {
+    width: 16.66%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-6r {
+        width: 16.66%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-6r {
+        width: 16.66%;
+        float: left;
+    }
+}
+
+
+/*7 COLUMNAS*/
+.col-xs-7r,
+.col-sm-7r,
+.col-md-7r,
+.col-lg-7r {
+    position: relative;
+    min-height: 1px;
+    padding-right: 1%;
+    padding-left: 1%;
+}
+
+.col-xs-7r {
+    width: 14.28%;
+    float: left;
+}
+
+@media (min-width: 768px) {
+    .col-sm-7r {
+        width: 14.28%;
+        float: left;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-md-7r {
+        width: 14.28%;
+        float: left;
+    }
+}
+
+@media (min-width: 1200px) {
+    .col-lg-7r {
+        width: 14.28%;
+        float: left;
+    }
+}
+
+/*8 COLUMNAS*/
 .col-xs-8r,
 .col-sm-8r,
 .col-md-8r,
@@ -32,4 +228,14 @@
         width: 12.5%;
         float: left;
     }
+}
+
+/* CSS used here will be applied after bootstrap.css */
+.sortable-placeholder {
+    margin-left: 0 !important;
+    border: 1px solid #ccc;
+    background-color: yellow;
+    -webkit-box-shadow: 0px 0px 10px #888;
+    -moz-box-shadow: 0px 0px 10px #888;
+    box-shadow: 0px 0px 10px #888;
 }

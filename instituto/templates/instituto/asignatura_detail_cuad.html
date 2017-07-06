@@ -42,6 +42,23 @@
 
 $(document).ready(function() {
    $("#datepicker").datepicker();
+   $("#ordenable").sortable({
+            // Only make the .panel-heading child elements support dragging.
+            // Omit this to make then entire <li>...</li> draggable.
+            handle: '.panel-heading',
+            update: function (event, ui) {
+                //var ordenElementos = $(this).sortable("toArray").toString();
+                var data = $(this).sortable( "serialize");
+                //alert(data);
+
+                // POST to server using $.post or $.ajax
+                $.ajax({
+                    data: data,
+                    type: 'POST',
+                    url: "{% url 'ordenar-asignatura' object.pk%}"
+                });
+            }
+        });
  });
 
 
@@ -74,7 +91,6 @@ $(document).ready(function() {
         });
     }
 
-
     </script>
 
 {% endblock %}
@@ -87,7 +103,7 @@ $(document).ready(function() {
 
 
 {% block section %}
-    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.nombre | capfirst }} {{ object.profesor.apellidos | capfirst }}</h2>
+    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.first_name | capfirst }} {{ object.profesor.last_name | capfirst }}</h2>
 
     <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
     <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
@@ -105,14 +121,14 @@ $(document).ready(function() {
                 <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
                 <label for="columnas"> Nº de columnas: </label>
                 <select name="columnas" id="columnas" size="1" onchange="document.anotaciones_form.submit()">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option selected value="8">8</option>
+                    <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
+                    <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
+                    <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
+                    <option {% if cols == 4 %}selected {% endif %} value="4">4</option>
+                    <option {% if cols == 5 %}selected {% endif %} value="5">5</option>
+                    <option {% if cols == 6 %}selected {% endif %} value="6">6</option>
+                    <option {% if cols == 7 %}selected {% endif %} value="7">7</option>
+                    <option {% if cols == 8 %}selected {% endif %} value="8">8</option>
                 </select>
             </div>
 
@@ -155,11 +171,23 @@ $(document).ready(function() {
 
         <!-- VISTA CUADRÍCULA -->
         <div class="row" id="cuadricula">
+        <ul id="ordenable" class="list-inline">
 
-        {% for a in object.alumno_set.all %}
+        {% for a in alumnado_list%}
             <!--div class="col-xs-6 col-sm-3 col-md-8r"-->
 
-            <div class="col-xs-4 col-sm-3 col-md-8r">
+
+                {% if cols == 1 %}<li id="alumno_{{ a.id }}" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                {% elif cols == 2 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-6 col-md-2r col-lg-2r">
+                {% elif cols == 3 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-4 col-md-3r col-lg-3r">
+                {% elif cols == 4 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-4r col-lg-4r">
+                {% elif cols == 5 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-5r col-lg-5r">
+                {% elif cols == 6 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4 col-md-6r col-lg-6r">
+                {% elif cols == 7 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-3 col-md-7r col-lg-7r">
+                {% elif cols == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-8r col-lg-8r">
+                {% endif %}
+
+
                 <div class="panel panel-primary" id="panel-alumno{{ a.id }}">
 
                     <div class="panel-heading" style="height: 50px; padding: 2px; white-space: nowrap; text-overflow: ellipsis;">
@@ -167,7 +195,8 @@ $(document).ready(function() {
                         <h3 class="panel-title">
                             <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}">
                             <span style="cursor: pointer" onclick="seleccionar_alumno({{ a.id }})">
-                                    {{ a.nombre | capfirst }} <br> {{ a.apellido1 | capfirst }} {{ a.apellido2 |first }}.
+                                    {{ a.nombre | capfirst }} <br>
+                                    {{ a.apellido1 | capfirst }} {{ a.apellido2 |first }}.
                             </span>
                         </h3>
                     </div>
@@ -278,17 +307,17 @@ $(document).ready(function() {
                     </div>
 
                 </div>
-            </div>
+            </li>
 
         {% endfor %}
 
-        </div>
+
+    </ul></div>
 
 
     {% endif %}
 
     </form>
-
 
 
     <!-- Ventana MODAL para las anotaciones -->

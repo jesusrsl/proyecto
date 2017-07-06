@@ -2,8 +2,8 @@
 
 {% block maincontent %}
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar el aula de la planta {{ object.planta}}, pasillo {{ object.pasillo }}, número {{ object.numero }}?</p>
+        <p>¿Borrar la matricula de  {{ object.alumno.nombre}} {{ object.alumno.apellido1}} {{ object.alumno.apellido2}} en {{ object.asignatura.nombre }}?</p>
         <input type="submit" value="Confirmar" />
-        <a class='btn' href="{% url 'lista-aulas' %}">Cancelar</a>
+        <a class='btn' href="{% url 'lista-matriculas' %}">Cancelar</a>
     </form>
 {% endblock %}
