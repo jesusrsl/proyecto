@@ -11,7 +11,7 @@
     <div>
         {% for p in object_list %}
             <a href="{% url 'detalle-profesor' p.id %}">
-                {{ p.nombre | capfirst}} {{ p.apellidos | capfirst}}
+                {{ p.first_name | capfirst}} {{ p.last_name | capfirst}}
             </a>
             <br>
         {% endfor %}

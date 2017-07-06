@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block section %}
-    <h2>{{ object.nombre | capfirst }} {{ object.apellidos | capfirst }}</h2>
+    <h2>{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</h2>
 
     <a href="{% url 'editar-profesor' object.id %}">Editar</a>
     <a href="{% url 'eliminar-profesor' object.id %}">Eliminar</a>
