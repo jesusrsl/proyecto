@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 
-{% block section %}
+{% block maincontent %}
     <h2> {{ object.alumno.nombre }} {{ object.alumno.apellido1 }} {{ object.alumno.apellido2 }} matriculado en {{ object.asignatura.nombre}}</h2>
 
     <a href="{% url 'editar-matricula' object.id %}">Editar</a>
     <a href="{% url 'eliminar-matricula' object.id %}">Eliminar</a>
     <br><br>
-{% endblock %}
 
-{% block maincontent %}
      <div class="row well">
         <h3>Orden:</h3> {{ object.orden }}
      </div>

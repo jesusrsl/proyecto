@@ -20,6 +20,11 @@ class ProfesorUser(User):
 
     def __init__(self, *args, **kwargs):
         super(ProfesorUser, self).__init__(*args, **kwargs)
+        self._meta.get_field('username').help_text =' Obligatorio. Hasta 150 caracteres. Solo letras, números y @/./+/-/_'
+
+        for v in self._meta.get_field('username').validators:
+            v.message = 'Introduzca un nombre de usuario válido. Solo debe contener letras, números y los caracteres @/./+/-/_'
+
         self._meta.get_field('username').verbose_name = 'usuario'
         self._meta.get_field('password').verbose_name = 'contraseña'
         self._meta.get_field('first_name').verbose_name = 'nombre'
@@ -174,7 +179,7 @@ def foto_delete(sender, instance, **kwargs):
     instance.foto.delete(False)
 
 class Matricula(models.Model):
-    alumno = models.ForeignKey(Alumno, on_delete=models.PROTECT)
+    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     asignatura = models.ForeignKey(Asignatura, on_delete=models.PROTECT)
     orden = models.PositiveIntegerField(default=0)
 

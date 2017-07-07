@@ -34,29 +34,30 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block section %}
+
+{% block maincontent %}
 
     <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
     <hr>
-
-{% endblock %}
-
-{% block maincontent %}
 
     {% if error %}
         <p style="color: red;">{{ mensaje_error }}</p>
     {% endif %}
 
-    <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" method="post">{% csrf_token %}
-        <p>
-            <span style="font-weight: bold"><label for="datepicker_inicio">Fecha de inicio:</label></span>
-            <input type="text" name="inicio" id="datepicker_inicio" step="1" value="{{ fecha }}" size="8">
-        </p>
+    <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" class="form-horizontal" method="post" role="form">{% csrf_token %}
 
-        <p>
-            <span style="font-weight: bold"><label for="datepicker_fin">Fecha de fin:</label></span>
-            <input type="text" name="fin"  id="datepicker_fin" value="{{ fecha }}" size="8">
-        </p>
+        <div class="control-group">
+            <label for="datepicker_inicio" class="control-label">Fecha de inicio:</label>
+            <div class="controls"><input type="text" name="inicio" id="datepicker_inicio" step="1" value="{{ fecha }}" size="8">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="datepicker_fin" class="control-label">Fecha de fin:</label>
+            <div class="controls"><input type="text" name="fin" id="datepicker_fin" step="1" value="{{ fecha }}" size="8">
+            </div>
+        </div>
+
         <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-primary botones-form">
         <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-primary botones-form">
         <input type="submit" name="anotaciones_csv" id="anotaciones_csv" value="Exportar a CSV" class="btn btn-primary botones-form">

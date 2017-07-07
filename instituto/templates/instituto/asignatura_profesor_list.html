@@ -1,13 +1,10 @@
 {% extends 'base.html' %}
 
-{% block section %}
+{% block maincontent %}
 
     <h2>Asignaturas</h2>
     <hr>
 
-{% endblock %}
-
-{% block maincontent %}
     <div>
         {% for a in object_list %}
             <a href="{% url 'detalle-asignatura-cuad' a.id fecha%}">

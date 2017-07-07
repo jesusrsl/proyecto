@@ -1,9 +1,35 @@
 {% extends 'base.html' %}
 
 {% block maincontent %}
-    <form method="post">{% csrf_token %}
-        {{ form.as_p }} <!-- as_table, as_ul -->
-        <button type="submit">Guardar</button>
-        <a class='btn' href="{% url 'lista-matriculas' %}">Cancelar</a>
-    </form>
+
+    <form class="form-horizontal" method="post" role="form">{% csrf_token %}
+
+        {% for field in form %}
+            {% if field.errors %}
+                <div class="control-group error">
+                    <label class="control-label">{{ field.label }}</label>
+                    <div class="controls">{{ field }}
+                        <span class="help-inline">
+                            {% for error in  field.errors %}{{ error }}{% endfor %}
+                        </span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="control-group">
+                    <label class="control-label">{{ field.label }}</label>
+                    <div class="controls">{{ field }}
+                        {% if field.help_text %}
+                            <p class="help-inline"><small>{{ field.help_text }}</small></p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+    <br>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary" >Guardar</button>
+        <a class='btn btn-primary' href="{% url 'lista-matriculas' %}">Cancelar</a>
+    </div>
+</form>
 {% endblock %}

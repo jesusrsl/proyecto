@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     url(r'^$',views.base, name='inicio'),
     url(r'^login/$', auth_views.login, {'template_name': 'login.html'}, name='login'),
-    url(r'^login/$', auth_views.logout, {'template_name': 'logout.html'}, name='logout'),
+    url(r'^logout/$', auth_views.logout, {'template_name': 'logout.html'}, name='logout'),
 
     #PROFESORES
     url(r'^profesores/$', views.ProfesorListView.as_view(), name='lista-profesores'),

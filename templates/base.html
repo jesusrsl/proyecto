@@ -45,9 +45,10 @@
 
 
 </head>
-<body>
+<body style="padding-top: 70px">
 <!-- NavBar -->
-    <nav class="navbar navbar-default">
+    <!--nav class="navbar navbar-default"-->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
         <div class="container-fluid">
 
             <div class="navbar-header">
@@ -144,10 +145,6 @@
 
     {% include 'messages.html' %}
 
-    <div class="container">
-        {% block section %}
-        {% endblock %}
-    </div>
     <div class="container">
         {% block maincontent %}
         {% endblock %}

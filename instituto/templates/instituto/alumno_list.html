@@ -1,13 +1,9 @@
 {% extends 'base.html' %}
 
-{% block section %}
-
+{% block maincontent %}
     <h2>Alumnos/as</h2>
     <hr>
 
-{% endblock %}
-
-{% block maincontent %}
     <div>
         {% for a in object_list %}
             {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}

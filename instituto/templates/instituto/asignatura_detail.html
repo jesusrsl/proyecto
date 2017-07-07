@@ -8,16 +8,13 @@
 
 {% endblock %}
 
+{% block maincontent %}
 
-{% block section %}
     <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.first_name | capfirst }} {{ object.profesor.last_name | capfirst }}</h2>
 
     <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
     <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
     <br><br>
-{% endblock %}
-
-{% block maincontent %}
 
     <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
 

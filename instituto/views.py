@@ -27,12 +27,13 @@ from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacio
 
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.deletion import ProtectedError
 from django.views.decorators.csrf import csrf_exempt
 from .forms import TestForm
 
 
 # Create your views here.
-
+@login_required
 def base(request):
     return render(request, 'base.html')
 
@@ -472,7 +473,25 @@ class ProfesorUpdate(SuccessMessageMixin, UpdateView):
 class ProfesorDelete(DeleteView):
     model = ProfesorUser
     success_url = reverse_lazy('lista-profesores')
-    success_message = 'El profesor %(first_name)s %(last_name)s  se ha elimiando correctamente'
+    success_message = 'El profesor %(first_name)s %(last_name)s  se ha eliminado correctamente'
+    warning_message = 'El profesor %(first_name)s %(last_name)s  no se ha podido eliminar porque tiene asignaturas o grupos relacionados'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return self.delete(request, *args, **kwargs)
+        except ProtectedError:
+            obj = self.get_object()
+            #se borra el mensaje de exito
+            storage = messages.get_messages(request)
+            for _ in storage:
+                pass
+
+            if len(storage._loaded_messages) == 1:
+                del storage._loaded_messages[0]
+
+            messages.warning(self.request, self.warning_message % obj.__dict__)
+            return HttpResponseRedirect(reverse('lista-profesores'))
+
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -503,6 +522,7 @@ class AsignaturaProfesorListView(ListView):
     template_name = 'instituto/asignatura_profesor_list.html'
 
     def get_queryset(self):
+        # queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=self.request.user)
         queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=ProfesorUser.objects.get(pk=self.kwargs['idProfesor']))
         return queryset
 
@@ -573,8 +593,25 @@ class AsignaturaUpdate(SuccessMessageMixin, UpdateView):
 
 class AsignaturaDelete(DeleteView):
     model = Asignatura
-    success_message = 'La asignatura %(nombre)s se ha eliminado correctamente'
     success_url = reverse_lazy('lista-asignaturas')
+    success_message = 'La asignatura %(nombre)s se ha eliminado correctamente'
+    warning_message = 'La asignatura %(nombre)s  no se ha podido eliminar porque tiene alumnado matriculado'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return self.delete(request, *args, **kwargs)
+        except ProtectedError:
+            obj = self.get_object()
+            # se borra el mensaje de exito
+            storage = messages.get_messages(request)
+            for _ in storage:
+                pass
+
+            if len(storage._loaded_messages) == 1:
+                del storage._loaded_messages[0]
+
+            messages.warning(self.request, self.warning_message % obj.__dict__)
+            return HttpResponseRedirect(reverse('lista-asignaturas'))
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -615,6 +652,23 @@ class GrupoDelete(DeleteView):
     model = Grupo
     success_url = reverse_lazy('lista-grupos')
     success_message = 'El grupo %(curso_elegido)s %(unidad_elegida)s se ha eliminado correctamente'
+    warning_message = 'El grupo %(curso_elegido)s %(unidad_elegida)s no se ha podido eliminar porque tiene asignaturas o alumnado relacionado'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return self.delete(request, *args, **kwargs)
+        except ProtectedError:
+            obj = self.get_object()
+            # se borra el mensaje de exito
+            storage = messages.get_messages(request)
+            for _ in storage:
+                pass
+
+            if len(storage._loaded_messages) == 1:
+                del storage._loaded_messages[0]
+
+            messages.warning(self.request, self.warning_message % dict(curso_elegido=obj.get_curso_display(),unidad_elegida=obj.unidad))
+            return HttpResponseRedirect(reverse('lista-grupos'))
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
@@ -693,12 +747,31 @@ class MatriculaCreate(SuccessMessageMixin, CreateView):
     model = Matricula
     fields = ['alumno', 'asignatura']
     success_message = 'El alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s se ha matriculado correctamente en %(nombre_asignatura)s'  # %(field_name)s
+    warning_message = 'El alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s ya se encuentra matriculado en %(nombre_asignatura)s'
 
     def get_success_message(self, cleaned_data):
         return self.success_message % dict(
             cleaned_data, nombre_alumno=self.object.alumno.nombre,
                                            apellido1_alumno=self.object.alumno.apellido1,
             apellido2_alumno=self.object.alumno.apellido2, nombre_asignatura=self.object.asignatura.nombre)
+
+    #se evitan matriculas duplicadas
+    def form_valid(self, form):
+        alumno = form.instance.alumno
+        asignatura = form.instance.asignatura
+        try:
+            ya_matriculado = Matricula.objects.get(alumno=alumno, asignatura=asignatura)
+            if ya_matriculado is None:
+                return super(MatriculaCreate, self).form_valid(form)
+            else:
+                #alumno ya matriculado
+                messages.warning(self.request, self.warning_message % dict(nombre_alumno=alumno.nombre,
+                                                                           apellido1_alumno=alumno.apellido1,
+                                                                           apellido2_alumno=alumno.apellido2,
+                                                                           nombre_asignatura=asignatura.nombre))
+                return HttpResponseRedirect(reverse('lista-matriculas'))
+        except ObjectDoesNotExist:
+            return super(MatriculaCreate, self).form_valid(form)
 
 class MatriculaUpdate(SuccessMessageMixin, UpdateView):
     model = Matricula

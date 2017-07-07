@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
 
 {% block maincontent %}
+
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar el alumno "{{ object.nombre }} {{object.apellido1 }} {{ object.apellido2 }}"?</p>
-        <input type="submit" value="Confirmar" />
-        <a class='btn' href="{% url 'lista-alumnos' %}">Cancelar</a>
+        <p>¿Borrar el alumno <strong>"{{ object.nombre }} {{object.apellido1 }} {{ object.apellido2 }}"</strong>?</p>
+        <br>
+        <div class="form-actions">
+        <button type="submit" class="btn btn-primary" >Confirmar</button>
+        <a class='btn btn-primary' href="{% url 'lista-alumnos' %}">Cancelar</a>
+        </div>
+
     </form>
 {% endblock %}

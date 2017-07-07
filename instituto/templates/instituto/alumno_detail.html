@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 
-{% block section %}
+{% block maincontent %}
     <h2>{{ object.nombre | capfirst }} {{ object.apellido1 | capfirst }} {{ object.apellido2 | capfirst }}</h2>
 
     <a href="{% url 'editar-alumno' object.id %}">Editar</a>
     <a href="{% url 'eliminar-alumno' object.id %}">Eliminar</a>
     <br><br>
-{% endblock %}
 
-{% block maincontent %}
+
     <div class="row well">
         <h3>Grupo:</h3> {{ object.grupo.get_curso_display }} {{ object.grupo.unidad }}
 

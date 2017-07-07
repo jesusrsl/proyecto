@@ -2,8 +2,11 @@
 
 {% block maincontent %}
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar el grupo "{{ object.get_curso_display}} {{ object.unidad }}"?</p>
-        <input type="submit" value="Confirmar" />
-        <a class='btn' href="{% url 'lista-grupos' %}">Cancelar</a>
+        <p>¿Borrar el grupo <strong>"{{ object.get_curso_display}} {{ object.unidad }}</strong>"?</p>
+        <br>
+        <div class="form-actions">
+        <button type="submit" class="btn btn-primary" >Confirmar</button>
+        <a class='btn btn-primary' href="{% url 'lista-grupos' %}">Cancelar</a>
+        </div>
     </form>
 {% endblock %}
