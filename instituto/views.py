@@ -1,4 +1,11 @@
+# This Python file uses the following encoding: utf-8
+import os, sys
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak, PageTemplate
@@ -15,28 +22,71 @@ from operator import itemgetter
 from itertools import groupby
 
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, TemplateView, RedirectView
 from django.core.urlresolvers import reverse, reverse_lazy
-from django.shortcuts import get_object_or_404
+from django.conf import settings
 
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 
 from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
+from .forms import RegisterForm, UpdateForm
 
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.deletion import ProtectedError
 from django.views.decorators.csrf import csrf_exempt
-from .forms import TestForm
 
 
 # Create your views here.
-@login_required
-def base(request):
-    return render(request, 'base.html')
 
+# Login User
+class LoginUser(FormView):
+    model = ProfesorUser
+    form_class = AuthenticationForm
+    template_name = 'login.html'
+    success_url = reverse_lazy('asignaturas-profesor')
+
+    """
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
+            return redirect(self.get_success_url())
+        else:
+            return super(LoginUser, self).get(request, *args, **kwargs)
+            """
+
+    def form_valid(self, form):
+        login(self.request, form.get_user())
+        if self.request.POST.get('next') != '':
+            return HttpResponseRedirect(self.request.POST.get('next'))
+        else:
+            return redirect(self.get_success_url())
+
+
+class LogoutUser(RedirectView):
+    url = reverse_lazy('inicio')
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(LogoutUser, self).dispatch(*args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return super(LogoutUser, self).get(request, *args, **kwargs)
+
+#INICIO
+def base(request):
+    if request.user.is_authenticated():
+        return render(request, 'base.html')
+    else:
+        return HttpResponseRedirect(reverse("login"))
+
+
+def acerca(request):
+    return render(request, 'about.html')
+
+@login_required
 def asignaturasPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
@@ -67,8 +117,8 @@ def asignaturasPDF(request):
     header = Paragraph("Listado de Asignaturas", h1)
     asignaturas.append(header)
 
-    headings = ['Nombre', 'Nombre del ProfesorUser', 'Apellidos del ProfesorUser', 'Curso', 'Unidad']
-    info_asignaturas = [(a.nombre, a.profesor.nombre, a.profesor.apellidos, a.grupo.get_curso_display(), a.grupo.unidad) for a in Asignatura.objects.all()]
+    headings = ['Nombre', 'Profesor/a', 'Curso', 'Unidad']
+    info_asignaturas = [(a.nombre, a.profesor.first_name +" " + a.profesor.last_name, a.grupo.get_curso_display(), a.grupo.unidad) for a in Asignatura.objects.all()]
     t = Table([headings] + info_asignaturas)
     t.setStyle(TableStyle(
         [
@@ -90,7 +140,7 @@ def asignaturasPDF(request):
     buff.close()
     return response
 
-
+@login_required
 def anotacionesPDF(request, idAsignatura, inicio, fin):
 
     response = HttpResponse(content_type='application/pdf')
@@ -280,6 +330,7 @@ def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         return line.encode('utf-8')
 
+@login_required
 def anotacionesCSV(request, idAsignatura, inicio, fin):
 
     response = HttpResponse(content_type='text/csv')
@@ -358,6 +409,7 @@ def anotacionesCSV(request, idAsignatura, inicio, fin):
 
     return response
 
+@login_required
 def anotacionesXLS(request, idAsignatura, inicio, fin):
 
     response = HttpResponse(content_type='text/ms-excel')
@@ -453,28 +505,49 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
     return response
 
 #PROFESORES
-class ProfesorListView(ListView):
+#Permisos: todos los profesores
+class ProfesorListView(LoginRequiredMixin, ListView):
     model = ProfesorUser
 
-class ProfesorDetailView(DetailView):
+#Permiso: todos los profesores
+class ProfesorDetailView(LoginRequiredMixin, DetailView):
     model = ProfesorUser
 
-class ProfesorCreate(SuccessMessageMixin,CreateView):
-    model = ProfesorUser
-    fields = ['username', 'password', 'first_name', 'last_name', 'email']
+#Permiso: solo superusers
+class ProfesorCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    model = ProfesorUser  # Put model AND form_class, otherwise a User individual is saved
+    form_class = RegisterForm
+    #fields = ['username', 'password', 'first_name', 'last_name', 'email']
     success_message = 'El profesor %(first_name)s %(last_name)s se ha grabado correctamente' # %(field_name)s
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para crear nuevos profesores')
+        return super(ProfesorCreate, self).handle_no_permission()
 
 
-class ProfesorUpdate(SuccessMessageMixin, UpdateView):
+#Permiso: solo superusers y el propio usuario
+class ProfesorUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = ProfesorUser
-    fields = ['username', 'password', 'first_name', 'last_name', 'email']
+    form_class = UpdateForm
+
     success_message = 'El profesor %(first_name)s %(last_name)s  se ha modificado correctamente'
 
-class ProfesorDelete(DeleteView):
+    def test_func(self):
+        return (self.request.user.is_superuser or int(self.request.user.id) == int(self.kwargs['pk']))
+
+#Permiso: solo superusers
+class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = ProfesorUser
     success_url = reverse_lazy('lista-profesores')
     success_message = 'El profesor %(first_name)s %(last_name)s  se ha eliminado correctamente'
     warning_message = 'El profesor %(first_name)s %(last_name)s  no se ha podido eliminar porque tiene asignaturas o grupos relacionados'
+
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para eliminar profesores')
+        return super(ProfesorDelete, self).handle_no_permission()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -499,7 +572,8 @@ class ProfesorDelete(DeleteView):
         return super(ProfesorDelete, self).delete(request, *args, **kwargs)
 
 #PROFESORES TUTORES
-class TutorListView(ListView):
+#Permisos: todos los profesores
+class TutorListView(LoginRequiredMixin,ListView):
     model = ProfesorUser
     template_name = 'instituto/tutor_list.html'
 
@@ -508,6 +582,7 @@ class TutorListView(ListView):
         return queryset
 
 #ASIGNATURAS
+#Permisos: todos los profesores
 class AsignaturaListView(ListView):
     model = Asignatura
 
@@ -517,13 +592,14 @@ class AsignaturaListView(ListView):
         context.update({'fecha': date.today().strftime('%d/%m/%Y')})
         return context
 
-class AsignaturaProfesorListView(ListView):
+#Permisos: el profesor activo
+class AsignaturaProfesorListView(LoginRequiredMixin, ListView):
     model = Asignatura
     template_name = 'instituto/asignatura_profesor_list.html'
 
     def get_queryset(self):
-        # queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=self.request.user)
-        queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=ProfesorUser.objects.get(pk=self.kwargs['idProfesor']))
+        queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=self.request.user)
+        #queryset = super(AsignaturaProfesorListView, self).get_queryset().filter(profesor=ProfesorUser.objects.get(pk=self.kwargs['idProfesor']))
         return queryset
 
     #se le pasa la fecha actual para poder mostrar el detalle de cada asignatura
@@ -543,7 +619,7 @@ class AsignaturaProfesorListView(ListView):
         return context
 """
 
-class AsignaturaCuadView(DetailView):
+class AsignaturaCuadView(LoginRequiredMixin, DetailView):
     model = Asignatura
     template_name = 'instituto/asignatura_detail_cuad.html'
 
@@ -564,7 +640,7 @@ class AsignaturaCuadView(DetailView):
         context.update({'vista':"cuad",'alumnado_list':alumnado, 'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo, 'cols': columnas})
         return context
 
-class AsignaturaListaView(DetailView):
+class AsignaturaListaView(LoginRequiredMixin, DetailView):
     model = Asignatura
     template_name = 'instituto/asignatura_detail_lista.html'
 
@@ -581,17 +657,17 @@ class AsignaturaListaView(DetailView):
         context.update({'vista':"lista",'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
         return context
 
-class AsignaturaCreate(SuccessMessageMixin, CreateView):
+class AsignaturaCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha grabado correctamente'
 
-class AsignaturaUpdate(SuccessMessageMixin, UpdateView):
+class AsignaturaUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha modificado correctamente'
 
-class AsignaturaDelete(DeleteView):
+class AsignaturaDelete(LoginRequiredMixin, DeleteView):
     model = Asignatura
     success_url = reverse_lazy('lista-asignaturas')
     success_message = 'La asignatura %(nombre)s se ha eliminado correctamente'
@@ -619,40 +695,57 @@ class AsignaturaDelete(DeleteView):
         return super(AsignaturaDelete, self).delete(request, *args, **kwargs)
 
 #GRUPOS
-class GrupoListView(ListView):
+#Permisos: todos los profesores
+class GrupoListView(LoginRequiredMixin, ListView):
     model = Grupo
 
-class GrupoDetailView(DetailView):
+#Permisos: todos los profesores
+class GrupoDetailView(LoginRequiredMixin, DetailView):
     model = Grupo
 
-
-class GrupoCreate(SuccessMessageMixin, CreateView):
+#Permiso: solo superusers
+class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = Grupo
     fields = '__all__'
     success_message = 'El grupo %(curso_elegido)s %(unidad)s se ha grabado correctamente'
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para crear nuevos grupos')
+        return super(GrupoCreate, self).handle_no_permission()
 
     def get_success_message(self, cleaned_data):
         return self.success_message % dict(
             cleaned_data,
             curso_elegido=self.object.get_curso_display(),
         )
-
-class GrupoUpdate(SuccessMessageMixin, UpdateView):
+#Permiso: solo superusers
+class GrupoUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Grupo
     fields = '__all__'
     success_message = 'El grupo %(curso_elegido)s %(unidad)s se ha modificado correctamente'
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para modificar los grupos')
+        return super(GrupoUpdate, self).handle_no_permission()
 
     def get_success_message(self, cleaned_data):
         return self.success_message % dict(
             cleaned_data,
             curso_elegido=self.object.get_curso_display(),
         )
-
-class GrupoDelete(DeleteView):
+#Permiso: solo superusers
+class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Grupo
     success_url = reverse_lazy('lista-grupos')
     success_message = 'El grupo %(curso_elegido)s %(unidad_elegida)s se ha eliminado correctamente'
     warning_message = 'El grupo %(curso_elegido)s %(unidad_elegida)s no se ha podido eliminar porque tiene asignaturas o alumnado relacionado'
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para eliminar grupos')
+        return super(GrupoUpdate, self).handle_no_permission()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -705,7 +798,7 @@ class AulaDelete(DeleteView):
 """
 
 #ALUMNOS
-class AlumnoListView(ListView):
+class AlumnoListView(LoginRequiredMixin, ListView):
     model = Alumno
     #paginate_by = 10
 
@@ -713,20 +806,20 @@ class AlumnoListView(ListView):
        queryset = super(AlumnoListView, self).get_queryset()
        return queryset.order_by('grupo', 'apellido1', 'apellido2', 'nombre')
 
-class AlumnoDetailView(DetailView):
+class AlumnoDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
 
-class AlumnoCreate(SuccessMessageMixin, CreateView):
+class AlumnoCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Alumno
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha grabado correctamente'
 
-class AlumnoUpdate(SuccessMessageMixin, UpdateView):
+class AlumnoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Alumno
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
 
-class AlumnoDelete(DeleteView):
+class AlumnoDelete(LoginRequiredMixin, DeleteView):
     model = Alumno
     success_url = reverse_lazy('lista-alumnos')
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha eliminado correctamente'
@@ -737,13 +830,13 @@ class AlumnoDelete(DeleteView):
         return super(AlumnoDelete, self).delete(request, *args, **kwargs)
 
 # MATRICULAS
-class MatriculaListView(ListView):
+class MatriculaListView(LoginRequiredMixin, ListView):
     model = Matricula
 
-class MatriculaDetailView(DetailView):
+class MatriculaDetailView(LoginRequiredMixin, DetailView):
     model = Matricula
 
-class MatriculaCreate(SuccessMessageMixin, CreateView):
+class MatriculaCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = Matricula
     fields = ['alumno', 'asignatura']
     success_message = 'El alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s se ha matriculado correctamente en %(nombre_asignatura)s'  # %(field_name)s
@@ -773,7 +866,7 @@ class MatriculaCreate(SuccessMessageMixin, CreateView):
         except ObjectDoesNotExist:
             return super(MatriculaCreate, self).form_valid(form)
 
-class MatriculaUpdate(SuccessMessageMixin, UpdateView):
+class MatriculaUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Matricula
     fields = ['alumno', 'asignatura']
     success_message = 'Se ha modificado correctamente la matricula del alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s  en %(nombre_asignatura)s'  # %(field_name)s
@@ -786,7 +879,7 @@ class MatriculaUpdate(SuccessMessageMixin, UpdateView):
                                            nombre_asignatura=asignatura.nombre)
 
 
-class MatriculaDelete(DeleteView):
+class MatriculaDelete(LoginRequiredMixin, DeleteView):
     model = Matricula
     success_url = reverse_lazy('lista-matriculas')
     success_message = 'La matricula del alumno/a %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s  en %(nombre_asignatura)s se ha eliminado correctamente'  # %(field_name)s
@@ -804,7 +897,7 @@ class MatriculaDelete(DeleteView):
     IMPORTANE:
     puede que no sea necesaria esta clase
 
-class AnotacionListView(ListView):
+class AnotacionListView(LoginRequiredMixin, ListView):
     model = Anotacion
 
     def get_queryset(self):
@@ -826,7 +919,7 @@ class AnotacionListView(ListView):
         context.update({'fecha': fecha, 'idAsignatura': self.kwargs['idAsignatura'],'alumno_list': Asignatura.objects.get(pk=self.kwargs['idAsignatura']).alumno_set.all, 'resumen_list':resumen })
         return context
 """
-
+@login_required
 def anotacionesFechas(request, idAsignatura):
     error = False
     mensaje_error = ""
@@ -889,11 +982,11 @@ def datosResumen(idAsignatura, inicio, fin):
 
     return resumen_anotaciones
 
-class AnotacionDetailView(DetailView):
+class AnotacionDetailView(LoginRequiredMixin, DetailView):
     model = Anotacion
 
 #Vista para redirigir y decidir si crear una nueva anotacion o editar la ya existente --> debe haber una anotacion por alumno, asignatura y fecha
-class AnotacionCreateUpdate(RedirectView):
+class AnotacionCreateUpdate(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
         try:
@@ -918,7 +1011,7 @@ class AjaxTemplateMixin(object):
         return super(AjaxTemplateMixin, self).dispatch(request, *args, **kwargs)
 
 
-class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
+class AnotacionCreate(LoginRequiredMixin, SuccessMessageMixin, AjaxTemplateMixin, CreateView):
     model = Anotacion
     template_name = 'instituto/anotacion_form_create.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
@@ -941,7 +1034,7 @@ class AnotacionCreate(SuccessMessageMixin, AjaxTemplateMixin, CreateView):
 
 
 
-class AnotacionUpdate(SuccessMessageMixin, AjaxTemplateMixin, UpdateView):
+class AnotacionUpdate(LoginRequiredMixin, SuccessMessageMixin, AjaxTemplateMixin, UpdateView):
     model = Anotacion
     template_name = 'instituto/anotacion_form_update.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
@@ -959,7 +1052,7 @@ class AnotacionUpdate(SuccessMessageMixin, AjaxTemplateMixin, UpdateView):
 
 
 #NO SE UTILIZA pero SI FUNCIONA (puede utilizarle con la URL)
-class AnotacionDelete(SuccessMessageMixin, DeleteView):
+class AnotacionDelete(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
     model = Anotacion
     #success_url = reverse_lazy('detalle-asignatura', kwargs={'pk': Anotacion.objects.get(pk=self.kwargs['pk']).asignatura_id}) #comprobar
     success_message = 'Anotacion elimanada correctamente'
@@ -979,7 +1072,7 @@ class AnotacionDelete(SuccessMessageMixin, DeleteView):
 
 
 #Vistas para crear anotaciones individuales
-
+@login_required
 def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
 
     ha_faltado = False
@@ -1013,6 +1106,7 @@ def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
 
 
 #funcion para poner falta al alumno (la tenga o no la tenga ya). No muestra mensaje ni redirige
+@login_required
 def falta(request, idAlumno, idAsignatura, fecha):
 
     try:
@@ -1029,7 +1123,7 @@ def falta(request, idAlumno, idAsignatura, fecha):
     except ObjectDoesNotExist:
         pass
 
-
+@login_required
 def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
 
     ha_trabajado = False
@@ -1064,6 +1158,7 @@ def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No muestra mensaje ni redirige
+@login_required
 def trabaja(request, idAlumno, idAsignatura, fecha):
 
     try:
@@ -1080,6 +1175,7 @@ def trabaja(request, idAlumno, idAsignatura, fecha):
     except ObjectDoesNotExist:
         pass
 
+@login_required
 def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
 
     positivo(request,idAlumno,idAsignatura, fecha)
@@ -1093,6 +1189,7 @@ def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner un positivo al alumno, sin mostrar mensaje ni redirigir
+@login_required
 def positivo(request, idAlumno, idAsignatura, fecha):
 
     try:
@@ -1116,7 +1213,7 @@ def positivo(request, idAlumno, idAsignatura, fecha):
         pass
 
 
-
+@login_required
 def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
 
     negativo(request, idAlumno, idAsignatura, fecha)
@@ -1130,6 +1227,7 @@ def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 #funcion para poner un negativo al alumno, sin mostrar mensaje ni redirigir
+@login_required
 def negativo(request, idAlumno, idAsignatura, fecha):
 
     try:
@@ -1153,6 +1251,7 @@ def negativo(request, idAlumno, idAsignatura, fecha):
         pass
 
 #vista para realizar anotaciones a multiples alumnos a la vez
+@login_required
 def ponerAnotaciones(request, idAsignatura, vista, fecha):
 
     if "cuadriculaAlumnado" in request.POST: #vista cuadricula

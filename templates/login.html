@@ -1,24 +1,50 @@
 {% extends 'base.html' %}
 
+{% comment %} {% block barra %}{% endblock %}
+{% endcomment %}
+
+
 {% block maincontent %}
 
-<div class="login-panel parent">
-    <div class="child">
+<table height="100%" width="100%">
+<tr><td valign="middle" align="center">
+    <h1><em style="color: #061d84">iAnotaciones</em> </h1>
+    <hr>
     {% if form.errors %}
-        <p style="color:red">Nombre de usuario o contraseña incorrectos. Por favor, pruebe de nuevo.</p>
+        <div class="alert-warning">Su nombre de usuario y contraseña no coinciden. Por favor, inténtelo de nuevo.</div>
     {% endif %}
 
-    <form method="post" action="{% url 'login' %}"> {% csrf_token %}
+    {% if request.GET.next %}
+        {% if user.is_authenticated %}
+            <div class="alert-warning">Su cuenta no tiene permiso para acceder a esta página.
+            Para continuar, utilice una cuenta que tenga acceso.</div>
+        {% else %}
+            <div class="alert-warning">Por favor, entre en el sistema para ver la página solicitada.</div>
+        {% endif %}
+    {% endif %}
 
-        {{ form.username.label_tag }}
-        {{ form.username }}
+    <form id='form' method='post' class="form-horizontal" role="form" action="{% url 'login' %}">{% csrf_token %}
 
-        {{ form.password.label_tag }}
-        {{ form.password }}
+	    {% for field in form %}
+            <div class="control-group">
+                <label style="margin-top: 0.5%;color: #061d84" class="control-label">{{ field.label }}</label>
+                <div style="margin-top: 0.5%" class="controls">{{ field }} </div>
+            </div>
+        {% endfor %}
 
-        <input type="submit" value="Entrar"/> <input type="hidden" name="next"
-                                                    value="{{ next }}"/>
-    </form>
-    </div>
-</div>
+        <br>
+		<div class="form-actions">
+            <button type="submit" class="btn btn-primary" >Entrar</button>
+            <input type="hidden" name="next" value="{{ request.GET.next }}" />
+        </div>
+	</form>
+
+    {% comment %}
+    <p><a href="{% url 'password-reset' %}">¿Olvidó su contraseña?</a></p>
+    {% endcomment %}
+
+</td></tr>
+</table>
+
+
 {% endblock %}

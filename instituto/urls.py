@@ -1,18 +1,23 @@
+# This Python file uses the following encoding: utf-8
+import os, sys
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
     url(r'^$',views.base, name='inicio'),
-    url(r'^login/$', auth_views.login, {'template_name': 'login.html'}, name='login'),
-    url(r'^logout/$', auth_views.logout, {'template_name': 'logout.html'}, name='logout'),
+    url(r'^acerca/$',views.acerca, name='acerca'),
 
-    #PROFESORES
+    url(r'^login/$', views.LoginUser.as_view(), name = 'login'),
+    url(r'^logout/$', views.LogoutUser.as_view(), name = 'logout'),
+    #url(r'^change_passwd/', 'django.contrib.auth.views.password_change',
+    #    {'template_name':'passwd_change_form.html', 'post_change_redirect' : 'inicio'}, name = "password-reset"),
+
+    #PROFESORES --> USERs de la aplicación
     url(r'^profesores/$', views.ProfesorListView.as_view(), name='lista-profesores'),
     url(r'^profesor/(?P<pk>\d+)/detalle/$', views.ProfesorDetailView.as_view(), name='detalle-profesor'),
     #create
     url(r'^profesor/nuevo/$', views.ProfesorCreate.as_view(), name='nuevo-profesor'),
-
     #update
     url(r'^profesor/(?P<pk>\d+)/editar/$', views.ProfesorUpdate.as_view(), name='editar-profesor'),
     #delete
@@ -22,9 +27,9 @@ urlpatterns = [
     url(r'^tutores/$', views.TutorListView.as_view(), name='lista-tutores'),
 
     #ASIGNATURAS
-    url(r'^asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),
-
-    url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
+    url(r'^lista/asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),
+    #url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
+    url(r'^asignaturas/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
 
     #detalle de la asignatura en la fecha actual
     #url(r'^asignatura/(?P<pk>\d+)/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),

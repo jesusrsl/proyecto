@@ -33,7 +33,6 @@
 
     <script src="{% static 'js/forms.js' %}"></script>
 
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <link rel="stylesheet" href="{% static 'css/tablas.css' %}">
     <link rel="stylesheet" href="{% static 'css/anotaciones.css' %}">
     <link rel="stylesheet" href="{% static 'css/form_anotaciones.css' %}">
@@ -58,52 +57,38 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{% url "inicio" %}">Instituto</a>
+                <a class="navbar-brand" href="{% url "inicio" %}">Logotipo</a>
             </div>
 
+
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+                {% if not request.user.is_anonymous %}
                 <ul class="nav navbar-nav">
 
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Profesorado
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Centro
                             <span class="caret"></span></a>
 
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url "lista-profesores" %}">Listado de profesores/as</a></li>
-                            <li><a href="{% url "lista-tutores" %}">Listado de tutores/as</a></li>
-                            <li><a href="{% url "nuevo-profesor" %}">Nuevo/a profesor/a</a></li>
+                            <li><a href="{% url "lista-profesores" %}">Profesores/as</a></li>
+                            <li><a href="{% url "lista-tutores" %}">Tutores/as</a></li>
+                            <li><a href="{% url "lista-grupos" %}">Grupos</a></li>
+                            <li><a href="{% url "lista-asignaturas" %}">Asignaturas</a></li>
+
                         </ul>
                     </li>
 
 
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Asignaturas
-                            <span class="caret"></span></a>
+                    <li><a href="{% url "asignaturas-profesor" %}">Mis asignaturas</a></li>
 
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url "lista-asignaturas" %}">Listado de asignaturas</a></li>
-                            <li><a href="{% url "nueva-asignatura" %}">Nueva asignatura</a></li>
-                        </ul>
-                    </li>
-
+    {% comment %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Alumnado
                             <span class="caret"></span></a>
 
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="{% url "lista-alumnos" %}">Listado de alumnos/as</a></li>
-                            <li><a href="{% url "nuevo-alumno" %}">Nuevo/a alumno/a</a></li>
-                        </ul>
-                    </li>
-
-
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Grupos
-                            <span class="caret"></span></a>
-
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url "lista-grupos" %}">Listado de grupos</a></li>
-                            <li><a href="{% url "nuevo-grupo" %}">Nuevo grupo</a></li>
                         </ul>
                     </li>
 
@@ -114,31 +99,54 @@
 
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="{% url "lista-matriculas" %}">Listado de matrículas</a></li>
-                            <li><a href="{% url "nueva-matricula" %}">Nueva matrícula</a></li>
+
                         </ul>
                     </li>
-
+    {% endcomment %}
 
                 </ul>
 
+                {% endif %}
+
                 <ul class="nav navbar-nav navbar-right">
+
+                    {% if not request.user.is_anonymous %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                                Acciones
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" role="menu">
+                                {% if request.user.is_superuser %}
+                                <li><a href="{% url "nuevo-profesor" %}">Nuevo/a profesor/a</a></li>
+                                <li><a href="{% url "nueva-asignatura" %}">Nueva asignatura</a></li>
+                                <li><a href="{% url "nuevo-alumno" %}">Nuevo/a alumno/a</a></li>
+                                <li><a href="{% url "nuevo-grupo" %}">Nuevo grupo</a></li>
+                                <li><a href="{% url "nueva-matricula" %}">Nueva matrícula</a></li>
+                                <li class="divider"></li>
+                                {% endif %}
+                                {% block acciones %}{% endblock %}
+                            </ul>
+                        </li>
+                    {% endif %}
+                    <li><a href="{% url "acerca" %}">Acerca de </a></li>
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Acciones
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                            {{ request.user.first_name }} {{ request.user.last_name }}
+                            <span class="glyphicon glyphicon-user"></span>
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{% url "nuevo-profesor" %}">Nuevo/a profesor/a</a></li>
-                            <li><a href="{% url "nueva-asignatura" %}">Nueva asignatura</a></li>
-                            <li><a href="{% url "nuevo-grupo" %}">Nuevo grupo</a></li>
-                            <li><a href="{% url "nuevo-alumno" %}">Nuevo/a alumno/a</a></li>
-                            <li><a href="{% url "nueva-matricula" %}">Nueva matrícula</a></li>
-                            <li class="divider"></li>
-                            {% block menu %}
-                            {% endblock %}
-                            <li><a href="#">Log In</a></li>
+                            {% if not request.user.is_authenticated %}
+                                <li><a href="{% url "login" %}">Entrar</a></li>
+                            {% else %}
+                                <li><a href="{% url "editar-profesor" request.user.id%}">Actualizar</a></li>
+                                <li><a href="{% url "logout" %}">Salir</a></li>
+                            {% endif %}
                         </ul>
                     </li>
                 </ul>
+
             </div>
         </div>
     </nav>

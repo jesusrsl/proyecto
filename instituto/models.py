@@ -20,7 +20,7 @@ class ProfesorUser(User):
 
     def __init__(self, *args, **kwargs):
         super(ProfesorUser, self).__init__(*args, **kwargs)
-        self._meta.get_field('username').help_text =' Obligatorio. Hasta 150 caracteres. Solo letras, números y @/./+/-/_'
+        self._meta.get_field('username').help_text ='Obligatorio. Hasta 150 caracteres. Solo letras, números y @/./+/-/_'
 
         for v in self._meta.get_field('username').validators:
             v.message = 'Introduzca un nombre de usuario válido. Solo debe contener letras, números y los caracteres @/./+/-/_'
@@ -146,6 +146,13 @@ class Alumno(models.Model):
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
     asignaturas = models.ManyToManyField(Asignatura, through='Matricula')
     #asignaturas = models.ManyToManyField(Asignatura, limit_choices_to = {'grupo':grupo})
+
+    def __init__(self, *args, **kwargs):
+        super(Alumno, self).__init__(*args, **kwargs)
+
+        self._meta.get_field('apellido1').verbose_name = 'primer apellido'
+        self._meta.get_field('apellido2').verbose_name = 'segundo apellido'
+        self._meta.get_field('fecha_nacimiento').verbose_name = 'fecha de nacimiento'
 
     def __unicode__(self):
         return "%s %s %s" % (self.nombre, self.apellido1, self.apellido2)

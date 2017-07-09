@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block menu %}
+{% block acciones %}
     <li><a href="{% url "asignaturas-pdf" %}">Exportar a PDF</a></li>
 {% endblock %}
 
@@ -11,14 +11,16 @@
 
     <div>
         {% for a in object_list %}
-            <a href="{% url 'detalle-asignatura-cuad' a.id fecha %}">
-                {{ a.nombre | capfirst}} impartida por {{ a.profesor.first_name | capfirst}} {{ a.profesor.last_name | capfirst}}
+           {% if request.user.is_superuser %} <a href="{% url 'detalle-asignatura-cuad' a.id fecha%}">
+            {{ a.nombre | capfirst}} impartida por {{ a.profesor.first_name | capfirst}} {{ a.profesor.last_name | capfirst}}
             en {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
             </a>
+            {% else %}
+            {{ a.nombre | capfirst}} impartida por {{ a.profesor.first_name | capfirst}} {{ a.profesor.last_name | capfirst}}
+            en {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
+            {% endif %}
             <br>
         {% endfor %}
-    <hr>
-    <a href="{%  url 'nueva-asignatura' %}">Nueva asignatura</a>
     </div>
 
 {% endblock %}

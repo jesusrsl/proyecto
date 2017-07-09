@@ -3,11 +3,10 @@
 {% block maincontent %}
 
     <form class="form-horizontal" enctype="multipart/form-data" method="post" role="form">{% csrf_token %}
-
         {% for field in form %}
             {% if field.errors %}
                 <div class="control-group error">
-                    <label class="control-label">{{ field.label }}</label>
+                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %}>{{ field.label }}</label>
                     <div class="controls">{{ field }}
                         <span class="help-inline">
                             {% for error in  field.errors %}{{ error }}{% endfor %}
@@ -16,7 +15,8 @@
                 </div>
             {% else %}
                 <div class="control-group">
-                    <label class="control-label">{{ field.label }}</label>
+                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %} >
+                        {{ field.label }}</label>
                     <div class="controls">{{ field }}
                         {% if field.help_text %}
                             <p class="help-inline"><small>{{ field.help_text }}</small></p>
