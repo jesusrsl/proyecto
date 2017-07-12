@@ -115,7 +115,6 @@ class Grupo(models.Model):
 class Asignatura(models.Model):
     nombre = models.CharField(max_length=50)
     profesor = models.ForeignKey(ProfesorUser, on_delete=models.PROTECT)
-    #profesor = models.ForeignKey(User, on_delete=models.PROTECT)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
     distribucion = models.PositiveSmallIntegerField(default=6, validators=[MaxValueValidator(8), MinValueValidator(1)])
 

@@ -1,42 +1,34 @@
 # This Python file uses the following encoding: utf-8
-import os, sys
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
-
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak, PageTemplate
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import landscape, letter, A4
-from reportlab.platypus import Table
-from reportlab.lib.units import inch
-
 import csv
-import xlwt
-
-from operator import itemgetter
+from datetime import date, datetime
+from io import BytesIO
 from itertools import groupby
+from operator import itemgetter
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak
+from reportlab.platypus import Table
 
+import xlwt
+from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse, reverse_lazy
+from django.db.models.deletion import ProtectedError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, TemplateView, RedirectView
-from django.core.urlresolvers import reverse, reverse_lazy
-from django.conf import settings
-
-from django.contrib import messages
-from django.contrib.messages.views import SuccessMessageMixin
-
-from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-from .forms import RegisterForm, UpdateForm
-
-from datetime import date, datetime, timedelta
-from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.deletion import ProtectedError
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, RedirectView
+
+from .forms import RegisterForm, UpdateForm
+from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 
 
 # Create your views here.

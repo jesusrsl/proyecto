@@ -16,9 +16,15 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from instituto import views
+from django.contrib.auth.models import User
+
+
+
 
 urlpatterns = [
     url(r'^$',views.base, name='inicio'),
     url(r'^instituto/', include('instituto.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^api/', include('api.urls')),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
