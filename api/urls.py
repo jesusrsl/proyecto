@@ -10,7 +10,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 router = routers.DefaultRouter()
 #router.register(r'profesores', views.ProfesorUserViewSet)
 router.register(r'grupos', views.GrupoViewSet)
-router.register(r'asignaturas', views.AsignaturaViewSet)
+router.register(r'asignaturas', views.AsignaturaViewSet, base_name='asignaturas')
+router.register(r'alumnado', views.AlumnadoAsignaturaViewSet)
 #router.register(r'alumnos', views.AlumnoViewSet)
 router.register(r'matriculas', views.MatriculaViewSet)
 router.register(r'anotaciones', views.AnotacionViewSet)
@@ -18,11 +19,11 @@ router.register(r'anotaciones', views.AnotacionViewSet)
 urlpatterns = [
     url(r'', include(router.urls)),
 #PROFESORES
-    url(r'^profesores/$', views.ProfesorUserList.as_view(), name='lista-profesores'),
-    url(r'^profesor/(?P<pk>\d+)/$', views.ProfesorUserDetail.as_view(), name='detalle-profesor'),
+    url(r'^profesores/$', views.ProfesorUserList.as_view(), name='list-profesores'),
+    url(r'^profesor/(?P<pk>\d+)/$', views.ProfesorUserDetail.as_view(), name='detail-profesor'),
 #ALUMNOS
-    url(r'^alumnos/$', views.AlumnoList.as_view(), name='lista-alumnos'),
-    url(r'^alumno/(?P<pk>\d+)/$', views.AlumnoDetail.as_view(), name='detalle-alumno'),
+    url(r'^alumnos/$', views.AlumnoList.as_view(), name='list-alumnos'),
+    url(r'^alumno/(?P<pk>\d+)/$', views.AlumnoDetail.as_view(), name='detail-alumno'),
 ]
 
 

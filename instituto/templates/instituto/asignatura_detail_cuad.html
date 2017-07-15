@@ -204,7 +204,7 @@ $(document).ready(function() {
                     <div class="panel-body" style="padding: 5px">
                          <a style="cursor: pointer" id="anotacion-button{{ a.id }}">
                             {% if a.foto %}
-                                <img src="{%static a.foto.url %}" class="img-rounded" style="width:100%;"/>
+                                <img src="{{ a.foto.url }} " class="img-rounded" style="width:100%;"/>
                             {% else %}
                                 <img src="{%static "sinfoto.png" %}" class="img-rounded" style="width:100%;"/>
                             {% endif %}

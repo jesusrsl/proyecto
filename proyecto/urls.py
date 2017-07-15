@@ -17,7 +17,9 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from instituto import views
 from django.contrib.auth.models import User
-
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework_jwt.views import obtain_jwt_token
 
 
 
@@ -26,5 +28,10 @@ urlpatterns = [
     url(r'^instituto/', include('instituto.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include('api.urls')),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-token-auth/', obtain_jwt_token),
+    #url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT,}),
 ]
+
+#Forma de servir los archivos estaticos y las imagenes de media
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

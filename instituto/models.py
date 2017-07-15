@@ -31,7 +31,7 @@ class ProfesorUser(User):
         self._meta.get_field('last_name').verbose_name = 'apellidos'
 
     def __unicode__(self):
-        return self.first_name + " " + self.last_name + " (" + self.username + ")"
+        return self.first_name + " " + self.last_name
 
     def get_absolute_url(self):
         return reverse('lista-profesores')

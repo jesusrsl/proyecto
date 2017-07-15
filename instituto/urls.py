@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import os, sys
 from django.conf.urls import url
+
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -94,5 +95,4 @@ urlpatterns = [
     url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerNegativo, name='poner-negativo'),
 
     url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerAnotaciones, name='poner-anotaciones'),
-
 ]

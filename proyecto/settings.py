@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+from datetime import timedelta
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'instituto',
     'api',
     'rest_framework',
+    #'rest_framework.authtoken',
     'import_export',
 ]
 
@@ -56,10 +59,28 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-        #'rest_framework.permissions.AllowAny'
-    ]
+    'DEFAULT_PERMISSION_CLASSES': (
+        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        #'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.BasicAuthentication',
+    )
+}
+
+JWT_AUTH = {
+    # how long the original token is valid for
+    'JWT_EXPIRATION_DELTA': timedelta(days=1),
+
+    # allow refreshing of tokens
+    #'JWT_ALLOW_REFRESH': True,
+
+    # this is the maximum time AFTER the token was issued that
+    # it can be refreshed.  exprired tokens can't be refreshed.
+    #'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
 }
 
 ROOT_URLCONF = 'proyecto.urls'
@@ -139,7 +160,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'media'),
+    os.path.join(BASE_DIR, 'static'),
 )
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
