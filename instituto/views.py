@@ -500,6 +500,7 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
 #Permisos: todos los profesores
 class ProfesorListView(LoginRequiredMixin, ListView):
     model = ProfesorUser
+    paginate_by = 10
 
 #Permiso: todos los profesores
 class ProfesorDetailView(LoginRequiredMixin, DetailView):
@@ -568,6 +569,7 @@ class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 class TutorListView(LoginRequiredMixin,ListView):
     model = ProfesorUser
     template_name = 'instituto/tutor_list.html'
+    paginate_by = 4
 
     def get_queryset(self):
         queryset = super(TutorListView, self).get_queryset().filter(grupo__isnull=False).order_by('grupo')
@@ -690,6 +692,7 @@ class AsignaturaDelete(LoginRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class GrupoListView(LoginRequiredMixin, ListView):
     model = Grupo
+    paginate_by = 4
 
 #Permisos: todos los profesores
 class GrupoDetailView(LoginRequiredMixin, DetailView):

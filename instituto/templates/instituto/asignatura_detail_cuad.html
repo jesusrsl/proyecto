@@ -214,6 +214,7 @@ $(document).ready(function() {
                                 $('#form-modal-title').html("[{{ fecha }}] {{ asignatura.nombre }}: <br> {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}")
 
                                 $('#form-modal-body').load(document.getElementById("url{{ a.id }}").value, function () {
+
                                     $('#form-modal').modal('toggle');
                                     $("body").addClass("overflow");
                                     formAjaxSubmit('#form-modal-body form', '#form-modal');
@@ -319,7 +320,7 @@ $(document).ready(function() {
 
     <!-- Ventana MODAL para las anotaciones -->
 
-    <div id="form-modal" tabindex="-1" class="modal fade" style ="opacity: 1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="form-modal" class="modal fade" style ="opacity: 1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">

@@ -5,14 +5,50 @@
     <h2>Profesores</h2>
     <hr>
 
-    <div>
+    <style>
+        .list-group .list-group-separator::before {
+            content: "";
+            width: 50%;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            float: left;}
+
+    </style>
+    <div class="list-group">
         {% for p in object_list %}
-            <a href="{% url 'detalle-profesor' p.id %}">
+            <div class="list-group-item">
+                <a href="{% url 'detalle-profesor' p.id %}">
                 {{ p.first_name | capfirst}} {{ p.last_name | capfirst}}
-            </a>
-            <br>
+                </a>
+            </div>
+
+            <div class="list-group-separator" style="width: 100%;float:left"></div>
         {% endfor %}
 
     </div>
+
+
+    {% if is_paginated %}
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+        {% else %}
+            <li class="disabled"><span>&laquo;</span></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+                <li class="active"><span style="background-color: #009688;border-color: #009688;">{{ i }} <span class="sr-only">(current)</span></span></li>
+            {% else %}
+                <li><a href="?page={{ i }}"><span style="color: #009688;">{{ i }}</span></a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+        {% else %}
+            <li class="disabled"><span>&raquo;</span></li>
+        {% endif %}
+    </ul>
+    {% endif %}
 
 {% endblock %}
