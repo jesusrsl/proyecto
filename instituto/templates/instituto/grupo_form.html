@@ -1,25 +1,39 @@
 {% extends 'base.html' %}
+{% load mis_filtros %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'lista-grupos' %}">Grupos</a></li>
+    {% if object.id != null %}
+        <li><a href="{% url 'detalle-grupo' object.id %}">{{ object.get_curso_display }} {{ object.unidad}}</a></li>
+        <li class="active">Editar</li>
+    {% else %}
+        <li class="active">Nuevo</li>
+    {% endif %}
+{% endblock %}
 
 {% block maincontent %}
 
-    <form class="form-horizontal" method="post" role="form">{% csrf_token %}
+    <form class="form form-grupo" method="post" role="form">{% csrf_token %}
+
+    <fieldset>
 
         {% for field in form %}
             {% if field.errors %}
-                <div class="control-group error">
-                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %}>
-                        {{ field.label }}</label>
-                    <div class="controls">{{ field }}
+                <div class="form-group error">
+                    <label class="col-md-2 control-label">
+                        {{ field.label }} {% if field.field.required %}*{% endif %}</label>
+                    <div class="col-md-10">{{field|addcss:"form-control"}}
                         <span class="help-inline">
                             {% for error in  field.errors %}{{ error }}{% endfor %}
                         </span>
                     </div>
                 </div>
             {% else %}
-                <div class="control-group">
-                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %}>
-                        {{ field.label }}</label>
-                    <div class="controls">{{ field }}
+                <div class="form-group">
+                    <label class="col-md-2 control-label">
+                        {{ field.label }} {% if field.field.required %}*{% endif %}</label>
+                    <div class="col-md-10">{{field|addcss:"form-control"}}
                         {% if field.help_text %}
                             <p class="help-inline"><small>{{ field.help_text }}</small></p>
                         {% endif %}
@@ -28,10 +42,15 @@
             {% endif %}
         {% endfor %}
 
-    <br>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary" >Guardar</button>
-        <a class='btn btn-primary' href="{% url 'lista-grupos' %}">Cancelar</a>
-    </div>
+        <br>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" >Guardar</button>
+            {% if object.id != null %}
+                <a class='btn btn-default' href="{% url 'detalle-grupo' object.id %}">Cancelar</a>
+            {% else %}
+                <a class='btn btn-default' href="{% url 'lista-grupos' %}">Cancelar</a>
+            {% endif %}
+        </div>
+     </fieldset>
     </form>
 {% endblock %}

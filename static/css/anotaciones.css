@@ -7,9 +7,9 @@ span.red {
     display: inline-block;
     font-weight: bold;
     line-height: 1.6em;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    margin-top: 2px;
     text-align: center;
     width: 1.6em;
 }
@@ -23,9 +23,9 @@ span.green {
     display: inline-block;
     font-weight: bold;
     line-height: 1.6em;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-right: 2px;
+    margin-left:2px;
+    margin-top: 2px;
     text-align: center;
     width: 1.6em;
 }
@@ -39,16 +39,16 @@ span.orange {
     display: inline-block;
     font-weight: bold;
     line-height: 1.6em;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    margin-top: 2px;
     text-align: center;
     width: 2em; /*más ancho, para + y -*/
 }
 
 span.blue {
     /*background: #5178D0;*/
-    background: #428BCA;
+    background: #009688;
     border-radius: 0.8em;
     -moz-border-radius: 0.8em;
     -webkit-border-radius: 0.8em;
@@ -57,9 +57,9 @@ span.blue {
     font-weight: bold;
     /*font-size: large;*/
     line-height: 1.6em;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    margin-top: 2px;
     text-align: center;
     width: 1.6em;
     /*  -webkit-box-shadow: 7px 7px 5px 0px rgba(50, 50, 50, 0.75);
@@ -68,7 +68,7 @@ span.blue {
 }
 
 span.blue2 {
-    background: #428BCA;
+    background: #009688;
     border-radius: 0.8em;
     -moz-border-radius: 0.8em;
     -webkit-border-radius: 0.8em;
@@ -76,9 +76,9 @@ span.blue2 {
     display: inline-block;
     font-weight: bold;
     line-height: 1.6em;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-top: 5px;
+    margin-right: 2px;
+    margin-left: 2px;
+    margin-top: 2px;
     text-align: center;
     width: 2em;   /*más ancho, para + y -*/
 }

@@ -16,6 +16,7 @@ urlpatterns = [
 
     #PROFESORES --> USERs de la aplicación
     url(r'^profesores/$', views.ProfesorListView.as_view(), name='lista-profesores'),
+    url(r'^profesores/PDF/$', views.profesoradoPDF, name="profesorado-pdf"),
     url(r'^profesor/(?P<pk>\d+)/detalle/$', views.ProfesorDetailView.as_view(), name='detalle-profesor'),
     #create
     url(r'^profesor/nuevo/$', views.ProfesorCreate.as_view(), name='nuevo-profesor'),
@@ -26,14 +27,15 @@ urlpatterns = [
 
     #TUTORES
     url(r'^tutores/$', views.TutorListView.as_view(), name='lista-tutores'),
+    url(r'^tutores/PDF/$', views.tutoriasPDF, name="tutorias-pdf"),
 
     #ASIGNATURAS
     url(r'^lista/asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),
     #url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
     url(r'^asignaturas/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
 
-    #detalle de la asignatura en la fecha actual
-    #url(r'^asignatura/(?P<pk>\d+)/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),
+    #detalle de la asignatura con su alumnado
+    url(r'^asignatura/(?P<pk>\d+)/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),
     #detalle de la asignatura en la fecha indicada
     url(r'^asignatura/(?P<pk>\d+)/cuad/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$', views.AsignaturaCuadView.as_view(), name='detalle-asignatura-cuad'),
 
@@ -49,17 +51,13 @@ urlpatterns = [
 
     #GRUPOS
     url(r'^grupos/$', views.GrupoListView.as_view(), name='lista-grupos'),
+    url(r'^grupos/PDF$', views.gruposPDF, name='grupos-pdf'),
     url(r'^grupo/(?P<pk>\d+)/detalle/$', views.GrupoDetailView.as_view(), name='detalle-grupo'),
+    url(r'^grupo/(?P<pk>\d+)/PDF/$', views.grupoPDF, name='grupo-pdf'),
     url(r'^grupo/nuevo/$', views.GrupoCreate.as_view(), name='nuevo-grupo'),
     url(r'^grupo/(?P<pk>\d+)/editar/$', views.GrupoUpdate.as_view(), name='editar-grupo'),
     url(r'^grupo/(?P<pk>\d+)/eliminar/$', views.GrupoDelete.as_view(), name='eliminar-grupo'),
 
-    #AULAS
-    #url(r'^aulas/$', views.AulaListView.as_view(), name='lista-aulas'),
-    #url(r'^aula/(?P<pk>\d+)/detalle/$', views.AulaDetailView.as_view(), name='detalle-aula'),
-    #url(r'^aula/nueva/$', views.AulaCreate.as_view(), name='nueva-aula'),
-    #url(r'^aula/(?P<pk>\d+)/editar/$', views.AulaUpdate.as_view(), name='editar-aula'),
-    #url(r'^aula/(?P<pk>\d+)/eliminar/$', views.AulaDelete.as_view(), name='eliminar-aula'),
 
     #ALUMNOS
     url(r'^alumnos/$', views.AlumnoListView.as_view(), name='lista-alumnos'),

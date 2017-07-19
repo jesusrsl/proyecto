@@ -5,9 +5,8 @@
 {% load mis_filtros %}
 
 
-    {% block js %}
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-        <!--se repite porque si no da error -->
+{% block js %}
+
     <script>
 
     jQuery(function($){
@@ -76,7 +75,7 @@ $(document).ready(function() {
                  } else {
                      $(modal).modal('toggle');
 
-                     alert("Anotación grabada correctamente");
+                     //alert("Anotación grabada correctamente");
 
                      //se recarga el div #panel-alumnoX --> pero se pierde el enlace a la ventana modal
                      //$(div).load(' #panel-alumno'+num, function(){$(this).children().unwrap()});
@@ -100,74 +99,63 @@ $(document).ready(function() {
 
 {% endblock %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li class="active">{{ object.nombre}}</li>
+{% endblock %}
+
 
 {% block maincontent %}
 
-    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.first_name | capfirst }} {{ object.profesor.last_name | capfirst }}</h2>
-
-    <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
-    <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
-    <br><br>
-
     <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
 
-        <div id="enlaces_fecha">
+        <div class="btn-group-sm enlaces-fecha">
+            <label class="control-label" for="datepicker"> Fecha: </label>
+            <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
+            <label class="control-label"  for="columnas"> Distribución: </label>
+            <select name="columnas" id="columnas" size="1" onchange="document.anotaciones_form.submit()">
+                <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
+                <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
+                <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
+                <option {% if cols == 4 %}selected {% endif %} value="4">4</option>
+                <option {% if cols == 5 %}selected {% endif %} value="5">5</option>
+                <option {% if cols == 6 %}selected {% endif %} value="6">6</option>
+                <option {% if cols == 7 %}selected {% endif %} value="7">7</option>
+                <option {% if cols == 8 %}selected {% endif %} value="8">8</option>
+            </select>
 
-            <div class="btn-group botones-form">
-                <label for="datepicker"> Fecha: </label>
-                <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
-                <label for="columnas"> Nº de columnas: </label>
-                <select name="columnas" id="columnas" size="1" onchange="document.anotaciones_form.submit()">
-                    <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
-                    <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
-                    <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
-                    <option {% if cols == 4 %}selected {% endif %} value="4">4</option>
-                    <option {% if cols == 5 %}selected {% endif %} value="5">5</option>
-                    <option {% if cols == 6 %}selected {% endif %} value="6">6</option>
-                    <option {% if cols == 7 %}selected {% endif %} value="7">7</option>
-                    <option {% if cols == 8 %}selected {% endif %} value="8">8</option>
-                </select>
-            </div>
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')">
+                <i class="material-icons">view_module</i>
+            </button>
 
-             <div class="btn-group botones-form">
-                <button type="button" class="btn btn-default" onclick="cambiarVista('cuadricula')">
-                    <span class="glyphicon glyphicon-th"></span>
-                </button>
+            <button type="button" class="btn btn-primary btn-fab"  value="lista" onclick="cambiarVista('lista')">
+                <i class="material-icons">view_list</i>
+            </button>
 
-                <button type="button" class="btn btn-default"  value="lista" onclick="cambiarVista('lista')">
-                    <span class="glyphicon glyphicon-list"></span>
-                </button>
+            <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
-                <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
-
-            </div>
         </div>
-
 
     {% if not lectivo %}
         <h4>Día no lectivo</h4>
     {% else %}
 
-        <h4>Alumnado matriculado</h4>
+        <div id="mySidenav" class="sidenav">
+            <a href="{% url "lista-anotaciones" object.id %}" id="anotaciones"><i class="material-icons">assessment</i></a>
+            <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
+            <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
+            <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
+            <a onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
+            <a onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
+            <a onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
+            <a onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
+        </div>
 
-
-            <p style="text-align: center">
-                <input type="submit" name="poner_faltas" id="poner_faltas" value="Falta" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Trabajo" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_positivo" id="poner_positivo" value="Positivo" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_negativo" id="poner_negativo" value="Negativo" class="btn btn-primary botones-form">
-            </p>
-
-            <div id="enlaces_seleccion">
-                <span onclick="seleccionar_checkbox(1)">Seleccionar todos</span> |
-                <span onclick="seleccionar_checkbox(0)">No seleccionar ninguno</span> |
-                <span onclick="invertir_seleccion()">Invertir selección</span>
-                <br><br>
-            </div>
-
+        <input type="hidden" id="nota" name="nota" value="sin anotacion">
 
         <!-- VISTA CUADRÍCULA -->
-        <div class="row" id="cuadricula">
+        <div class="row well well-sm" id="cuadricula">
         <ul id="ordenable" class="list-inline">
 
         {% for a in alumnado_list%}
@@ -187,15 +175,14 @@ $(document).ready(function() {
 
                 <div class="panel panel-primary" id="panel-alumno{{ a.id }}">
 
-                    <div class="panel-heading" style="height: 50px; padding: 2px; white-space: nowrap; text-overflow: ellipsis;">
+                    <div class="panel-heading" style="height: 30px; padding: 0.5px 3px 1px 3px; white-space: nowrap; text-overflow: ellipsis;">
                         <!-- valorar-alumno-->
-                        <h3 class="panel-title">
+                        <h4 class="panel-title" style="font-weight: bold; ">
                             <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}">
                             <span style="cursor: pointer" onclick="seleccionar_alumno({{ a.id }})">
-                                    {{ a.nombre | capfirst }} <br>
-                                    {{ a.apellido1 | capfirst }} {{ a.apellido2 |first }}.
+                                    {{ a.nombre | capfirst }} {{ a.apellido1 | first }}. {{ a.apellido2 |first }}.
                             </span>
-                        </h3>
+                        </h4>
                     </div>
 
                     <input type="hidden" id="url{{ a.id }}" name="url{{ a.id }}" value="{% url 'anotar' a.id object.id fecha %}" readonly>
@@ -204,9 +191,9 @@ $(document).ready(function() {
                     <div class="panel-body" style="padding: 5px">
                          <a style="cursor: pointer" id="anotacion-button{{ a.id }}">
                             {% if a.foto %}
-                                <img src="{{ a.foto.url }} " class="img-rounded" style="width:100%;"/>
+                                <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
                             {% else %}
-                                <img src="{%static "sinfoto.png" %}" class="img-rounded" style="width:100%;"/>
+                                <img src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
                             {% endif %}
                          </a>
                         <script>
@@ -224,21 +211,7 @@ $(document).ready(function() {
                         </script>
                     </div>
 
-                    <div class="panel-footer" style="padding-left: 2px; padding-right:2px; text-align: center">
-
-<!--
-<div class="btn-group">
-  <button type="button" class="btn btn-default dropdown-toggle"
-          data-toggle="dropdown">
-    F <span class="caret"></span>
-  </button>
-
-  <ul class="dropdown-menu" role="menu">
-    <li><a href="#">R</a></li>
-    <li><a href="#">I</a></li>
-    <li><a href="#">J</a></li>
-  </ul>
-</div>-->
+                    <div class="panel-footer" style="padding:1px; text-align: center">
 
 
                     <!-- anotar al alumno/a -->
@@ -258,7 +231,6 @@ $(document).ready(function() {
                                 {% else %}
                                     <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
                                 {% endif %}
-                                <br>
                                 {% if anotacion.positivos %}
                                     <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="orange">{{ anotacion.positivos }}+</span></a>
                                 {% else %}
@@ -287,7 +259,6 @@ $(document).ready(function() {
 
                                 <a href="{% url 'poner-falta' a.id object.id vista fecha %}"><span class="blue">F</span></a>
                                 <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
-                                <br>
                                 <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="blue2">+</span></a>
                                 <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="blue2">-</span></a>
 
@@ -296,7 +267,6 @@ $(document).ready(function() {
                             {% empty %} <!-- no hay ninguna anotación -->
                                 <a href="{% url 'poner-falta' a.id object.id vista fecha %}"><span class="blue">F</span></a>
                                 <a href="{% url 'poner-trabaja' a.id object.id vista fecha %}"><span class="blue">T</span></a>
-                                <br>
                                 <a href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="blue2">+</span></a>
                                 <a href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="blue2">-</span></a>
 

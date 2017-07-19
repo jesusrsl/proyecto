@@ -1,16 +1,32 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li class="active">Mis asignaturas</li>
+{% endblock %}
+
 {% block maincontent %}
 
     <h2>Asignaturas</h2>
     <hr>
 
-    <div>
+    <style>
+        .list-group .list-group-separator::before {
+            content: "";
+            width: 50%;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            float: left;}
+
+    </style>
+    <div class="list-group">
         {% for a in object_list %}
-            <a href="{% url 'detalle-asignatura-cuad' a.id fecha%}">
-                {{ a.nombre | capfirst}}, {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
-            </a>
-            <br>
+            <div class="list-group-item">
+                <a href="{% url 'detalle-asignatura-cuad' a.id fecha%}">
+                    {{ a.nombre | capfirst}}, {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
+                </a>
+            </div>
+
+            <div class="list-group-separator"></div>
         {% endfor %}
     <hr>
 

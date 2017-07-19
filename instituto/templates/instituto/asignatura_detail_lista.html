@@ -1,13 +1,10 @@
 <!-- vista = 'lista' -->
-
 {% extends 'base.html' %}
 {% load static %}
 {% load mis_filtros %}
 
 
 {% block js %}
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-        <!--se repite porque si no da error -->
     <script>
 
     jQuery(function($){
@@ -59,7 +56,7 @@ $(document).ready(function() {
                  } else {
                      $(modal).modal('toggle');
 
-                     alert("Anotación grabada correctamente")
+                     //alert("Anotación grabada correctamente")
 
                      location.reload(); //se recarga la página
 
@@ -82,60 +79,49 @@ $(document).ready(function() {
 
 {% endblock %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li class="active">{{ object.nombre}}</li>
+{% endblock %}
+
 
 {% block maincontent %}
 
-    <h2>{{ object.nombre | capfirst }} impartida por {{ object.profesor.first_name | capfirst }} {{ object.profesor.last_name | capfirst }}</h2>
-
-    <a href="{% url 'editar-asignatura' object.id %}">Editar</a>
-    <a href="{% url 'eliminar-asignatura' object.id %}">Eliminar</a>
-    <br><br>
-
-
     <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
 
-        <div id="enlaces_fecha">
+        <div class="btn-group-sm enlaces-fecha">
+            <label class="control-label" for="datepicker"> Fecha: </label>
+            <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
 
-            <div class="btn-group botones-form">
-                <label for="datepicker"> Fecha: </label>
-                <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
-            </div>
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')">
+                <i class="material-icons">view_module</i>
+            </button>
 
-            <div class="btn-group botones-form">
-                <button type="button" class="btn btn-default" onclick="cambiarVista('cuadricula')">
-                    <span class="glyphicon glyphicon-th"></span>
-                </button>
+            <button type="button" class="btn btn-primary btn-fab"  value="lista" onclick="cambiarVista('lista')">
+                <i class="material-icons">view_list</i>
+            </button>
 
-                <button type="button" class="btn btn-default"  onclick="cambiarVista('lista')">
-                    <span class="glyphicon glyphicon-list"></span>
-                </button>
+            <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
-                <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
-
-            </div>
         </div>
-
 
     {% if not lectivo %}
         <h4>Día no lectivo</h4>
     {% else %}
 
-        <h4>Alumnado matriculado</h4>
+        <div id="mySidenav" class="sidenav">
+            <a href="{% url "lista-anotaciones" object.id %}" id="anotaciones"><i class="material-icons">assessment</i></a>
+            <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
+            <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
+            <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
+            <a onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
+            <a onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
+            <a onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
+            <a onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
+        </div>
 
-
-            <p style="text-align: center">
-                <input type="submit" name="poner_faltas" id="poner_faltas" value="Falta" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_trabaja" id="poner_trabaja" value="Trabajo" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_positivo" id="poner_positivo" value="Positivo" class="btn btn-primary botones-form">
-                <input type="submit" name="poner_negativo" id="poner_negativo" value="Negativo" class="btn btn-primary botones-form">
-            </p>
-
-            <div id="enlaces_seleccion">
-                <span onclick="seleccionar_checkbox(1)">Seleccionar todos</span> |
-                <span onclick="seleccionar_checkbox(0)">No seleccionar ninguno</span> |
-                <span onclick="invertir_seleccion()">Invertir selección</span>
-                <br><br>
-            </div>
+        <input type="hidden" id="nota" name="nota" value="sin anotacion">
 
         <!-- VISTA LISTA -->
         <div id="lista">

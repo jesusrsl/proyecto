@@ -6,7 +6,7 @@ from itertools import groupby
 from operator import itemgetter
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, TA_CENTER, TA_LEFT
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak
 from reportlab.platypus import Table
@@ -79,6 +79,248 @@ def acerca(request):
     return render(request, 'about.html')
 
 @login_required
+def profesoradoPDF(request):
+
+    response = HttpResponse(content_type='application/pdf')
+    pdf_name = "profesorado.pdf"
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Profesorado",
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    profesorado = []
+
+    styles = getSampleStyleSheet()
+    h1 = styles['Heading1']
+    h1.alignment = 1    #centrado
+    h1.spaceAfter = 30
+    #h1.pageBreakBefore=1
+    #h1.backColor=colors.red
+    header = Paragraph("Listado de profesores/as", h1)
+    profesorado.append(header)
+
+    if request.user.is_superuser:
+        headings = ['Login', 'Nombre', 'Apellidos', 'E- mail']
+        info_profesorado = [(p.username, p.first_name, p.last_name, p.email) for p in ProfesorUser.objects.all()]
+    else:
+        headings = ['Nombre', 'Apellidos', 'E- mail']
+        info_profesorado = [(p.first_name, p.last_name, p.email) for p in ProfesorUser.objects.all()]
+
+    t = Table([headings] + info_profesorado)
+    t.setStyle(TableStyle(
+        [
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+            # ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor(0x009688)), # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))
+            # color de fondo (en este caso, solo la primera fila)
+        ]
+    ))
+
+    # NOTA de TableStyle: las filas y columnas empiezan en 0. -1 para la ultima posicion (aunque sea desconocida)
+    # otras opciones:
+    # ('TEXTCOLOR', (0, 0), (-1, -1), colors.blue),
+    # ('VALIGN', (0,0), (-1, -1), 'MIDDLE'),
+
+    profesorado.append(t)
+
+    doc.build(profesorado)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+@login_required
+def tutoriasPDF(request):
+
+    response = HttpResponse(content_type='application/pdf')
+    pdf_name = "tutorias.pdf"
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Tutorías",
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    tutorias = []
+
+    styles = getSampleStyleSheet()
+    h1 = styles['Heading1']
+    h1.alignment = 1    #centrado
+    h1.spaceAfter = 30
+    #h1.pageBreakBefore=1
+    #h1.backColor=colors.red
+    header = Paragraph("Listado de tutores/as", h1)
+    tutorias.append(header)
+
+
+    headings = ['Tutor/a', 'Grupo']
+    info_tutorias = [(p.first_name + " " + p.last_name, p.grupo_set.first()) for p in ProfesorUser.objects.filter(grupo__isnull=False).order_by('grupo')]
+
+    t = Table([headings] + info_tutorias)
+    t.setStyle(TableStyle(
+        [
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+            # ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor(0x009688)), # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))
+            # color de fondo (en este caso, solo la primera fila)
+        ]
+    ))
+
+    tutorias.append(t)
+
+    doc.build(tutorias)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+@login_required
+def gruposPDF(request):
+
+    response = HttpResponse(content_type='application/pdf')
+    pdf_name = "grupos.pdf"
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Listado de grupos",
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    contenido = []
+
+    # definicion de estilos
+    styles = getSampleStyleSheet()
+    # estilo para el titulo de cabecera
+    h1 = styles['Heading1']
+    h1.alignment = 1  # centrado
+    h1.spaceAfter = 30
+    # estilo para el cuerpo
+    c1 = styles['Normal']
+    c1.alignment = TA_CENTER
+    c1.spaceAfter = 20
+    c1.fontName = 'Times-Roman'
+
+    for grupo in Grupo.objects.all():
+        header = Paragraph("Grupo %s" %(grupo.get_curso_display() + " " +  grupo.unidad), h1)
+        contenido.append(header)
+
+        texto = Paragraph("Tutor/a: %s" % (grupo.tutor.first_name + " " + grupo.tutor.last_name), c1)
+        contenido.append(texto)
+
+        t = grupoPorPagina(grupo.pk)
+
+        contenido.append(t)
+        contenido.append(PageBreak())
+
+    doc.build(contenido)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+@login_required
+def grupoPDF(request, pk):
+
+    response = HttpResponse(content_type='application/pdf')
+    grupo = Grupo.objects.get(pk=pk)
+    nombre = grupo.get_curso_display()
+    if grupo.unidad != "":
+        nombre = nombre + " " +  grupo.unidad
+    pdf_name = "grupo-%s.pdf" % nombre.replace(" ","-")
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Grupo %s" %(grupo.get_curso_display() + " " +  grupo.unidad),
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    contenido = []
+
+    # definicion de estilos
+    styles = getSampleStyleSheet()
+    # estilo para el titulo de cabecera
+    h1 = styles['Heading1']
+    h1.alignment = 1  # centrado
+    h1.spaceAfter = 30
+    # estilo para el cuerpo
+    c1 = styles['Normal']
+    c1.alignment = TA_CENTER
+    c1.spaceAfter = 20
+    c1.fontName = 'Times-Roman'
+
+
+    header = Paragraph("Grupo %s" %(grupo.get_curso_display() + " " +  grupo.unidad), h1)
+    contenido.append(header)
+
+    texto = Paragraph("Tutor/a: %s" % (grupo.tutor.first_name + " " + grupo.tutor.last_name), c1)
+    contenido.append(texto)
+
+    t = grupoPorPagina(pk)
+
+    contenido.append(t)
+
+    doc.build(contenido)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+def grupoPorPagina(pk):
+    grupo = Grupo.objects.get(pk=pk)
+
+    headings = ['Nombre', 'Edad', 'E-mail']
+    info_grupo = [(a.nombre + " " + a.apellido1 + " " + a.apellido2, edad(a.fecha_nacimiento), a.email) for a in Alumno.objects.filter(grupo=grupo)]
+
+    #t = Table([headings] + info_grupo, hAlign='LEFT')
+    tabla = Table([headings] + info_grupo)
+    tabla.setStyle(TableStyle(
+        [
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))
+        ]
+    ))
+
+    return tabla
+
+def edad(nac):
+    diff = (date.today() - nac).days
+    years = str(int(diff/365))
+    return years
+
+@login_required
 def asignaturasPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
@@ -106,7 +348,7 @@ def asignaturasPDF(request):
     h1.spaceAfter = 30
     #h1.pageBreakBefore=1
     #h1.backColor=colors.red
-    header = Paragraph("Listado de Asignaturas", h1)
+    header = Paragraph("Listado de asignaturas", h1)
     asignaturas.append(header)
 
     headings = ['Nombre', 'Profesor/a', 'Curso', 'Unidad']
@@ -114,9 +356,10 @@ def asignaturasPDF(request):
     t = Table([headings] + info_asignaturas)
     t.setStyle(TableStyle(
         [
-            ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),    # bordes de las celdas (de grosor 1)
-            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue), # borde inferior (de mayor grosor, 2)
-            ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue)  # color de fondo (en este caso, solo la primera fila)
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),    # bordes de las celdas (de grosor 1)
+            #('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor(0x009688)), # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))  # color de fondo (en este caso, solo la primera fila)
         ]
     ))
 
@@ -286,17 +529,19 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
     if ultimaPag is False:
         tabla.setStyle(TableStyle(
         [
-            ('GRID', (0, 0), (-1, -1), 1, colors._enforceRGB('#428BCA')),  # bordes de las celdas (de grosor 1)
-            ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
-            ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue)  # color de fondo (en este caso, solo la primera fila)
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+            #('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))  # color de fondo (en este caso, solo la primera fila)
         ]
         ))
     else:
         tabla.setStyle(TableStyle(
             [
-                ('GRID', (0, 0), (-1, -1), 1, colors.dodgerblue),  # bordes de las celdas (de grosor 1)
-                ('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
-                ('BACKGROUND', (0, 0), (-1, 0), colors.dodgerblue),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+                #('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688)),
                 ('BACKGROUND', (-1, 1), (-1, -1), colors.lightgrey)
                 # color de fondo (en este caso, solo la primera fila)
             ]
@@ -577,16 +822,11 @@ class TutorListView(LoginRequiredMixin,ListView):
 
 #ASIGNATURAS
 #Permisos: todos los profesores
-class AsignaturaListView(ListView):
+class AsignaturaListView(LoginRequiredMixin, ListView):
     model = Asignatura
+    paginate_by = 4
 
-    #se le pasa la fecha actual para poder mostrar el detalle de cada asignatura
-    def get_context_data(self, **kwargs):
-        context = super(AsignaturaListView, self).get_context_data(**kwargs)
-        context.update({'fecha': date.today().strftime('%d/%m/%Y')})
-        return context
-
-#Permisos: el profesor activo
+#Permisos: el propio profesor
 class AsignaturaProfesorListView(LoginRequiredMixin, ListView):
     model = Asignatura
     template_name = 'instituto/asignatura_profesor_list.html'
@@ -602,18 +842,12 @@ class AsignaturaProfesorListView(LoginRequiredMixin, ListView):
         context.update({'fecha': date.today().strftime('%d/%m/%Y')})
         return context
 
-"""class AsignaturaDetailView(DetailView):
+#Permisos: todos los profesores
+class AsignaturaDetailView(LoginRequiredMixin, DetailView):
     model = Asignatura
 
-    def get_context_data(self, **kwargs):
-        context = super(AsignaturaDetailView, self).get_context_data(**kwargs)
-        anotaciones = Anotacion.objects.filter(fecha=date.today(),asignatura=Asignatura.objects.get(pk=self.kwargs['pk']))
-
-        context.update({'anotacion_list': anotaciones, 'fecha':date.today().strftime('%d/%m/%Y')})
-        return context
-"""
-
-class AsignaturaCuadView(LoginRequiredMixin, DetailView):
+#Permisos: el propio profesor
+class AsignaturaCuadView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Asignatura
     template_name = 'instituto/asignatura_detail_cuad.html'
 
@@ -634,7 +868,11 @@ class AsignaturaCuadView(LoginRequiredMixin, DetailView):
         context.update({'vista':"cuad",'alumnado_list':alumnado, 'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo, 'cols': columnas})
         return context
 
-class AsignaturaListaView(LoginRequiredMixin, DetailView):
+    def test_func(self):
+        return (int(self.request.user.id) == int(Asignatura.objects.get(pk=self.kwargs['pk']).profesor.id))
+
+#Permisos: el propio profesor
+class AsignaturaListaView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Asignatura
     template_name = 'instituto/asignatura_detail_lista.html'
 
@@ -651,21 +889,41 @@ class AsignaturaListaView(LoginRequiredMixin, DetailView):
         context.update({'vista':"lista",'anotacion_list': anotaciones, 'fecha': self.kwargs['fecha'], 'lectivo': lectivo})
         return context
 
-class AsignaturaCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    def test_func(self):
+        return (int(self.request.user.id) == int(Asignatura.objects.get(pk=self.kwargs['pk']).profesor.id))
+
+#Permiso: solo superusers
+class AsignaturaCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha grabado correctamente'
+    permission_required = 'is_superuser'
 
-class AsignaturaUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para crear nuevas asignaturas')
+        return super(AsignaturaCreate, self).handle_no_permission()
+
+#Permiso: solo superusers y el propio profesor
+class AsignaturaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha modificado correctamente'
 
-class AsignaturaDelete(LoginRequiredMixin, DeleteView):
+    def test_func(self):
+        return (self.request.user.is_superuser or int(self.request.user.id) == int(Asignatura.objects.get(pk=self.kwargs['pk']).profesor.id))
+
+#Permiso: solo superusers
+class AsignaturaDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Asignatura
     success_url = reverse_lazy('lista-asignaturas')
     success_message = 'La asignatura %(nombre)s se ha eliminado correctamente'
     warning_message = 'La asignatura %(nombre)s  no se ha podido eliminar porque tiene alumnado matriculado'
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para eliminar asignaturas')
+        return super(AsignaturaDelete, self).handle_no_permission()
+
 
     def post(self, request, *args, **kwargs):
         try:
@@ -740,7 +998,7 @@ class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para eliminar grupos')
-        return super(GrupoUpdate, self).handle_no_permission()
+        return super(GrupoDelete, self).handle_no_permission()
 
     def post(self, request, *args, **kwargs):
         try:
@@ -763,36 +1021,9 @@ class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         messages.success(self.request, self.success_message % dict(curso_elegido=obj.get_curso_display(),unidad_elegida=obj.unidad))
         return super(GrupoDelete, self).delete(request, *args, **kwargs)
 
-#AULAS
-"""
-class AulaListView(ListView):
-    model = Aula
-
-class AulaDetailView(DetailView):
-    model = Aula
-
-class AulaCreate(SuccessMessageMixin, CreateView):
-    model = Aula
-    fields = '__all__'
-    success_message = 'El aula %(numero)s de la planta %(planta)s, pasillo %(pasillo)s, se ha grabado correctamente'
-
-class AulaUpdate(SuccessMessageMixin, UpdateView):
-    model = Aula
-    fields = '__all__'
-    success_message = 'El aula %(numero)s de la planta %(planta)s, pasillo %(pasillo)s, se ha modificado correctamente'
-
-class AulaDelete(DeleteView):
-    model = Aula
-    success_url = reverse_lazy('lista-aulas')
-    success_message = 'El aula %(numero)s de la planta %(planta)s, pasillo %(pasillo)s, se ha eliminado correctamente'
-
-    def delete(self, request, *args, **kwargs):
-        obj = self.get_object()
-        messages.success(self.request, self.success_message % obj.__dict__)
-        return super(AulaDelete, self).delete(request, *args, **kwargs)
-"""
 
 #ALUMNOS
+#Permisos: todos los profesores
 class AlumnoListView(LoginRequiredMixin, ListView):
     model = Alumno
     #paginate_by = 10
@@ -801,29 +1032,48 @@ class AlumnoListView(LoginRequiredMixin, ListView):
        queryset = super(AlumnoListView, self).get_queryset()
        return queryset.order_by('grupo', 'apellido1', 'apellido2', 'nombre')
 
+#Permisos: todos los profesores
 class AlumnoDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
 
-class AlumnoCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+#Permiso: solo superusers
+class AlumnoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = Alumno
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha grabado correctamente'
+    permission_required = 'is_superuser'
 
-class AlumnoUpdate(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para crear nuevo alumnado')
+        return super(AlumnoCreate, self).handle_no_permission()
+
+#Permiso: solo superusers y el profesor/a tutor
+class AlumnoUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Alumno
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
 
-class AlumnoDelete(LoginRequiredMixin, DeleteView):
+    def test_func(self):
+        return (self.request.user.is_superuser or
+                int(self.request.user.id) == int(Alumno.objects.get(pk=self.kwargs['pk']).grupo.tutor_id))
+
+#Permiso: solo superusers
+class AlumnoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Alumno
     success_url = reverse_lazy('lista-alumnos')
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha eliminado correctamente'
+    permission_required = 'is_superuser'
+
+    def handle_no_permission(self):
+        messages.warning(self.request, 'No tiene permiso para eliminar alumnado')
+        return super(AlumnoDelete, self).handle_no_permission()
 
     def delete(self, request, *args, **kwargs):
         obj = self.get_object()
         messages.success(self.request, self.success_message % obj.__dict__)
         return super(AlumnoDelete, self).delete(request, *args, **kwargs)
 
+############################################################################
 # MATRICULAS
 class MatriculaListView(LoginRequiredMixin, ListView):
     model = Matricula
@@ -1010,11 +1260,12 @@ class AnotacionCreate(LoginRequiredMixin, SuccessMessageMixin, AjaxTemplateMixin
     model = Anotacion
     template_name = 'instituto/anotacion_form_create.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
-    success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
+    #success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
 
-    def get_success_message(self, cleaned_data):
+    """def get_success_message(self, cleaned_data):
         alumno = Alumno.objects.get(pk=self.kwargs['idAlumno'])
         return self.success_message % dict(fecha_str=self.kwargs['fecha'],nombre_alumno=alumno.nombre, apellido1_alumno=alumno.apellido1, apellido2_alumno=alumno.apellido2)
+    """
 
     def get_context_data(self, **kwargs):
         context = super(AnotacionCreate, self).get_context_data(**kwargs)
@@ -1033,11 +1284,12 @@ class AnotacionUpdate(LoginRequiredMixin, SuccessMessageMixin, AjaxTemplateMixin
     model = Anotacion
     template_name = 'instituto/anotacion_form_update.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
-    success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
+    #success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
 
-    def get_success_message(self, cleaned_data):
+    """def get_success_message(self, cleaned_data):
         obj = self.get_object()
         return self.success_message % dict(fecha_str=datetime.strftime(obj.fecha, '%d/%m/%Y'), nombre_alumno=obj.alumno.nombre, apellido1_alumno=obj.alumno.apellido1, apellido2_alumno=obj.alumno.apellido2)
+    """
 
     #a partir del pk de anotacion pasado en la url, se obtiene el alumno y la asignatura y se anaden al contexto con el que renderizara la plantilla
     def get_context_data(self, **kwargs):
@@ -1089,11 +1341,11 @@ def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
         pass
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    if ha_faltado:
+    """if ha_faltado:
         messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
     else:
         messages.add_message(request, messages.SUCCESS, '[%s] Se le ha quitado la falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-
+    """
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
@@ -1140,13 +1392,13 @@ def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
         pass
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    if ha_trabajado:
+    """if ha_trabajado:
         messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s ha trabajado correctamente' % (
         fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
     else:
         messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s no ha trabajado correctamente' % (
         fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-
+    """
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
@@ -1176,7 +1428,7 @@ def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
     positivo(request,idAlumno,idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
+    #messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
@@ -1214,7 +1466,7 @@ def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
     negativo(request, idAlumno, idAsignatura, fecha)
 
     alumno = Alumno.objects.get(pk=idAlumno)
-    messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
+    #messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
 
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
@@ -1257,26 +1509,26 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
         lista = None
 
 
-    if lista is not None and "poner_faltas" in request.POST:
+    if lista is not None and request.POST.get('nota') == "falta":
         for alumno in lista:
             falta\
                 (request, alumno, idAsignatura, fecha)
-        messages.add_message(request, messages.SUCCESS, '[%s] Falta(s) puesta(s) correctamente' % fecha)
+        #messages.add_message(request, messages.SUCCESS, '[%s] Falta(s) puesta(s) correctamente' % fecha)
 
-    elif lista is not None and "poner_trabaja" in request.POST:
+    elif lista is not None and request.POST.get('nota') == "trabaja":
         for alumno in lista:
             trabaja(request, alumno, idAsignatura, fecha)
-        messages.add_message(request, messages.SUCCESS, '[%s] Anotacion(es) de trabajo puesta(s) correctamente' % fecha)
+        #messages.add_message(request, messages.SUCCESS, '[%s] Anotacion(es) de trabajo puesta(s) correctamente' % fecha)
 
-    elif lista is not None and "poner_positivo" in request.POST:
+    elif lista is not None and request.POST.get('nota') == "positivo":
         for alumno in lista:
             positivo(request, alumno, idAsignatura, fecha)
-        messages.add_message(request, messages.SUCCESS, '[%s] Positivo(s) puesto(s) correctamente' % fecha)
+        #messages.add_message(request, messages.SUCCESS, '[%s] Positivo(s) puesto(s) correctamente' % fecha)
 
-    elif lista is not None and "poner_negativo" in request.POST:
+    elif lista is not None and request.POST.get('nota') == "negativo":
         for alumno in lista:
             negativo(request, alumno, idAsignatura, fecha)
-        messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
+        #messages.add_message(request, messages.SUCCESS, '[%s] Negativo(s) puesto(s) correctamente' % fecha)
 
     elif "fecha" in request.POST and "vista" in request.POST:
         # Cambio de numero de columnas de la asignatura

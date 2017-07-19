@@ -1,25 +1,37 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'lista-profesores' %}">Profesores/as</a></li>
+    <li class="active">{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</li>
+{% endblock %}
+
 {% block maincontent %}
 
-    <h2>{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</h2>
+    <h2>{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}
 
     {% if object.id == request.user.id or request.user.is_superuser %}
-        <a href="{% url 'editar-profesor' object.id %}">Editar</a>
+        <a href="{% url 'editar-profesor' object.id %}"><i class="material-icons">mode_edit</i></a>
     {% endif %}
     {% if request.user.is_superuser %}
-        <a href="{% url 'eliminar-profesor' object.id %}">Eliminar</a>
+        <a href="{% url 'eliminar-profesor' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
+    </h2>
 
-    <br><br>
+    <br>
 
     <h4>Asignaturas impartidas</h4>
     <div class="row well">
+        <div class="list-group">
         {%  for a in object.asignatura_set.all %}
-
-            <div>{{ a.nombre | capfirst }} de {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}</div>
-
+            <div class="list-group-item">
+            <a href="{% url 'detalle-asignatura' a.id%}">
+                {{ a.nombre | capfirst }} de {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
+                </a>
+            </div>
+            <div class="list-group-separator"></div>
         {% endfor %}
+        </div>
    </div>
 
 

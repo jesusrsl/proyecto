@@ -37,6 +37,14 @@
 
 {% endblock %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    <li><a href="{% url 'lista-anotaciones' idAsignatura %}">Ver anotaciones</a></li>
+    <li clas="active">Anotaciones</li>
+{% endblock %}
+
 {% block maincontent %}
 
     <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
@@ -44,7 +52,7 @@
 
     <div id="lateral" class="table-responsive">
 
-        <table class="tablaAnotaciones table users table-hover">
+        <table class="tablaAnotaciones table users">
 
             <!-- Cabecera: con todas las fechas -->
             <tr>
@@ -54,8 +62,8 @@
             {% for alumno in alumno_list %}
 
                 <tr class="{% cycle 'fila1' 'fila2' %}">
-                <td><a  id="col{{ alumno.id }}" href="{% url 'detalle-alumno' alumno.id %}">
-                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</a></td>
+                <td style="color:#009688"> <!--gráfico-->
+                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</td>
 
 
                 </tr>
@@ -69,7 +77,7 @@
 
         {% regroup object_list by fecha as anotaciones_list %}
 
-        <table class="tablaAnotaciones table users table-hover">
+        <table class="tablaAnotaciones table users">
 
 
             <!-- Cabecera: con todas las fechas -->
@@ -156,7 +164,7 @@
 
     <br>
     <div>
-        <a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a>
+        <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a>
     </div>
 
 

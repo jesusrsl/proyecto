@@ -17,7 +17,7 @@
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 
   <!-- Bootstrap -->
-  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 
   <!-- Bootstrap Material Design -->
   <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-material-design.css' %}">
@@ -30,9 +30,14 @@
 
     <!-- SCRIPTS para datepicker, sortable....-->
     <script src="{% static 'js/forms.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+
+    <script type="text/javascript" src="http://momentjs.com/downloads/moment-with-locales.min.js"></script>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 
 
 
@@ -40,15 +45,20 @@
     <link rel="stylesheet" href="{% static 'css/anotaciones.css' %}">
     <link rel="stylesheet" href="{% static 'css/form_anotaciones.css' %}">
     <link rel="stylesheet" href="{% static 'css/columnas.css' %}">
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+    <link rel="stylesheet" href="{% static 'css/listas.css' %}">
+    <link rel="stylesheet" href="{% static 'css/formularios.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/datepicker.css' %}">
 
-    {% block js %}<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>{% endblock %}
+    {% block js %}{% endblock %}
 
 
 </head>
-<body style="padding-top: 70px">
+<body >
 <!-- NavBar -->
     <!--nav class="navbar navbar-default"-->
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default" style="margin-bottom: 0px" role="navigation">
         <div class="container-fluid">
 
             <div class="navbar-header">
@@ -58,11 +68,11 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{% url "inicio" %}"><i class="material-icons">school</i> Logotipo</a>
+                <a class="navbar-brand" href="{% url "inicio" %}"><i class="material-icons">school</i> aNota</a>
             </div>
 
 
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <div class="collapse navbar-collapse navbar-responsive-collapse" id="bs-example-navbar-collapse-1">
 
                 {% if not request.user.is_anonymous %}
                 <ul class="nav navbar-nav">
@@ -110,7 +120,7 @@
                 {% endif %}
 
                 <ul class="nav navbar-nav navbar-right">
-
+{% comment %}
                     {% if not request.user.is_anonymous %}
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -130,7 +140,8 @@
                             </ul>
                         </li>
                     {% endif %}
-                    <li><a href="{% url "acerca" %}">Acerca de </a></li>
+{% endcomment %}
+                    <li><a href="{% url "acerca" %}"><i class="material-icons">info</i></a></li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                             {{ request.user.first_name }} {{ request.user.last_name }}
@@ -156,11 +167,43 @@
         </div>
     </nav>
 
+    <ul class="breadcrumb" style="margin-top:10px; margin-bottom: 0px">
+    {% block breadcrumbs %}
+        <li>Inicio</li>
+    {% endblock %}
+    </ul>
+
     {% include 'messages.html' %}
 
     <div class="container">
         {% block maincontent %}
         {% endblock %}
+    </div>
+
+    <div class="container">
+        {% if is_paginated %}
+            <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+            {% else %}
+                <li class="disabled"><span>&laquo;</span></li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <li class="active"><span style="background-color: #009688;border-color: #009688;">{{ i }} <span class="sr-only">(current)</span></span></li>
+                {% else %}
+                    <li><a href="?page={{ i }}"><span style="color: #009688;">{{ i }}</span></a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            {% else %}
+                <li class="disabled"><span>&raquo;</span></li>
+            {% endif %}
+            </ul>
+        {% endif %}
     </div>
 
     <!--SCRIPTS-->

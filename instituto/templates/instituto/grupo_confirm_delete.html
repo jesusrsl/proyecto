@@ -1,12 +1,21 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'lista-grupos' %}">Grupos</a></li>
+    <li><a href="{% url 'detalle-grupo' object.id %}">{{ object.get_curso_display }} {{ object.unidad}}</a></li>
+    <li class="active">Eliminar</li>
+{% endblock %}
+
 {% block maincontent %}
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar el grupo <strong>"{{ object.get_curso_display}} {{ object.unidad }}</strong>"?</p>
         <br>
+        <h4>¿Borrar el grupo <strong>{{ object.get_curso_display}} {{ object.unidad }}</strong>?</h4>
+        <br>
+
         <div class="form-actions">
         <button type="submit" class="btn btn-primary" >Confirmar</button>
-        <a class='btn btn-primary' href="{% url 'lista-grupos' %}">Cancelar</a>
+        <a class='btn btn-default' href="{% url 'detalle-grupo' object.id %}">Cancelar</a>
         </div>
     </form>
 {% endblock %}

@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li class="active">Acerca de</li>
+{% endblock %}
+
 {% block maincontent %}
     <br><br>
     <div class="bs-component">

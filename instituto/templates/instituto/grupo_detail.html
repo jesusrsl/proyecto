@@ -1,25 +1,41 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'lista-grupos' %}">Grupos</a></li>
+    <li class="active">{{ object.get_curso_display }} {{ object.unidad}}</li>
+{% endblock %}
+
 {% block maincontent %}
 
-    <h2>{{ object.get_curso_display }} {{ object.unidad}}</h2>
+    <h2>{{ object.get_curso_display }} {{ object.unidad}}
 
     {% if request.user.is_superuser %}
-        <a href="{% url 'editar-grupo' object.id %}">Editar</a>
-        <a href="{% url 'eliminar-grupo' object.id %}">Eliminar</a>
+        <a href="{% url 'editar-grupo' object.id %}"><i class="material-icons">mode_edit</i></a>
+        <a href="{% url 'eliminar-grupo' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
-    <br><br>
+        <a href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
+    </h2>
+
+    <br>
 
      <div class="row well">
-        <h3>Tutor:</h3>{{ object.tutor.first_name }} {{ object.tutor.last_name }}
+         <h3 style="margin-top: 5px; margin-bottom: 20px">Tutor/a:</h3>
+         <a href="{% url 'detalle-profesor' object.tutor.id %}">{{ object.tutor.first_name }} {{ object.tutor.last_name }}</a>
      </div>
     <div class="row well">
-        <h3>Alumnado:</h3>
-        {%  for a in object.alumno_set.all %}
+        <h3 style="margin-top: 5px; margin-bottom: 20px">Alumnado:</h3>
+        <div class="list-group">
+            {% for a in object.alumno_set.all %}
 
-            <div>{{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}</div>
+                <div class="list-group-item">
+                    <a href="{% url 'detalle-alumno' a.id %}">
+                        {{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}</a>
+                </div>
 
-        {% endfor %}
+                <div class="list-group-separator" ></div>
+            {% endfor %}
+        </div>
    </div>
 
 

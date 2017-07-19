@@ -1,0 +1,26 @@
+.form-profesor, .form-grupo {
+    max-width: 50rem;
+    padding: 2rem 1rem 1rem; }
+
+#fechas_anotaciones_form {
+    max-width: 40rem;
+    padding: 2rem 1rem 1rem; }
+
+#fechas_anotaciones_form input[type=submit].link {
+    border: none;
+    background: none;
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 2;
+    color: #333;
+    white-space: nowrap;
+    text-decoration: none;
+    background-color: transparent;
+    box-sizing: border-box;
+}
+
+#fechas_anotaciones_form input[type=submit].link:hover, #fechas_anotaciones_form input[type=submit].link:focus {
+    color: #009688;
+}

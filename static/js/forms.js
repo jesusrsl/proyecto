@@ -18,6 +18,7 @@ function seleccionar_checkbox(activar){
             document.anotaciones_form.elements[i].checked=activar
 }
 
+
 function invertir_seleccion(){
 
    if (document.getElementById("vista").value=="cuad")
@@ -80,4 +81,24 @@ function seleccionar_alumno(idAlumno){
                document.anotaciones_form.elements[i].checked=!document.anotaciones_form.elements[i].checked
 
 
+}
+
+function poner_falta() {
+    document.getElementById('nota').value = "falta";
+    document.anotaciones_form.submit();
+}
+
+function poner_trabaja() {
+    document.getElementById('nota').value = "trabaja";
+    document.anotaciones_form.submit();
+}
+
+function poner_positivo() {
+    document.getElementById('nota').value = "positivo";
+    document.anotaciones_form.submit();
+}
+
+function poner_negativo() {
+    document.getElementById('nota').value = "negativo";
+    document.anotaciones_form.submit();
 }

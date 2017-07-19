@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 
 {% block js %}
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
 <script>
 
 jQuery(function($){
+
 	$.datepicker.regional['es'] = {
 		closeText: 'Cerrar',
 		prevText: '&#x3c;Ant ',
@@ -34,36 +35,52 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    <li clas="active">Ver anotaciones</li>
+{% endblock %}
+
 
 {% block maincontent %}
 
-    <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
-    <hr>
+    <h2 style="margin-bottom:0px">Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
 
     {% if error %}
         <p style="color: red;">{{ mensaje_error }}</p>
     {% endif %}
 
-    <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" class="form-horizontal" method="post" role="form">{% csrf_token %}
+    <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" class="form" method="post" role="form">{% csrf_token %}
 
-        <div class="control-group">
-            <label for="datepicker_inicio" class="control-label">Fecha de inicio:</label>
-            <div class="controls"><input type="text" name="inicio" id="datepicker_inicio" step="1" value="{{ fecha }}" size="8">
+        <div class="form-group">
+            <label for="datepicker_inicio" class="col-md-4 control-label">Fecha de inicio:</label>
+            <div class="col-md-8"><input class="form-control" type="text" name="inicio" id="datepicker_inicio" step="1" value="{{ fecha }}" size="8">
             </div>
         </div>
 
-        <div class="control-group">
-            <label for="datepicker_fin" class="control-label">Fecha de fin:</label>
-            <div class="controls"><input type="text" name="fin" id="datepicker_fin" step="1" value="{{ fecha }}" size="8">
+        <div class="form-group">
+            <label for="datepicker_fin" class="col-md-4 control-label">Fecha de fin:</label>
+            <div class="col-md-8"><input class="form-control" type="text" name="fin" id="datepicker_fin" step="1" value="{{ fecha }}" size="8">
             </div>
         </div>
 
-        <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-primary botones-form">
-        <input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="btn btn-primary botones-form">
-        <input type="submit" name="anotaciones_csv" id="anotaciones_csv" value="Exportar a CSV" class="btn btn-primary botones-form">
-        <input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="btn btn-primary botones-form">
 
+        <input type="submit" name="ver_anotaciones" id="ver_anotaciones" value="Ver anotaciones" class="btn btn-primary btn-raised botones-form">
+
+        <div class="btn-group">
+            <a href="#" data-target="#" class="btn btn-primary btn-raised dropdown-toggle botones-form" data-toggle="dropdown">Exportar a <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li><input type="submit" name="anotaciones_pdf" id="anotaciones_pdf" value="Exportar a PDF" class="link"></li>
+                <li><input type="submit" name="anotaciones_csv" id="anotaciones_csv" value="Exportar a CSV" class="link"></li>
+                <li><input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="link"></li>
+            </ul>
+        </div>
         <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
+
+
     </form>
+
+
 {% endblock %}
 

@@ -1,25 +1,28 @@
 {% extends 'base.html' %}
+{% load mis_filtros %}
 
 {% block maincontent %}
 
-    <form class="form-horizontal" method="post" role="form">{% csrf_token %}
+    <form class="form"  method="post" role="form">{% csrf_token %}
+
+    <fieldset>
 
         {% for field in form %}
             {% if field.errors %}
-                <div class="control-group error">
-                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %}>
+                <div class="form-group error">
+                    <label class="col-md-2 control-label">
                         {{ field.label }}</label>
-                    <div class="controls">{{ field }}
+                    <div class="col-md-10">{{field|addcss:"form-control"}}
                         <span class="help-inline">
                             {% for error in  field.errors %}{{ error }}{% endfor %}
                         </span>
                     </div>
                 </div>
             {% else %}
-                <div class="control-group">
-                    <label class="control-label" {% if field.field.required %} style="font-weight: 700"{% else %} style="font-weight: 500"{% endif %}>
+                <div class="form-group">
+                    <label class="col-md-2 control-label">
                         {{ field.label }}</label>
-                    <div class="controls">{{ field }}
+                    <div class="col-md-10">{{field|addcss:"form-control"}}
                         {% if field.help_text %}
                             <p class="help-inline"><small>{{ field.help_text }}</small></p>
                         {% endif %}
@@ -28,10 +31,14 @@
             {% endif %}
         {% endfor %}
 
-        <br>
+    <br>
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary" >Guardar</button>
-            <a class='btn btn-primary' href="{% url 'lista-asignaturas' %}">Cancelar</a>
+            <div class="col-md-10 col-md-offset-2">
+                <button type="submit" class="btn btn-primary" >Guardar</button>
+                <a class='btn btn-default' href="{% url 'lista-asignaturas' %}">Cancelar</a>
+            </div>
         </div>
+
+        </fieldset>
     </form>
 {% endblock %}
