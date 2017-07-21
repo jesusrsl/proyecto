@@ -1,9 +1,9 @@
-.form-profesor, .form-grupo{
+.form-profesor, .form-grupo, .form-asignatura, .form-alumno{
     max-width: 50rem;
     padding: 2rem 1rem 1rem; }
 
-.form-asignatura{
-    max-width: 50%;
+.form-por-grupos{
+    max-width: 50rem;
     padding: 0rem 1rem 1rem; }
 
 .form-anotaciones {

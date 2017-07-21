@@ -1,13 +1,22 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{{ request.META.HTTP_REFERER }}">{{ object.nombre }} {{ object.apellido1 }} {{ object.apellido2 }}</a></li>
+    <li class="active">Eliminar</li>
+{% endblock %}
+
 {% block maincontent %}
 
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar el alumno <strong>"{{ object.nombre }} {{object.apellido1 }} {{ object.apellido2 }}"</strong>?</p>
+
         <br>
+        <h4>¿Borrar el alumno <strong>{{ object.nombre }} {{ object.apellido1 }} {{ object.apellido2 }}</strong>?</h4>
+        <br>
+
         <div class="form-actions">
         <button type="submit" class="btn btn-primary" >Confirmar</button>
-        <a class='btn btn-primary' href="{% url 'lista-alumnos' %}">Cancelar</a>
+        <a class='btn btn-default' href="{{ request.META.HTTP_REFERER }}">Cancelar</a>
         </div>
 
     </form>

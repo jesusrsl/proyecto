@@ -2,7 +2,7 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-profesores' %}">Profesores/as</a></li>
+    <li><a href="{% url 'lista-profesores' %}">Profesorado</a></li>
     <li class="active">{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</li>
 {% endblock %}
 

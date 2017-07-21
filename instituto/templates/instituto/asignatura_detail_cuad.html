@@ -94,11 +94,6 @@ $(document).ready(function() {
 
 {% endblock %}
 
-{% block acciones %}
-    <li><a href="{% url "lista-anotaciones" object.id %}">Anotaciones</a></li>
-
-{% endblock %}
-
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
     <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>

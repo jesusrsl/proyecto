@@ -286,8 +286,10 @@ def grupoPDF(request, pk):
     h1.alignment = 1  # centrado
     h1.spaceAfter = 30
     # estilo para el cuerpo
+    styles = getSampleStyleSheet()
     c1 = styles['Normal']
-    c1.alignment = TA_CENTER
+    c1.alignment = TA_LEFT
+    c1.leftIndent = 50
     c1.spaceAfter = 20
     c1.fontName = 'Times-Roman'
 
@@ -381,6 +383,80 @@ def asignaturasPDF(request):
     asignaturas.append(t)
 
     doc.build(asignaturas)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+@login_required
+def asignaturaPDF(request, pk):
+
+    response = HttpResponse(content_type='application/pdf')
+    asignatura = Asignatura.objects.get(pk=pk)
+    pdf_name = "asignatura-%s.pdf" % asignatura.nombre
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = "Asignatura %s" % asignatura.nombre,
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    asignatura_content = []
+
+    styles = getSampleStyleSheet()
+    h1 = styles['Heading1']
+    h1.alignment = 1    #centrado
+    h1.spaceAfter = 30
+    header = Paragraph("Alumnado de %s" % asignatura.nombre, h1)
+    asignatura_content.append(header)
+
+    styles = getSampleStyleSheet()
+    c1 = styles['Normal']
+    c1.alignment = TA_LEFT
+    c1.leftIndent = 50
+    c1.spaceAfter = 5
+    c1.fontName = 'Times-Roman'
+    texto1 = Paragraph("Grupo: %s" % (asignatura.grupo.get_curso_display() + " " +  asignatura.grupo.unidad), c1)
+    asignatura_content.append(texto1)
+
+    styles = getSampleStyleSheet()
+    c2 = styles['Normal']
+    c2.alignment = TA_LEFT
+    c2.leftIndent = 50
+    c2.spaceAfter = 20
+    c2.fontName = 'Times-Roman'
+    texto2 = Paragraph("Profesor/a: %s" % (asignatura.profesor.first_name + " " + asignatura.profesor.last_name), c2)
+    asignatura_content.append(texto2)
+
+    headings = ['Nombre', 'Edad', 'E-mail']
+    info_asignatura = [(a.nombre + " " + a.apellido1 + " " + a.apellido2, edad(a.fecha_nacimiento), a.email) for a in
+                  asignatura.alumno_set.all()]
+
+    t = Table([headings] + info_asignatura)
+    t.setStyle(TableStyle(
+        [
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),    # bordes de las celdas (de grosor 1)
+            #('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor(0x009688)), # borde inferior (de mayor grosor, 2)
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))  # color de fondo (en este caso, solo la primera fila)
+        ]
+    ))
+
+    # NOTA de TableStyle: las filas y columnas empiezan en 0. -1 para la ultima posicion (aunque sea desconocida)
+    # otras opciones:
+    # ('TEXTCOLOR', (0, 0), (-1, -1), colors.blue),
+    # ('VALIGN', (0,0), (-1, -1), 'MIDDLE'),
+
+    asignatura_content.append(t)
+
+    doc.build(asignatura_content)
     response.write(buff.getvalue())
     buff.close()
     return response
@@ -909,6 +985,7 @@ def asignaturasPorGrupo(request):
 #Permisos: todos los profesores
 class AsignaturasGrupoListView(LoginRequiredMixin, ListView):
     model = Asignatura
+    paginate_by = 4
     template_name = 'instituto/asignatura_list.html'
 
     def get_queryset(self):
@@ -937,6 +1014,7 @@ class AsignaturasProfesorListView(LoginRequiredMixin, ListView):
         context = super(AsignaturasProfesorListView, self).get_context_data(**kwargs)
         context.update({'fecha': date.today().strftime('%d/%m/%Y')})
         return context
+
 
 #Permisos: todos los profesores
 class AsignaturaDetailView(LoginRequiredMixin, DetailView):
@@ -1052,6 +1130,15 @@ class GrupoListView(LoginRequiredMixin, ListView):
 class GrupoDetailView(LoginRequiredMixin, DetailView):
     model = Grupo
 
+# Permisos: el propio tutor
+class GrupoTutorDetailView(LoginRequiredMixin, DetailView):
+    model = Grupo
+    template_name = 'instituto/tutoria_detail.html'
+
+    def get_object(self):
+        return Grupo.objects.filter(tutor=self.request.user).first()
+
+
 #Permiso: solo superusers
 class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = Grupo
@@ -1122,15 +1209,55 @@ class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class AlumnoListView(LoginRequiredMixin, ListView):
     model = Alumno
-    #paginate_by = 10
+    paginate_by = 6
 
     def get_queryset(self):
        queryset = super(AlumnoListView, self).get_queryset()
        return queryset.order_by('grupo', 'apellido1', 'apellido2', 'nombre')
 
+    def get_context_data(self, **kwargs):
+        context = super(AlumnoListView, self).get_context_data(**kwargs)
+        grupos = Grupo.objects.all()
+        context.update({'grupo_list': grupos, 'todos': True})
+        return context
+
+#Permisos: todos los profesores
+@login_required
+def alumnosPorGrupo(request):
+    if "grupo" in request.POST and int(request.POST.get('grupo')) != -1:  #se ha seleccionado un grupo concreto
+        idGrupo = request.POST.get('grupo')
+        return HttpResponseRedirect(reverse('lista-alumnos-grupo', args=idGrupo))
+    else:
+        return HttpResponseRedirect(reverse('lista-alumnos'))
+
+#Permisos: todos los profesores
+class AlumnosGrupoListView(LoginRequiredMixin, ListView):
+    model = Alumno
+    paginate_by = 6
+    template_name = 'instituto/alumno_list.html'
+
+    def get_queryset(self):
+        queryset = super(AlumnosGrupoListView, self).get_queryset().filter(grupo=Grupo.objects.get(pk=self.kwargs['idGrupo']))
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(AlumnosGrupoListView, self).get_context_data(**kwargs)
+        grupos = Grupo.objects.all()
+        context.update({'grupo_list': grupos, 'todos': False, 'grupo': Grupo.objects.get(pk=self.kwargs['idGrupo'])})
+        return context
+
+
 #Permisos: todos los profesores
 class AlumnoDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
+
+class AlumnoTutoriaDetailView(LoginRequiredMixin, DetailView):
+    model = Alumno
+    template_name = 'instituto/alumno_tutoria_detail.html'
+
+class AlumnoGrupoDetailView(LoginRequiredMixin, DetailView):
+    model = Alumno
+    template_name = 'instituto/alumno_grupo_detail.html'
 
 #Permiso: solo superusers
 class AlumnoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -1148,6 +1275,34 @@ class AlumnoUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin,
     model = Alumno
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
+
+    def test_func(self):
+        return (self.request.user.is_superuser or
+                int(self.request.user.id) == int(Alumno.objects.get(pk=self.kwargs['pk']).grupo.tutor_id))
+
+#Permiso: solo superusers y el profesor/a tutor
+class AlumnoTutoriaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
+    model = Alumno
+    template_name = 'instituto/alumno_tutoria_form.html'
+    fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
+    success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
+
+    def get_success_url(self):
+        return reverse('detalle-alumno-tutoria', kwargs={'pk': self.kwargs['pk']})
+
+    def test_func(self):
+        return (self.request.user.is_superuser or
+                int(self.request.user.id) == int(Alumno.objects.get(pk=self.kwargs['pk']).grupo.tutor_id))
+
+#Permiso: solo superusers y el profesor/a tutor
+class AlumnoGrupoUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
+    model = Alumno
+    template_name = 'instituto/alumno_grupo_form.html'
+    fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
+    success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
+
+    def get_success_url(self):
+        return reverse('detalle-alumno-grupo', kwargs={'pk': self.kwargs['pk']})
 
     def test_func(self):
         return (self.request.user.is_superuser or
@@ -1178,6 +1333,12 @@ class MatriculaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para visualizar las matrículas del alumnado')
         return super(MatriculaListView, self).handle_no_permission()
+
+    def get_context_data(self, **kwargs):
+        context = super(MatriculaListView, self).get_context_data(**kwargs)
+        grupos = Grupo.objects.all()
+        context.update({'grupo_list': grupos})
+        return context
 
 #Permiso: solo superusers
 class MatriculaDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

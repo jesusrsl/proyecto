@@ -8,16 +8,8 @@
 {% block maincontent %}
 
     <h2>Asignaturas</h2>
-    <hr>
+    <br>
 
-    <style>
-        .list-group .list-group-separator::before {
-            content: "";
-            width: 50%;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            float: left;}
-
-    </style>
     <div class="list-group">
         {% for a in object_list %}
             <div class="list-group-item">
@@ -27,7 +19,9 @@
             </div>
 
             <div class="list-group-separator"></div>
+            {% empty %}
+            <h5 class="alert alert-warning">Actualmente no imparte ninguna asignatura</h5>
         {% endfor %}
-    <hr>
+    </div>
 
 {% endblock %}

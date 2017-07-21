@@ -3,11 +3,12 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-grupos' %}">Grupos</a></li>
-    <li class="active">{{ object.get_curso_display }} {{ object.unidad}}</li>
+    <li class="active">Tutoría</li>
 {% endblock %}
 
 {% block maincontent %}
+
+    {% if object %}
 
     <h2>{{ object.get_curso_display }} {{ object.unidad}}
 
@@ -20,23 +21,19 @@
 
     <br>
 
-     <div class="row well">
-         <h3 style="margin-top: 5px; margin-bottom: 20px">Tutor/a:</h3>
-         <a href="{% url 'detalle-profesor' object.tutor.id %}">{{ object.tutor.first_name }} {{ object.tutor.last_name }}</a>
-     </div>
     <div class="row well">
         <h3 style="margin-top: 5px; margin-bottom: 20px">Alumnado:</h3>
         <div class="list-group">
             {% for a in object.alumno_set.all %}
-
                 <div class="list-group-item">
                 {% if a.foto %}
                     <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
                 {% else %}
                     <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
                 {% endif %}
+
                 {% if request.user.is_superuser or request.user.id == a.grupo.tutor.id %}
-                    <a href="{% url 'detalle-alumno-grupo' a.id %}">
+                    <a href="{% url 'detalle-alumno-tutoria' a.id %}">
                     {{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}
                     </a>
                 {% else %}
@@ -45,9 +42,16 @@
                 </div>
 
                 <div class="list-group-separator" ></div>
+                {% empty %}
+                <h5 class="alert alert-warning">Actualmente el grupo no tiene alumnado.</h5>
             {% endfor %}
         </div>
    </div>
+    {% else %}
+
+        <h5 class="alert alert-warning">Actualmente no tutoriza ningún grupo</h5>
+
+    {% endif %}
 
 
 {% endblock %}

@@ -160,9 +160,9 @@ class Alumno(models.Model):
     #    return unicode(self).encode('utf-8')
 
     def get_absolute_url(self):
-        return reverse('lista-alumnos')
+        #return reverse('lista-alumnos')
         #otra opción -->
-        # return reverse('detalle-alumno', kwargs={'pk': self.id})
+        return reverse('detalle-alumno', kwargs={'pk': self.id})
 
     def save(self):
 

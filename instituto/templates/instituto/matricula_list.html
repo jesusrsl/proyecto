@@ -13,6 +13,29 @@
             <br>
         {% endfor %}
     <hr>
+
+    <form action="{% url 'nueva-matricula' %}"  class="form form-por-grupos" id="sel_grupo_form2" method="post">{% csrf_token %}
+
+        <div class="form-group">
+            <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
+            <div class="col-md-4">
+                <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
+                {% for g in grupo_list %}
+                    <option value="{{ g.id }}">
+                        {{ g.get_curso_display }} {{ g.unidad }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div>
+                <a style="cursor: pointer" onclick="document.getElementById('sel_grupo_form2').submit()">
+                    <i class="material-icons">find_in_page</i>
+                </a>
+            </div>
+        </div>
+    </form>
+    <br>
+
+
     <a href="{%  url 'nueva-matricula' %}">Nueva matrícula</a>
     </div>
 

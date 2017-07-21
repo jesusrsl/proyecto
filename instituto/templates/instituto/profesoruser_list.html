@@ -2,12 +2,12 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li class="active">Profesores/as</li>
+    <li class="active">Profesorado</li>
 {% endblock %}
 
 {% block maincontent %}
 
-    <h2>Profesores
+    <h2>Profesorado
         {% if request.user.is_superuser %}
             <a href="{% url 'nuevo-profesor' %}"><i class="material-icons">add_box</i></a>
         {% endif %}

@@ -3,7 +3,7 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-alumnos' %}">Alumnado</a></li>
+    <li><a href="{% url 'grupo-tutoria'%}">Tutoría</a></li>
     <li class="active">{{ object.nombre }} {{ object.apellido1 }} {{ object.apellido2 }}</li>
 {% endblock %}
 
@@ -11,7 +11,7 @@
     <h2>{{ object.nombre | capfirst }} {{ object.apellido1 | capfirst }} {{ object.apellido2 | capfirst }}
 
     {% if request.user.is_superuser or request.user.id == object.grupo.tutor_id %}
-        <a href="{% url 'editar-alumno' object.id %}"><i class="material-icons">mode_edit</i></a>
+        <a href="{% url 'editar-alumno-tutoria' object.id %}"><i class="material-icons">mode_edit</i></a>
     {% endif %}
     {% if request.user.is_superuser %}
         <a href="{% url 'eliminar-alumno' object.id %}"><i class="material-icons">delete</i></a>
@@ -28,7 +28,7 @@
         {% endif %}
         </div>
 
-        <div style="float: left;"><h5>
+        <div style="float: left; "><h5>
         <span style="color:#009688">Grupo:</span> {{ object.grupo.get_curso_display}} {{ object.grupo.unidad }}
         <br><br>
         <span style="color:#009688">Fecha de nacimiento:</span> {{ object.fecha_nacimiento }}

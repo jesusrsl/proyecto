@@ -1,19 +1,65 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li class="active">Alumnado
+    {% if not todos %} {{ grupo.get_curso_display }} {{ grupo.unidad }}{% endif %}</li>
+{% endblock %}
 
 {% block maincontent %}
-    <h2>Alumnos/as</h2>
-    <hr>
+    <h2>Alumnado
+        {% if request.user.is_superuser %}
+            <a href="{% url 'nuevo-alumno' %}"><i class="material-icons">add_box</i></a>
+        {% endif %}
 
-    <div>
+        {% if todos %}
+            <a href="{% url 'grupos-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+        {% else %}
+            <a href="{% url 'grupo-pdf' grupo.pk %}"><i class="material-icons">picture_as_pdf</i></a>
+        {% endif %}
+
+    </h2>
+
+    <form action="{% url 'alumnos-grupo' %}"  class="form form-por-grupos" id="sel_grupo_form1" method="post">{% csrf_token %}
+
+        <div class="form-group">
+            <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
+            <div class="col-md-4">
+                <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
+                <option value="-1" {% if todos %}selected{% endif %}>Todos</option>
+                {% for g in grupo_list %}
+                    <option value="{{ g.id }}"
+                            {% if not todos and g.id == grupo.pk%}selected{% endif %}>
+                        {{ g.get_curso_display }} {{ g.unidad }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div>
+                <a style="cursor: pointer" onclick="document.getElementById('sel_grupo_form1').submit()">
+                    <i class="material-icons">find_in_page</i>
+                </a>
+            </div>
+        </div>
+    </form>
+    <br>
+
+    <div class="list-group">
         {% for a in object_list %}
+            <div class="list-group-item">
+                {% if a.foto %}
+                    <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
+                {% else %}
+                    <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
+                {% endif %}
             {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
             <a href="{% url 'detalle-alumno' a.id %}">
                 {{ a.nombre | capfirst}} {{ a.apellido1 | capfirst}} {{ a.apellido2 | capfirst}}
             </a>
-            <br>
+            </div>
+
+            <div class="list-group-separator"></div>
         {% endfor %}
-    <hr>
-    <a href="{%  url 'nuevo-alumno' %}">Nuevo alumno/a</a>
     </div>
 
 {% endblock %}

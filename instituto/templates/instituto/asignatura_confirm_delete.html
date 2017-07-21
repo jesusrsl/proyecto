@@ -1,13 +1,24 @@
 {% extends 'base.html' %}
 
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li><a href="{% url 'lista-asignaturas' %}">Asignaturas</a></li>
+    <li><a href="{% url 'detalle-asignatura' object.id %}">{{ object.nombre}}</a></li>
+    <li class="active">Eliminar</li>
+{% endblock %}
+
 {% block maincontent %}
     <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar la asignatura <strong>{{ object.nombre }}</strong> impartida por <strong>{{ object.profesor.first_name }} {{ object.profesor.last_name }}</strong>?</p>
 
         <br>
+        <h4>¿Borrar la asignatura <strong>{{ object.nombre }}</strong> impartida por <strong>{{ object.profesor.first_name }} {{ object.profesor.last_name }}</strong>?</h4>
+        <br>
+
         <div class="form-actions">
         <button type="submit" class="btn btn-primary" >Confirmar</button>
-        <a class='btn btn-primary' href="{% url 'lista-asignaturas' %}">Cancelar</a>
+        <a class='btn btn-default' href="{% url 'detalle-asignatura' object.id%}">Cancelar</a>
         </div>
+
+
     </form>
 {% endblock %}

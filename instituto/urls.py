@@ -53,12 +53,14 @@ urlpatterns = [
     url(r'^asignatura/(?P<pk>\d+)/eliminar/$', views.AsignaturaDelete.as_view(), name='eliminar-asignatura'),
     url(r'^asignaturas/PDF/$', views.asignaturasPDF, name="asignaturas-pdf"),
     url(r'^asignaturas/(?P<idGrupo>\d+)/PDF/$', views.asignaturasGrupoPDF, name="asignaturas-grupo-pdf"),
+    url(r'^asignatura/(?P<pk>\d+)/PDF/$', views.asignaturaPDF, name='asignatura-pdf'),
     url(r'^asignatura/(?P<pk>\d+)/ordenar/$', views.ordenarAsignatura, name='ordenar-asignatura'),
 
     #GRUPOS
     url(r'^grupos/$', views.GrupoListView.as_view(), name='lista-grupos'),
     url(r'^grupos/PDF$', views.gruposPDF, name='grupos-pdf'),
     url(r'^grupo/(?P<pk>\d+)/detalle/$', views.GrupoDetailView.as_view(), name='detalle-grupo'),
+    url(r'^tutoria/$', views.GrupoTutorDetailView.as_view(), name='grupo-tutoria'),
     url(r'^grupo/(?P<pk>\d+)/PDF/$', views.grupoPDF, name='grupo-pdf'),
     url(r'^grupo/nuevo/$', views.GrupoCreate.as_view(), name='nuevo-grupo'),
     url(r'^grupo/(?P<pk>\d+)/editar/$', views.GrupoUpdate.as_view(), name='editar-grupo'),
@@ -67,9 +69,15 @@ urlpatterns = [
 
     #ALUMNOS
     url(r'^alumnos/$', views.AlumnoListView.as_view(), name='lista-alumnos'),
+    url(r'^alumnos/(?P<idGrupo>\d+)$', views.AlumnosGrupoListView.as_view(), name='lista-alumnos-grupo'),
+    url(r'^alumnos/grupo/$', views.alumnosPorGrupo, name='alumnos-grupo'),
     url(r'^alumno/(?P<pk>\d+)/detalle/$', views.AlumnoDetailView.as_view(), name='detalle-alumno'),
+    url(r'^alumno/tutoria/(?P<pk>\d+)/detalle/$', views.AlumnoTutoriaDetailView.as_view(), name='detalle-alumno-tutoria'),
+    url(r'^alumno/grupo/(?P<pk>\d+)/detalle/$', views.AlumnoGrupoDetailView.as_view(), name='detalle-alumno-grupo'),
     url(r'^alumno/nuevo/$', views.AlumnoCreate.as_view(), name='nuevo-alumno'),
     url(r'^alumno/(?P<pk>\d+)/editar/$', views.AlumnoUpdate.as_view(), name='editar-alumno'),
+    url(r'^alumno/tutoria/(?P<pk>\d+)/editar/$', views.AlumnoTutoriaUpdate.as_view(), name='editar-alumno-tutoria'),
+    url(r'^alumno/grupo/(?P<pk>\d+)/editar/$', views.AlumnoGrupoUpdate.as_view(), name='editar-alumno-grupo'),
     url(r'^alumno/(?P<pk>\d+)/eliminar/$', views.AlumnoDelete.as_view(), name='eliminar-alumno'),
 
     #MATRICULAS

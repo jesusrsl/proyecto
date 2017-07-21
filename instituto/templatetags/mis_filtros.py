@@ -21,3 +21,8 @@ def define(val=None):
 def addcss(field, css):
    return field.as_widget(attrs={"class":css})
 
+@register.filter(name='addplaceholder')
+def addplaceholder(field, placeholder):
+   return field.as_widget(attrs={'class':"form-control",'placeholder':placeholder})
+
+

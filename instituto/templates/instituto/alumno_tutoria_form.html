@@ -3,13 +3,9 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-alumnos' %}">Alumnado</a></li>
-    {% if object.id != null %}
-        <li><a href="{% url 'detalle-alumno' object.id%}">{{ object.nombre }} {{ object.apellido1 }} {{ object.apellido2 }}</a></li>
-        <li class="active">Editar</li>
-    {% else %}
-        <li class="active">Nuevo</li>
-    {% endif %}
+    <li><a href="{% url 'grupo-tutoria'%}">Tutoría</a></li>
+    <li><a href="{% url 'detalle-alumno-tutoria' object.id%}">{{ object.nombre }} {{ object.apellido1 }} {{ object.apellido2 }}</a></li>
+    <li class="active">Editar</li>
 {% endblock %}
 
 {% block maincontent %}
@@ -63,11 +59,7 @@
     <br>
     <div class="form-actions">
         <button type="submit" class="btn btn-primary" >Guardar</button>
-        {% if object.id != null %}
-            <a class='btn btn-default' href="{% url 'detalle-alumno' object.id%}">Cancelar</a>
-        {% else %}
-            <a class='btn btn-default' href="{% url 'lista-alumnos'%}">Cancelar</a>
-        {% endif %}
+        <a class='btn btn-default' href="{% url 'detalle-alumno-tutoria' object.id%}">Cancelar</a>
     </div>
 
     </fieldset>
