@@ -38,8 +38,12 @@ $(document).ready(function() {
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
     <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
-    <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
-    <li clas="active">Ver anotaciones</li>
+    {% if vista == "cuad" %}
+        <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    {% else %}
+        <li><a href="{% url 'detalle-asignatura-lista' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    {% endif %}
+    <li class="active">Ver anotaciones</li>
 {% endblock %}
 
 
@@ -76,9 +80,12 @@ $(document).ready(function() {
                 <li><input type="submit" name="anotaciones_xls" id="anotaciones_xls" value="Exportar a CALC" class="link"></li>
             </ul>
         </div>
-        <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
 
-
+        {% if vista == "cuad" %}
+            <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
+        {% else %}
+             <a class='btn' href="{% url 'detalle-asignatura-lista' idAsignatura fecha %}">Volver</a>
+        {% endif %}
     </form>
 
 

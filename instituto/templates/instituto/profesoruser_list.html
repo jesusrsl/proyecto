@@ -8,12 +8,11 @@
 {% block maincontent %}
 
     <h2>Profesores
-    {% if request.user.is_superuser %}
-        <a href="{% url 'nuevo-profesor' %}"><i class="material-icons">add_box</i></a>
+        {% if request.user.is_superuser %}
+            <a href="{% url 'nuevo-profesor' %}"><i class="material-icons">add_box</i></a>
+        {% endif %}
         <a href="{% url 'profesorado-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
-    {% else %}
-        <a href="{% url 'profesorado-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
-    {% endif %}
+
     </h2>
     <br>
 

@@ -1,5 +1,22 @@
-<form class="form-horizontal" action="{% url 'editar-anotacion' object.id %}" method="post">{% csrf_token %}
-    {{ form.as_p }} <!-- as_table, as_ul -->
-    <button type="submit" class="btn btn-default">Guardar</button>
+<form class="form form-anotaciones" action="{% url 'editar-anotacion' object.id %}" method="post">{% csrf_token %}
+    <div class="form-group">
+        <label class="col-md-4 control-label">{{ form.falta.label }}</label>
+        <div class="col-md-5"><input type="checkbox" class="form-control" id="id_falta" name="falta"
+                                     {% if form.falta.value %}checked{% endif %}></div>
+        <label class="col-md-4 control-label">{{ form.trabaja.label }}</label>
+        <div class="col-md-5"><input type="checkbox" class="form-control" id="id_trabaja" name="trabaja"
+                                     {% if form.trabaja.value %}checked{% endif %}></div>
+
+        <label class="col-md-4 control-label">{{ form.positivos.label }}</label>
+        <div class="col-md-5"><input class="form-control" id="id_positivos" min="0" name="positivos" type="number"
+                                     {%if form.positivos.value != 0%}value="{{ form.positivos.value }}"{% endif %}>
+        </div>
+        <label class="col-md-4 control-label">{{ form.negativos.label }}</label>
+        <div class="col-md-5"><input class="form-control" id="id_negativos" min="0" name="negativos" type="number"
+                                     {%if form.negativos.value != 0%}value="{{ form.negativos.value }}"{% endif %}>
+        </div>
+
+    </div>
+    <button type="submit" class="btn btn-primary">Guardar</button>
 </form>
 

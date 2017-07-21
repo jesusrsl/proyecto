@@ -9,6 +9,7 @@ class ProfesorUserResource(resources.ModelResource):
 
     class Meta:
         model = ProfesorUser
+        fields = ('username', 'first_name', 'last_name', 'email')
 
 class AsignaturaResource(resources.ModelResource):
 

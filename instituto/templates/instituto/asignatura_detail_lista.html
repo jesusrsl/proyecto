@@ -31,7 +31,7 @@
         showAnim: 'slideDown',
         beforeShowDay: jQuery.datepicker.noWeekends,
         onSelect: function(date, inst) {
-            document.anotaciones_form.submit();
+            document.getElementById('anotaciones_form').submit();
         },
     });
 });
@@ -88,7 +88,7 @@ $(document).ready(function() {
 
 {% block maincontent %}
 
-    <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+    <form action="{% url "poner-anotaciones" object.id vista fecha %}" id="anotaciones_form" method="post">{% csrf_token %}
 
         <div class="btn-group-sm enlaces-fecha">
             <label class="control-label" for="datepicker"> Fecha: </label>
@@ -104,6 +104,11 @@ $(document).ready(function() {
 
             <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
+            <button type="button" class="btn btn-primary btn-fab"  value="lista"
+                    onclick="window.location.href='{% url "lista-anotaciones" object.id vista%}'">
+                <i class="material-icons">assessment</i>
+            </button>
+
         </div>
 
     {% if not lectivo %}
@@ -111,7 +116,6 @@ $(document).ready(function() {
     {% else %}
 
         <div id="mySidenav" class="sidenav">
-            <a href="{% url "lista-anotaciones" object.id %}" id="anotaciones"><i class="material-icons">assessment</i></a>
             <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
             <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
             <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
@@ -136,8 +140,19 @@ $(document).ready(function() {
 
             <tr class="{% cycle 'fila1' 'fila2' %}" id="filaAlumno{{ a.id }}">
                 <td class="alumno">
-                    <input type="checkbox" name="listaAlumnado" value="{{ a.id }}">
-                    <span style="cursor: pointer; color: #428BCA" onclick="seleccionar_alumno({{ a.id }})">
+                    {% if a.foto %}
+                        <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
+                    {% else %}
+                        <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
+                    {% endif %}
+                    <input type="checkbox" name="listaAlumnado" value="{{ a.id }}"
+                    {% for i in request.session.lista %}
+                        {% if a.id == i %}
+                            checked
+                        {% endif %}
+                    {% endfor %}
+                    >
+                    <span class="nombre-alumno" onclick="seleccionar_alumno({{ a.id }})">
                         {{ a.nombre | capfirst }} {{ a.apellido1 |capfirst }} {{ a.apellido2 |capfirst }}
                     </span>
                 </td>
@@ -179,15 +194,15 @@ $(document).ready(function() {
                         {% endif %}
 
                         {% if anotacion.positivos %}
-                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">{{ anotacion.positivos }} +</a></td>
+                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">{{ anotacion.positivos }} <span class="glyphicon glyphicon-plus"></span> </a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="glyphicon glyphicon-plus"></span> </a></td>
                         {% endif %}
 
                         {% if anotacion.negativos %}
-                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">{{ anotacion.negativos }} -</a></td>
+                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">{{ anotacion.negativos }} <span class="glyphicon glyphicon-minus"></span></a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="glyphicon glyphicon-minus"></span></a></td>
                         {% endif %}
 
                         {% if anotacion.falta %}
@@ -232,8 +247,6 @@ $(document).ready(function() {
 
     </form>
 
-
-
     <!-- Ventana MODAL para las anotaciones -->
 
     <div id="form-modal" tabindex="-1" class="modal fade ">
@@ -243,7 +256,7 @@ $(document).ready(function() {
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 id="form-modal-title" class="modal-title">Anotación invidual</h4>
                 </div>
-                <div id="form-modal-body" class="modal-body">
+                <div id="form-modal-body" class="modal-body" style="padding-top: 0">
                     <p>Contenido del formulario</p>
                 </div>
                 <div class="modal-footer">

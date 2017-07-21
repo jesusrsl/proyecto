@@ -9,10 +9,13 @@ urlpatterns = [
     url(r'^$',views.base, name='inicio'),
     url(r'^acerca/$',views.acerca, name='acerca'),
 
+    #AUTENTICACIÓN DE USUARIOS
     url(r'^login/$', views.LoginUser.as_view(), name = 'login'),
     url(r'^logout/$', views.LogoutUser.as_view(), name = 'logout'),
-    #url(r'^change_passwd/', 'django.contrib.auth.views.password_change',
-    #    {'template_name':'passwd_change_form.html', 'post_change_redirect' : 'inicio'}, name = "password-reset"),
+    url(r'^passwd_reset/$', auth_views.password_reset, name = "password_reset"),
+    url(r'^passwd_reset/done/$', auth_views.password_reset_done, name = "password_reset_done"),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, name = "password_reset_confirm"),
+    url(r'^reset/done/$', auth_views.password_reset_complete, name = "password_reset_complete"),
 
     #PROFESORES --> USERs de la aplicación
     url(r'^profesores/$', views.ProfesorListView.as_view(), name='lista-profesores'),
@@ -31,8 +34,10 @@ urlpatterns = [
 
     #ASIGNATURAS
     url(r'^lista/asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),
-    #url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
-    url(r'^asignaturas/$', views.AsignaturaProfesorListView.as_view(), name='asignaturas-profesor'),
+    url(r'^lista/asignaturas/(?P<idGrupo>\d+)$', views.AsignaturasGrupoListView.as_view(), name='lista-asignaturas-grupo'),
+    url(r'^lista/asignaturas/grupo/$', views.asignaturasPorGrupo, name='asignaturas-grupo'),
+    #url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturasProfesorListView.as_view(), name='asignaturas-profesor'),
+    url(r'^asignaturas/$', views.AsignaturasProfesorListView.as_view(), name='asignaturas-profesor'),
 
     #detalle de la asignatura con su alumnado
     url(r'^asignatura/(?P<pk>\d+)/detalle/$', views.AsignaturaDetailView.as_view(), name='detalle-asignatura'),
@@ -47,6 +52,7 @@ urlpatterns = [
     url(r'^asignatura/(?P<pk>\d+)/editar/$', views.AsignaturaUpdate.as_view(), name='editar-asignatura'),
     url(r'^asignatura/(?P<pk>\d+)/eliminar/$', views.AsignaturaDelete.as_view(), name='eliminar-asignatura'),
     url(r'^asignaturas/PDF/$', views.asignaturasPDF, name="asignaturas-pdf"),
+    url(r'^asignaturas/(?P<idGrupo>\d+)/PDF/$', views.asignaturasGrupoPDF, name="asignaturas-grupo-pdf"),
     url(r'^asignatura/(?P<pk>\d+)/ordenar/$', views.ordenarAsignatura, name='ordenar-asignatura'),
 
     #GRUPOS
@@ -75,17 +81,17 @@ urlpatterns = [
 
     #ANOTACIONES
     #url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.AnotacionListView.as_view(), name='lista-anotaciones'),
-    url(r'^anotaciones/(?P<idAsignatura>\d+)/$', views.anotacionesFechas, name='lista-anotaciones'),
+    url(r'^anotaciones/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/$', views.anotacionesFechas, name='lista-anotaciones'),
     #url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.anotacionesPDF, name="anotaciones-pdf"),
     #NOTA: es llamado desde fecha-anotaciones
 
-    url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
+    #url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
 
     url(r'^anotar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreateUpdate.as_view(), name='anotar'),
 
     url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
-    url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
+    #url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
 
     url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerFalta, name='poner-falta'),
     url(r'^anotacion/trabaja/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerTrabaja, name='poner-trabaja'),

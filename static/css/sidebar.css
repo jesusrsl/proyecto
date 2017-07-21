@@ -10,17 +10,14 @@
     color: white; /* White text color */
     border-radius: 0 5px 5px 0; /* Rounded corners on the top right and bottom right side */
     cursor:pointer;
+    z-index: 2;/*por encima de los paneles*/
 }
 
 #mySidenav a:hover {
     left: 0; /* On mouse-over, make the elements appear as they should */
 }
 
-/* The about link: 20px from the top with a green background */
-#anotaciones {
-    top: 100px;
-    background-color: #009688;
-}
+/* The about link: 150px from the top with a green background */
 
 #todos {
     top: 150px;
@@ -38,20 +35,20 @@
 
 #falta {
     top: 300px;
-    background-color: red;
+    background-color: indianred;
 }
 
 #trabaja {
     top: 350px;
-    background-color: #5EA226;
+    background-color: olivedrab;
 }
 
 #positivo {
     top: 400px;
-    background-color: orange;
+    background-color: goldenrod;
 }
 
 #negativo {
     top: 450px;
-    background-color: orange;
+    background-color: goldenrod;
 }

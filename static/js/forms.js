@@ -12,10 +12,10 @@ function seleccionar_checkbox(activar){
       nombre = "listaAlumnado"
     }
 
-    for (i=0;i<document.anotaciones_form.elements.length;i++)
-      if(document.anotaciones_form.elements[i].type == "checkbox")
-         if(document.anotaciones_form.elements[i].name == nombre)
-            document.anotaciones_form.elements[i].checked=activar
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+         if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+            document.getElementById("anotaciones_form").elements[i].checked=activar
 }
 
 
@@ -29,9 +29,9 @@ function invertir_seleccion(){
       nombre = "listaAlumnado"
     }
 
-   for (i=0;i<document.anotaciones_form.elements.length;i++)
-      if(document.anotaciones_form.elements[i].name == nombre)
-         document.anotaciones_form.elements[i].checked=!document.anotaciones_form.elements[i].checked
+   for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+         document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked
 }
 
 /*function mostrar(bloq, activar) {
@@ -49,18 +49,18 @@ function invertir_seleccion(){
 
 function cambiarVista(bloq) {
    //se deseleccionan todos los alumnos
-    for (i=0;i<document.anotaciones_form.elements.length;i++)
-      if(document.anotaciones_form.elements[i].type == "checkbox")
-          document.anotaciones_form.elements[i]=0
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+          document.getElementById("anotaciones_form").elements[i]=0
 
    if (bloq =="cuadricula"){
       document.getElementById("vista").value = "cuad"
-      document.anotaciones_form.submit()
+      document.getElementById("anotaciones_form").submit()
 
    }
    else {
       document.getElementById("vista").value = "lista"
-      document.anotaciones_form.submit()
+      document.getElementById("anotaciones_form").submit()
    }
 
 }
@@ -75,30 +75,110 @@ function seleccionar_alumno(idAlumno){
       nombre = "listaAlumnado"
     }
 
-   for (i=0;i<document.anotaciones_form.elements.length;i++)
-       if(document.anotaciones_form.elements[i].name == nombre)
-           if(document.anotaciones_form.elements[i].value == idAlumno)
-               document.anotaciones_form.elements[i].checked=!document.anotaciones_form.elements[i].checked
+   for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+       if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+           if(document.getElementById("anotaciones_form").elements[i].value == idAlumno)
+               document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked
 
 
 }
 
 function poner_falta() {
-    document.getElementById('nota').value = "falta";
-    document.anotaciones_form.submit();
+    seleccionado = false;
+
+    if (document.getElementById("vista").value=="cuad")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+         if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+            if(document.getElementById("anotaciones_form").elements[i].checked){
+                seleccionado=true;
+                break;
+            }
+
+     if (seleccionado){
+        document.getElementById('nota').value = "falta";
+        document.getElementById("anotaciones_form").submit();
+     }
 }
 
 function poner_trabaja() {
-    document.getElementById('nota').value = "trabaja";
-    document.anotaciones_form.submit();
+    seleccionado = false;
+
+    if (document.getElementById("vista").value=="cuad")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+         if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+            if(document.getElementById("anotaciones_form").elements[i].checked){
+                seleccionado=true;
+                break;
+            }
+
+    if (seleccionado) {
+         document.getElementById('nota').value = "trabaja";
+         document.getElementById("anotaciones_form").submit();
+    }
 }
 
 function poner_positivo() {
-    document.getElementById('nota').value = "positivo";
-    document.anotaciones_form.submit();
+    seleccionado = false;
+
+    if (document.getElementById("vista").value=="cuad")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+         if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+            if(document.getElementById("anotaciones_form").elements[i].checked){
+                seleccionado=true;
+                break;
+            }
+
+    if (seleccionado) {
+        document.getElementById('nota').value = "positivo";
+        document.getElementById("anotaciones_form").submit();
+    }
 }
 
 function poner_negativo() {
-    document.getElementById('nota').value = "negativo";
-    document.anotaciones_form.submit();
+    seleccionado = false;
+
+    if (document.getElementById("vista").value=="cuad")
+    {
+       nombre = "cuadriculaAlumnado"
+    }
+    else{
+      nombre = "listaAlumnado"
+    }
+
+    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
+      if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
+         if(document.getElementById("anotaciones_form").elements[i].name == nombre)
+            if(document.getElementById("anotaciones_form").elements[i].checked){
+                seleccionado=true;
+                break;
+            }
+
+    if (seleccionado) {
+        document.getElementById('nota').value = "negativo";
+        document.getElementById("anotaciones_form").submit();
+    }
 }

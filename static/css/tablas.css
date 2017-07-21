@@ -35,11 +35,11 @@ table.tablaAnotaciones {
     text-overflow: ellipsis;
 }
 
-.tablaAnotaciones tr.fila1{
-    background-color:  #eafaf1 ;
+.tablaAnotaciones tr.fila2{
+    background-color: #dff0d8;
 }
 
-.tablaAnotaciones tr.fila2{
+.tablaAnotaciones tr.fila1{
     background-color: white;
 }
 
@@ -68,7 +68,7 @@ table.tablaAnotaciones {
 }
 
 .tablaAnotaciones td{
-    border: #009688 1px solid;
+    border: #009688 0.5px solid;
 }
 
 .tablaAnotaciones td.resumen{
@@ -77,12 +77,16 @@ table.tablaAnotaciones {
 
 /*TABLA DE ALUMNADO de una asignatura*/
 table#tablaAlumnado {
-    border: #009688 2px solid;
+    border: #009688 1px solid;
     table-layout: auto;
+    box-shadow: 0 8px 17px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 2px;
+    border: 0;
 }
 
 #tablaAlumnado th {
-    color: #009688;
+    background-color: #009688;
+    color: white;
     text-align: center;
 }
 
@@ -95,39 +99,61 @@ table#tablaAlumnado {
 
 #tablaAlumnado td.alumno {
     border: #009688 1px solid;
+    vertical-align: middle;
+    padding-top: 5px;
+    padding-bottom: 5px;
+
+}
+
+#tablaAlumnado td.alumno input[type="checkbox"] {
+    margin-left: 10px;
+    margin-right: 10px;
+
 }
 
 #tablaAlumnado tr.fila1 {
-    background-color: lightgrey;
-}
-
-#tablaAlumnado tr.fila2 {
     background-color: white;
 }
 
+#tablaAlumnado tr.fila2 {
+    background-color: #dff0d8 ;
+}
+
 #tablaAlumnado tr.error {
-    background-color: lightpink;
+    background-color: #f2d7d5;
     color: darkred;
 }
 
 #tablaAlumnado td.blue {
-    background-color: lightyellow;
+    background-color: lightgoldenrodyellow;
     text-align: center;
+    font-weight: bolder;
+    font-size: large;
 }
 
 #tablaAlumnado td.red {
-    background-color: lightcoral;
+    background-color: #f2d7d5;
     text-align: center;
+    font-weight: bolder;
+    font-size: large;
 }
 
 #tablaAlumnado td.green {
-    background-color: lightgreen;
+    background-color: #c4e187;
     text-align: center;
+    font-weight: bolder;
+    font-size: large;
+}
+
+#tablaAlumnado .glyphicon{
+    font-size: small;
 }
 
 #tablaAlumnado td.orange {
-    background-color: moccasin;
+    background-color:  #fad7a0;
     text-align: center;
+    font-weight: bolder;
+    font-size: large;
 }
 
 .boton, a:link.boton, a:active.boton, a:visited.boton, a:hover.boton {
@@ -136,6 +162,8 @@ table#tablaAlumnado {
     font-weight: bolder;
     display:block;
     cursor: pointer;
+    width:100%;
+    height:100%;
 }
 
 .overflow{
@@ -143,5 +171,11 @@ table#tablaAlumnado {
 }
 
 td.errorAnotaciones{
-    background-color: lightpink;
+    background-color:  #f2d7d5;
 }
+
+ .nombre-alumno {
+     cursor: pointer;
+     color: #009688;
+     font-weight: bolder;
+ }

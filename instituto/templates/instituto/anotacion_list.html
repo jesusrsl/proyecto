@@ -40,8 +40,12 @@
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
     <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
-    <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
-    <li><a href="{% url 'lista-anotaciones' idAsignatura %}">Ver anotaciones</a></li>
+    {% if vista == "cuad" %}
+        <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    {% else %}
+        <li><a href="{% url 'detalle-asignatura-lista' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
+    {% endif %}
+    <li><a href="{% url 'lista-anotaciones' idAsignatura vista%}">Ver anotaciones</a></li>
     <li clas="active">Anotaciones</li>
 {% endblock %}
 
@@ -69,6 +73,14 @@
                 </tr>
             {% endfor %}
         </table>
+
+     <div>
+        {% if vista == "cuad" %}
+            <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a> <!--asignatura pasada por el contexto-->
+        {% else %}
+             <a class='btn' href="{% url 'detalle-asignatura-lista' idAsignatura fecha %}">Volver</a>
+        {% endif %}
+    </div>
 
    </div>
 
@@ -109,9 +121,9 @@
                         <a style="cursor: pointer" id="anotacion-button{{ v.id }}">
                             {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
 
-                            {% if v.positivos is not None %} {{ v.positivos }}+ {% endif %}
+                            {% if v.positivos is not None and v.positivos != 0%} {{ v.positivos }}+ {% endif %}
 
-                            {% if v.negativos is not None %} {{ v.negativos }}- {% endif %}
+                            {% if v.negativos is not None and v.negativos != 0%} {{ v.negativos }}- {% endif %}
                         </a>
                             <script>
                                 $('#anotacion-button{{ v.id }}').click(function() {
@@ -160,11 +172,6 @@
             {% endfor %}
 
         </table>
-    </div>
-
-    <br>
-    <div>
-        <a class='btn' href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">Volver</a>
     </div>
 
 

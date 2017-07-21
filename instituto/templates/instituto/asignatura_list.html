@@ -1,22 +1,43 @@
 {% extends 'base.html' %}
 
-{% block acciones %}
-    <li><a href="{% url "asignaturas-pdf" %}">Exportar a PDF</a></li>
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li class="active">Asignaturas
+    {% if not todos %} {{ grupo.get_curso_display }} {{ grupo.unidad }}{% endif %}</li>
 {% endblock %}
 
 {% block maincontent %}
 
-    <h2>Asignaturas</h2>
-    <hr>
+    <h2>Asignaturas
+        {% if request.user.is_superuser %}
+        <a href="{% url 'nueva-asignatura' %}"><i class="material-icons">add_box</i></a>
+        {% endif %}
 
-    <style>
-        .list-group .list-group-separator::before {
-            content: "";
-            width: 50%;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            float: left;}
+        {% if todos %}
+            <a href="{% url 'asignaturas-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+        {% else %}
+            <a href="{% url 'asignaturas-grupo-pdf' grupo.pk %}"><i class="material-icons">picture_as_pdf</i></a>
+        {% endif %}
 
-    </style>
+    </h2>
+
+    <form action="{% url 'asignaturas-grupo' %}" class="form form-asignatura" id="sel_grupo_form" method="post">{% csrf_token %}
+
+        <div class="form-group">
+            <label class="col-md-4 control-label" for="grupo"> Grupo: </label>
+            <select class="col-md-8 form-control" name="grupo" id="grupo" size="1">
+                <option value="-1" {% if todos %}selected{% endif %}>Todos</option>
+                {% for g in grupo_list %}
+                    <option value="{{ g.id }}"
+                            {% if not todos and g.id == grupo.pk%}selected{% endif %}>
+                        {{ g.get_curso_display }} {{ g.unidad }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" name="cambiar_grupo" id="cambiar_grupo" value="Cambiar grupo">
+            <i class="material-icons">filter_list</i>
+        </div>
+    </form>
+
     <div class="list-group">
         {% for a in object_list %}
             <div class="list-group-item">
@@ -29,29 +50,5 @@
             <div class="list-group-separator"></div>
         {% endfor %}
     </div>
-
-    {% if is_paginated %}
-    <ul class="pagination">
-        {% if page_obj.has_previous %}
-            <li><a href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
-        {% else %}
-            <li class="disabled"><span>&laquo;</span></li>
-        {% endif %}
-
-        {% for i in paginator.page_range %}
-            {% if page_obj.number == i %}
-                <li class="active"><span style="background-color: #009688;border-color: #009688;">{{ i }} <span class="sr-only">(current)</span></span></li>
-            {% else %}
-                <li><a href="?page={{ i }}"><span style="color: #009688;">{{ i }}</span></a></li>
-            {% endif %}
-        {% endfor %}
-
-        {% if page_obj.has_next %}
-            <li><a href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
-        {% else %}
-            <li class="disabled"><span>&raquo;</span></li>
-        {% endif %}
-    </ul>
-    {% endif %}
 
 {% endblock %}

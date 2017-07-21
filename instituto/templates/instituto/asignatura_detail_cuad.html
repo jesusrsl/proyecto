@@ -33,7 +33,7 @@
         showAnim: 'slideDown',
         beforeShowDay: jQuery.datepicker.noWeekends,
         onSelect: function(date, inst) {
-            document.anotaciones_form.submit();
+            document.getElementById('anotaciones_form').submit();
         },
     });
 });
@@ -73,7 +73,7 @@ $(document).ready(function() {
                      $(modal).find('.modal-body').html(xhr);
                      formAjaxSubmit(form, modal);
                  } else {
-                     $(modal).modal('toggle');
+                     //$(modal).modal('toggle');
 
                      //alert("Anotación grabada correctamente");
 
@@ -108,13 +108,11 @@ $(document).ready(function() {
 
 {% block maincontent %}
 
-    <form action="{% url "poner-anotaciones" object.id vista fecha %}" name="anotaciones_form" id="anotaciones_form" method="post">{% csrf_token %}
+    <form action="{% url "poner-anotaciones" object.id vista fecha %}" id="anotaciones_form" method="post">{% csrf_token %}
 
         <div class="btn-group-sm enlaces-fecha">
-            <label class="control-label" for="datepicker"> Fecha: </label>
-            <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
             <label class="control-label"  for="columnas"> Distribución: </label>
-            <select name="columnas" id="columnas" size="1" onchange="document.anotaciones_form.submit()">
+            <select name="columnas" id="columnas" size="1" onchange="document.getElementById('anotaciones_form').submit()">
                 <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
                 <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
                 <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
@@ -124,6 +122,9 @@ $(document).ready(function() {
                 <option {% if cols == 7 %}selected {% endif %} value="7">7</option>
                 <option {% if cols == 8 %}selected {% endif %} value="8">8</option>
             </select>
+
+            <label class="control-label" for="datepicker"> Fecha: </label>
+            <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
 
             <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')">
                 <i class="material-icons">view_module</i>
@@ -135,6 +136,11 @@ $(document).ready(function() {
 
             <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
+            <button type="button" class="btn btn-primary btn-fab"  value="lista"
+                    onclick="window.location.href='{% url "lista-anotaciones" object.id vista %}'">
+                <i class="material-icons">assessment</i>
+            </button>
+
         </div>
 
     {% if not lectivo %}
@@ -142,7 +148,6 @@ $(document).ready(function() {
     {% else %}
 
         <div id="mySidenav" class="sidenav">
-            <a href="{% url "lista-anotaciones" object.id %}" id="anotaciones"><i class="material-icons">assessment</i></a>
             <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
             <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
             <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
@@ -169,7 +174,7 @@ $(document).ready(function() {
                 {% elif cols == 5 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-5r col-lg-5r">
                 {% elif cols == 6 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4 col-md-6r col-lg-6r">
                 {% elif cols == 7 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-3 col-md-7r col-lg-7r">
-                {% elif cols == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-8r col-lg-8r">
+                {% elif cols == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-3 col-md-8r col-lg-8r">
                 {% endif %}
 
 
@@ -178,7 +183,13 @@ $(document).ready(function() {
                     <div class="panel-heading" style="height: 30px; padding: 0.5px 3px 1px 3px; white-space: nowrap; text-overflow: ellipsis;">
                         <!-- valorar-alumno-->
                         <h4 class="panel-title" style="font-weight: bold; ">
-                            <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}">
+                            <input type="checkbox" name="cuadriculaAlumnado" value="{{ a.id }}"
+                            {% for i in request.session.lista %}
+                                {% if a.id == i %}
+                                    checked
+                                {% endif %}
+                            {% endfor %}
+                            >
                             <span style="cursor: pointer" onclick="seleccionar_alumno({{ a.id }})">
                                     {{ a.nombre | capfirst }} {{ a.apellido1 | first }}. {{ a.apellido2 |first }}.
                             </span>
@@ -297,7 +308,7 @@ $(document).ready(function() {
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     <h4 id="form-modal-title" class="modal-title">Anotación invidual</h4>
                 </div>
-                <div id="form-modal-body" class="modal-body">
+                <div id="form-modal-body" class="modal-body" style="padding-top: 0">
                     <p>Contenido del formulario</p>
                 </div>
                 <div class="modal-footer">
