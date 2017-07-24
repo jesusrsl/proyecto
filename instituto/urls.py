@@ -34,8 +34,6 @@ urlpatterns = [
 
     #ASIGNATURAS
     url(r'^lista/asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),
-    url(r'^lista/asignaturas/(?P<idGrupo>\d+)$', views.AsignaturasGrupoListView.as_view(), name='lista-asignaturas-grupo'),
-    url(r'^lista/asignaturas/grupo/$', views.asignaturasPorGrupo, name='asignaturas-grupo'),
     #url(r'^asignaturas/(?P<idProfesor>\d+)/$', views.AsignaturasProfesorListView.as_view(), name='asignaturas-profesor'),
     url(r'^asignaturas/$', views.AsignaturasProfesorListView.as_view(), name='asignaturas-profesor'),
 
@@ -69,8 +67,6 @@ urlpatterns = [
 
     #ALUMNOS
     url(r'^alumnos/$', views.AlumnoListView.as_view(), name='lista-alumnos'),
-    url(r'^alumnos/(?P<idGrupo>\d+)$', views.AlumnosGrupoListView.as_view(), name='lista-alumnos-grupo'),
-    url(r'^alumnos/grupo/$', views.alumnosPorGrupo, name='alumnos-grupo'),
     url(r'^alumno/(?P<pk>\d+)/detalle/$', views.AlumnoDetailView.as_view(), name='detalle-alumno'),
     url(r'^alumno/tutoria/(?P<pk>\d+)/detalle/$', views.AlumnoTutoriaDetailView.as_view(), name='detalle-alumno-tutoria'),
     url(r'^alumno/grupo/(?P<pk>\d+)/detalle/$', views.AlumnoGrupoDetailView.as_view(), name='detalle-alumno-grupo'),
@@ -82,9 +78,11 @@ urlpatterns = [
 
     #MATRICULAS
     url(r'^matriculas/$', views.MatriculaListView.as_view(), name='lista-matriculas'),
-    url(r'^matricula/(?P<pk>\d+)/detalle/$', views.MatriculaDetailView.as_view(), name='detalle-matricula'),
-    url(r'^matricula/nueva/$', views.MatriculaCreate.as_view(), name='nueva-matricula'),
-    url(r'^matricula/(?P<pk>\d+)/editar/$', views.MatriculaUpdate.as_view(), name='editar-matricula'),
+    #url(r'^matricula/(?P<pk>\d+)/detalle/$', views.MatriculaDetailView.as_view(), name='detalle-matricula'),
+    #url(r'^matricula/nueva/$', views.MatriculaCreate.as_view(), name='nueva-matricula'),
+    url(r'^matricula/(?P<idGrupo>\d+)/nueva/$', views.matricularGrupo, name='nueva-matricula-grupo'),
+    url(r'^matricula/(?P<idGrupo>\d+)/PDF/$', views.matriculasPDF, name='matricula-grupo-pdf'),
+    #url(r'^matricula/(?P<pk>\d+)/editar/$', views.MatriculaUpdate.as_view(), name='editar-matricula'),
     url(r'^matricula/(?P<pk>\d+)/eliminar/$', views.MatriculaDelete.as_view(), name='eliminar-matricula'),
 
     #ANOTACIONES

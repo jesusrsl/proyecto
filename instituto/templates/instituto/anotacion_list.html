@@ -2,8 +2,6 @@
 {% load mis_filtros %}
 
 {% block js %}
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-        <!--se repite porque si no da error -->
     <script>
 
     var formAjaxSubmit = function(form, modal) {
@@ -66,7 +64,7 @@
             {% for alumno in alumno_list %}
 
                 <tr class="{% cycle 'fila1' 'fila2' %}">
-                <td style="color:#009688"> <!--gráfico-->
+                <td class="alumno">
                 {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</td>
 
 

@@ -1,4 +1,5 @@
 from django import template
+import urllib
 from django.template import loader, Node, Variable
 from django.utils.encoding import smart_str, smart_unicode
 from django.template.defaulttags import url
@@ -24,5 +25,11 @@ def addcss(field, css):
 @register.filter(name='addplaceholder')
 def addplaceholder(field, placeholder):
    return field.as_widget(attrs={'class':"form-control",'placeholder':placeholder})
+
+@register.simple_tag(takes_context=True)
+def url_replace(context, **kwargs):
+    query = context['request'].GET.dict()
+    query.update(kwargs)
+    return urllib.urlencode(query)
 
 

@@ -37,8 +37,7 @@ class ProfesorUser(User):
         return reverse('lista-profesores')
 
     class Meta:
-        ordering = ['last_name', 'first_name']
-        verbose_name_plural = 'profesores'
+        ordering = ['last_name','first_name']
 
 """
 class ProfesorUser(models.Model):

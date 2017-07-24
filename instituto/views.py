@@ -5,7 +5,7 @@ from io import BytesIO
 from itertools import groupby
 from operator import itemgetter
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, TA_CENTER, TA_LEFT
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, TableStyle, PageBreak
@@ -13,7 +13,7 @@ from reportlab.platypus import Table
 import xlwt
 from django.contrib import messages
 from django.contrib.auth import login, logout, settings
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -28,7 +28,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, RedirectView
 
-from .forms import RegisterForm, UpdateForm
+from .forms import RegisterForm, UpdateForm, MatriculaForm
 from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 
 
@@ -515,6 +515,152 @@ def asignaturasGrupoPDF(request, idGrupo):
     buff.close()
     return response
 
+def matriculasPDF(request, idGrupo):
+
+    response = HttpResponse(content_type='application/pdf')
+    grupo = Grupo.objects.get(pk=idGrupo)
+    nombre = grupo.get_curso_display()
+    if grupo.unidad != "":
+        nombre = nombre + " " + grupo.unidad
+    pdf_name = "matriculas-%s.pdf" % nombre.replace(" ", "-")
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4, # en horizontal --> pagesize=landscape(A4),
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title="Matriculas de %s" % (grupo.get_curso_display() + " " + grupo.unidad),
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+    contenido = []
+
+    #definicion de estilos
+    styles = getSampleStyleSheet()
+    #estilo para el titulo de cabecera
+    h1 = styles['Heading1']
+    h1.alignment = 1  # centrado
+    h1.spaceAfter = 30
+    #estilo para el pie de pagina
+    f1 = styles['Normal']
+    f1.alignment = 1  # centrado
+    f1.fontName = 'Times-Italic'
+    f1.spaceBefore = 20
+
+    header = Paragraph("Matriculas del grupo % s" % (grupo.get_curso_display() + " " + grupo.unidad), h1)
+    contenido.append(header)
+
+    matriculas=Matricula.objects.filter(alumno__grupo=grupo).order_by('asignatura').values()
+
+    #se cuenta el numero de asignaturas diferentes (= numero de matriculas de cada alumno)
+    key = itemgetter('asignatura_id')
+    iter = groupby(sorted(matriculas, key=key), key=key)
+    total_asignaturas = 0
+    for asig in iter:
+        total_asignaturas += 1
+
+
+    #paginacion de la tabla de matriculas (7 fechas-columnas por pagina)
+    num_asignaturas = 0
+    num_pagina = 1
+    asignatura_list = []
+    key = itemgetter('asignatura_id')
+    iter = groupby(sorted(matriculas, key=key), key=key)
+    for asign in iter:
+        num_asignaturas += 1
+        asignatura_list.append(asign[0])
+        if ((num_asignaturas % 3) == 0 and num_asignaturas < total_asignaturas):   #nueva pagina
+            t = matriculasPorPagina(idGrupo, asignatura_list)
+            contenido.append(t)
+            contenido.append(Paragraph("Pag %d" % num_pagina, f1))
+            #salto de pagina
+            contenido.append(PageBreak())
+            asignatura_list = []
+            num_pagina+=1
+        elif num_asignaturas == total_asignaturas: #ultima pagina
+            t = matriculasPorPagina(idGrupo, asignatura_list)
+            contenido.append(t)
+            contenido.append(Paragraph("Pag %d" % num_pagina, f1))
+
+    doc.build(contenido)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
+def matriculasPorPagina(idGrupo, listaAsignaturas):
+
+    matriculas = Matricula.objects.filter(alumno__grupo__id=idGrupo).order_by('asignatura').values()
+
+    key = itemgetter('asignatura_id')
+    iter = groupby(sorted(matriculas, key=key), key=key)
+
+    # CABECERA de la tabla
+    headings = ['Alumno/a']
+    for asign, lista in iter:
+        if asign in listaAsignaturas:
+            headings.append(Asignatura.objects.get(pk=asign).nombre)
+
+    # Contenido de la tabla --> anotaciones de cada alumno (uno por fila)
+    info_matriculas = []
+
+    for alumno in Grupo.objects.get(pk=idGrupo).alumno_set.all():
+
+        matriculas = Matricula.objects.filter(alumno__grupo__id=idGrupo).order_by('asignatura').values()
+
+        key = itemgetter('asignatura_id')
+        iter = groupby(sorted(matriculas, key=key), key=key)
+
+        nombre_completo = alumno.nombre + " " +  alumno.apellido1 + " " + alumno.apellido2
+
+        #elipsis para nombres mayores de 30 caracteres
+        if len(nombre_completo) > 30:
+            nuevo_nombre = nombre_completo[0:30] + "..."
+            nombre_completo = nuevo_nombre
+
+        fila = ["%s" % nombre_completo]
+
+        for asign, lista in iter:
+
+            if asign in listaAsignaturas:
+
+                matricula = ""
+
+                for m in lista:  # lista contiene todas las matriculas de una determinada asignatura
+
+                    if alumno.id == m['alumno_id']:
+                        matricula += "X"
+
+                if len(matricula) == 0:
+                    matricula = " "
+
+                fila.append(matricula)
+
+        # FIN del bucle con todas las matriculas del alumno
+
+
+        # FILA COMPLETA
+        info_matriculas.append(fila)
+
+    #se han terminado todos los alumnos
+
+    tabla = Table([headings] + info_matriculas)  # , colWidths='50'
+    tabla.setStyle(TableStyle(
+    [
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor(0x009688)),  # bordes de las celdas (de grosor 1)
+        #('LINEBELOW', (0, 0), (-1, 0), 2, colors.darkblue),  # borde inferior (de mayor grosor, 2)
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(0x009688))  # color de fondo (en este caso, solo la primera fila)
+    ]
+    ))
+
+    return tabla
+
+
+
 @login_required
 def anotacionesPDF(request, idAsignatura, inicio, fin):
 
@@ -897,12 +1043,29 @@ class ProfesorCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     model = ProfesorUser  # Put model AND form_class, otherwise a User individual is saved
     form_class = RegisterForm
     #fields = ['username', 'password', 'first_name', 'last_name', 'email']
-    success_message = 'El profesor %(first_name)s %(last_name)s se ha grabado correctamente' # %(field_name)s
+    success_message = 'El docente %(first_name)s %(last_name)s se ha grabado correctamente' # %(field_name)s
+    warning_message = 'El docente %(first_name)s %(last_name)s ya se encuentra dado de alta en el sistema'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para crear nuevos profesores')
         return super(ProfesorCreate, self).handle_no_permission()
+
+    #se evitan profesores duplicados
+    def form_valid(self, form):
+        first_name = form.instance.first_name
+        last_name = form.instance.last_name
+        try:
+            ya_existe = ProfesorUser.objects.get(first_name=first_name, last_name=last_name)
+            if ya_existe is None:
+                return super(ProfesorCreate, self).form_valid(form)
+            else:
+                #profesor ya existente
+                messages.warning(self.request, self.warning_message % dict(first_name=first_name,
+                                                                           last_name=last_name))
+                return HttpResponseRedirect(reverse('lista-profesores'))
+        except ObjectDoesNotExist:
+            return super(ProfesorCreate, self).form_valid(form)
 
 
 #Permiso: solo superusers y el propio usuario
@@ -967,36 +1130,28 @@ class AsignaturaListView(LoginRequiredMixin, ListView):
     model = Asignatura
     paginate_by = 4
 
+    def get_queryset(self):
+        filter_group = self.request.GET.get('grupo', 0)
+        try:
+            grupo=Grupo.objects.get(pk=filter_group)
+            if grupo is None:
+                return Asignatura.objects.all()
+            else:
+                return Asignatura.objects.filter(grupo=grupo)
+        except ObjectDoesNotExist:
+            return Asignatura.objects.all()
+
     def get_context_data(self, **kwargs):
         context = super(AsignaturaListView, self).get_context_data(**kwargs)
+        filter_group = int(self.request.GET.get('grupo', 0))
+        context['filter_group'] = filter_group
         grupos = Grupo.objects.all()
-        context.update({'grupo_list': grupos, 'todos': True})
+        if filter_group > 0:
+            context.update({'grupo_list': grupos, 'grupo': Grupo.objects.get(pk=filter_group)})
+        else:
+            context.update({'grupo_list': grupos})
         return context
 
-#Permisos: todos los profesores
-@login_required
-def asignaturasPorGrupo(request):
-    if "grupo" in request.POST and int(request.POST.get('grupo')) != -1:  #se ha seleccionado un grupo concreto
-        idGrupo = request.POST.get('grupo')
-        return HttpResponseRedirect(reverse('lista-asignaturas-grupo', args=idGrupo))
-    else:
-        return HttpResponseRedirect(reverse('lista-asignaturas'))
-
-#Permisos: todos los profesores
-class AsignaturasGrupoListView(LoginRequiredMixin, ListView):
-    model = Asignatura
-    paginate_by = 4
-    template_name = 'instituto/asignatura_list.html'
-
-    def get_queryset(self):
-        queryset = super(AsignaturasGrupoListView, self).get_queryset().filter(grupo_id=self.kwargs['idGrupo'])
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super(AsignaturasGrupoListView, self).get_context_data(**kwargs)
-        grupos = Grupo.objects.all()
-        context.update({'grupo_list': grupos, 'todos': False, 'grupo': Grupo.objects.get(pk=self.kwargs['idGrupo'])})
-        return context
 
 
 #Permisos: el propio profesor
@@ -1071,11 +1226,29 @@ class AsignaturaCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessa
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha grabado correctamente'
+    warning_message = 'Ya existe la asignatura %(nombre)s en %(curso)s %(unidad)s. Utilice un nombre diferente.'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para crear nuevas asignaturas')
         return super(AsignaturaCreate, self).handle_no_permission()
+
+    #se evitan asignaturas duplicadas
+    def form_valid(self, form):
+        nombre = form.instance.nombre
+        grupo = form.instance.grupo
+        try:
+            ya_existe = Asignatura.objects.get(nombre=nombre, grupo=grupo)
+            if ya_existe is None:
+                return super(AsignaturaCreate, self).form_valid(form)
+            else:
+                #asignatura ya existente
+                messages.warning(self.request, self.warning_message % dict(nombre=nombre,
+                                                                           curso=grupo.get_curso_display(),
+                                                                           unidad=grupo.unidad))
+                return HttpResponseRedirect(reverse('lista-asignaturas'))
+        except ObjectDoesNotExist:
+            return super(AsignaturaCreate, self).form_valid(form)
 
 #Permiso: solo superusers y el propio profesor
 class AsignaturaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
@@ -1144,6 +1317,7 @@ class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
     model = Grupo
     fields = '__all__'
     success_message = 'El grupo %(curso_elegido)s %(unidad)s se ha grabado correctamente'
+    warning_message = 'Ya existe el grupo %(curso)s %(unidad)s en el centro'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
@@ -1155,6 +1329,23 @@ class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
             cleaned_data,
             curso_elegido=self.object.get_curso_display(),
         )
+
+    #se evitan grupos duplicados
+    def form_valid(self, form):
+        curso = form.instance.curso
+        unidad = form.instance.unidad
+        try:
+            ya_existe = Grupo.objects.get(curso=curso, unidad=unidad)
+            if ya_existe is None:
+                return super(GrupoCreate, self).form_valid(form)
+            else:
+                #grupo ya existente
+                messages.warning(self.request, self.warning_message % dict(curso=form.instance.get_curso_display(),
+                                                                           unidad=unidad))
+                return HttpResponseRedirect(reverse('lista-grupos'))
+        except ObjectDoesNotExist:
+            return super(GrupoCreate, self).form_valid(form)
+
 #Permiso: solo superusers
 class GrupoUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Grupo
@@ -1209,42 +1400,31 @@ class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class AlumnoListView(LoginRequiredMixin, ListView):
     model = Alumno
-    paginate_by = 6
+    paginate_by = 10
 
     def get_queryset(self):
-       queryset = super(AlumnoListView, self).get_queryset()
-       return queryset.order_by('grupo', 'apellido1', 'apellido2', 'nombre')
+        filter_group = self.request.GET.get('grupo', 0)
+        try:
+            grupo=Grupo.objects.get(pk=filter_group)
+            if grupo is None:
+                return Alumno.objects.all().order_by('grupo', 'apellido1', 'apellido2', 'nombre')
+            else:
+                return Alumno.objects.filter(grupo=grupo).order_by('grupo', 'apellido1', 'apellido2', 'nombre')
+        except ObjectDoesNotExist:
+            return Alumno.objects.all().order_by('grupo', 'apellido1', 'apellido2', 'nombre')
+
 
     def get_context_data(self, **kwargs):
         context = super(AlumnoListView, self).get_context_data(**kwargs)
+        filter_group = int(self.request.GET.get('grupo', 0))
+        context['filter_group'] = filter_group
         grupos = Grupo.objects.all()
-        context.update({'grupo_list': grupos, 'todos': True})
+        if filter_group > 0:
+            context.update({'grupo_list': grupos, 'grupo': Grupo.objects.get(pk=filter_group)})
+        else:
+            context.update({'grupo_list': grupos})
         return context
 
-#Permisos: todos los profesores
-@login_required
-def alumnosPorGrupo(request):
-    if "grupo" in request.POST and int(request.POST.get('grupo')) != -1:  #se ha seleccionado un grupo concreto
-        idGrupo = request.POST.get('grupo')
-        return HttpResponseRedirect(reverse('lista-alumnos-grupo', args=idGrupo))
-    else:
-        return HttpResponseRedirect(reverse('lista-alumnos'))
-
-#Permisos: todos los profesores
-class AlumnosGrupoListView(LoginRequiredMixin, ListView):
-    model = Alumno
-    paginate_by = 6
-    template_name = 'instituto/alumno_list.html'
-
-    def get_queryset(self):
-        queryset = super(AlumnosGrupoListView, self).get_queryset().filter(grupo=Grupo.objects.get(pk=self.kwargs['idGrupo']))
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super(AlumnosGrupoListView, self).get_context_data(**kwargs)
-        grupos = Grupo.objects.all()
-        context.update({'grupo_list': grupos, 'todos': False, 'grupo': Grupo.objects.get(pk=self.kwargs['idGrupo'])})
-        return context
 
 
 #Permisos: todos los profesores
@@ -1328,7 +1508,20 @@ class AlumnoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permiso: solo superusers
 class MatriculaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Matricula
+    #paginate_by = 10
     permission_required = 'is_superuser'
+
+    def get_queryset(self):
+        filter_group = self.request.GET.get('grupo', 0)
+        try:
+            grupo=Grupo.objects.get(pk=filter_group)
+            if grupo is None:
+                return Matricula.objects.all()
+            else:
+                return Matricula.objects.filter(alumno__grupo=grupo)
+        except ObjectDoesNotExist:
+            return Matricula.objects.all()
+
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para visualizar las matrículas del alumnado')
@@ -1336,11 +1529,23 @@ class MatriculaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(MatriculaListView, self).get_context_data(**kwargs)
+        context['filter_group'] = int(self.request.GET.get('grupo', 0))
         grupos = Grupo.objects.all()
-        context.update({'grupo_list': grupos})
+        try:
+            grupo=Grupo.objects.get(pk=int(self.request.GET.get('grupo', 0)))
+            if grupo is None:
+                alumnos = Alumno.objects.all()
+                context.update({'grupo_list': grupos, 'alumno_list': alumnos})
+            else:
+                alumnos = Alumno.objects.filter(grupo=grupo)
+                context.update({'grupo_list': grupos, 'alumno_list': alumnos, 'grupo': grupo})
+        except ObjectDoesNotExist:
+            alumnos = Alumno.objects.all()
+            context.update({'grupo_list': grupos, 'alumno_list': alumnos})
+
         return context
 
-#Permiso: solo superusers
+"""#Permiso: solo superusers
 class MatriculaDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Matricula
     permission_required = 'is_superuser'
@@ -1384,8 +1589,68 @@ class MatriculaCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessag
                 return HttpResponseRedirect(reverse('lista-matriculas'))
         except ObjectDoesNotExist:
             return super(MatriculaCreate, self).form_valid(form)
+"""
 
-#Permiso: solo superusers
+@login_required
+@permission_required('is_superuser')
+def matricularGrupo(request, idGrupo):
+
+    if request.method == 'POST':
+        form = MatriculaForm(request.POST, idGrupo=idGrupo)
+
+        if form.is_valid():
+
+            alumnos = request.POST.getlist('alumnos')
+            asignaturas = request.POST.getlist('asignaturas')
+
+            matriculas_nuevas = ""
+            matriculas_previas = ""
+
+            for subject in asignaturas:
+                asignatura = Asignatura.objects.get(pk=subject)
+
+                for student in alumnos:
+                    alumno = Alumno.objects.get(pk=student)
+
+                    try:
+                        ya_matriculado = Matricula.objects.get(alumno=alumno, asignatura=asignatura)
+
+                        if ya_matriculado is None:
+                            nueva_matricula = Matricula(asignatura=asignatura, alumno=alumno)
+                            nueva_matricula.save()
+                            if matriculas_nuevas == "":
+                                matriculas_nuevas = "Nuevas matriculas: "
+                            matriculas_nuevas += " %s - %s, " % (alumno.nombre + " " + alumno.apellido1, asignatura.nombre)
+                        else:
+                            # alumno ya matriculado
+                            if matriculas_previas == "":
+                                matriculas_previas = "Alumnado que ya estaba matriculado: "
+                            matriculas_previas += " %s - %s, " % (alumno.nombre + " " + alumno.apellido1, asignatura.nombre)
+                    except ObjectDoesNotExist:
+                        nueva_matricula = Matricula(asignatura=asignatura, alumno=alumno)
+                        nueva_matricula.save()
+                        if matriculas_nuevas == "":
+                            matriculas_nuevas = "Nuevas matriculas: "
+                        matriculas_nuevas += " %s - %s, " % (alumno.nombre + " " + alumno.apellido1, asignatura.nombre)
+
+            if matriculas_nuevas != "":
+                messages.add_message(request, messages.SUCCESS, matriculas_nuevas)
+            if matriculas_previas != "":
+                messages.add_message(request, messages.WARNING, matriculas_previas)
+            url = "%s?grupo=%s" % (reverse('lista-matriculas'), idGrupo)
+            return HttpResponseRedirect(url)
+
+    else:
+        form = MatriculaForm(idGrupo=idGrupo)
+
+    if int(idGrupo) > 0:
+        grupo = Grupo.objects.get(pk=idGrupo)
+        return render(request, 'instituto/matricula_form.html', {'form': form, 'idGrupo': idGrupo, 'grupo': grupo})
+    else:
+        return render(request, 'instituto/matricula_form.html', {'form': form, 'idGrupo': idGrupo})
+
+
+"""#Permiso: solo superusers
 class MatriculaUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Matricula
     fields = ['alumno', 'asignatura']
@@ -1402,6 +1667,7 @@ class MatriculaUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessag
         return self.success_message % dict(nombre_alumno=alumno.nombre,
                                            apellido1_alumno=alumno.apellido1, apellido2_alumno=alumno.apellido2,
                                            nombre_asignatura=asignatura.nombre)
+"""
 
 # Permiso: solo superusers
 class MatriculaDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
@@ -1477,7 +1743,7 @@ def anotacionesFechas(request, idAsignatura, vista):
 
             if anotaciones.count() == 0:    #no existen anotaciones en esas fechas
                 error = True
-                mensaje_error = "No existen anotaciones en las fechas indicadas. Por favor, intentelo de nuevo."
+                mensaje_error = "No existen anotaciones en las fechas indicadas. Por favor, inténtelo de nuevo."
             elif "ver_anotaciones" in request.POST:
                 return render(request, 'instituto/anotacion_list.html', {'fecha': fecha, 'vista': vista, 'object_list':anotaciones, 'nombreAsignatura': asignatura.nombre, 'idAsignatura': idAsignatura,'alumno_list': asignatura.alumno_set.all, 'resumen_list':resumen })
             elif "anotaciones_pdf" in request.POST:

@@ -1,27 +1,68 @@
 {% extends 'base.html' %}
+{% load mis_filtros %}
+
+{% block js %}
+    <script>
+
+    var formAjaxSubmit = function(form, modal) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                     //$(modal).modal('toggle');
+
+                     location.reload(); //se recarga la página completa
+
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    }
+
+
+
+    </script>
+
+{% endblock %}
+
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'inicio'%}">Inicio</a></li>
+    <li class="active">Matrículas
+    {% if filter_group != 0 %} {{ grupo.get_curso_display }} {{ grupo.unidad }}{% endif %}</li>
+{% endblock %}
 
 {% block maincontent %}
 
-    <h2>Matrículas</h2>
-    <hr>
+    <h2>Matrículas
+    {% if request.user.is_superuser %}
+        <a href="{% url 'nueva-matricula-grupo' filter_group%}"><i class="material-icons">add_box</i></a>
+    {% endif %}
+    {% if filter_group != 0 %}
+        <a href="{% url 'matricula-grupo-pdf' filter_group%}"><i class="material-icons">picture_as_pdf</i></a>
+    {% endif %}
+    </h2>
 
-    <div>
-        {% for m in object_list %}
-            <a href="{% url 'detalle-matricula' m.id %}">
-               {{ m.alumno.nombre }} {{ m.alumno.apellido1 }} {{ m.alumno.apellido2 }} matriculado en {{ m.asignatura.nombre }}
-            </a>
-            <br>
-        {% endfor %}
-    <hr>
-
-    <form action="{% url 'nueva-matricula' %}"  class="form form-por-grupos" id="sel_grupo_form2" method="post">{% csrf_token %}
+    <form action="{% url 'lista-matriculas' %}"  class="form form-por-grupos" id="sel_grupo_form2" method="get">
 
         <div class="form-group">
             <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
             <div class="col-md-4">
                 <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
+                <option value="0" {% if filter_group == 0 %}selected{% endif %}>Todos</option>
                 {% for g in grupo_list %}
-                    <option value="{{ g.id }}">
+                    <option value="{{ g.id }}"
+                            {% if g.id == filter_group %}selected{% endif %}>
                         {{ g.get_curso_display }} {{ g.unidad }}</option>
                 {% endfor %}
                 </select>
@@ -36,7 +77,97 @@
     <br>
 
 
-    <a href="{%  url 'nueva-matricula' %}">Nueva matrícula</a>
+    <div id="lateral" class="table-responsive">
+
+        <table class="tablaMatriculas table users">
+
+            <!-- Cabecera: con todas las fechas -->
+            <tr>
+            <th class="alumno">Alumno/a</th>
+            </tr>
+
+            {% for alumno in alumno_list %}
+
+                <tr class="{% cycle 'fila1' 'fila2' %}">
+                <td class="alumno">
+                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</td>
+
+
+                </tr>
+            {% endfor %}
+        </table>
+
+   </div>
+
+    <div id="principal" class="table-responsive">
+
+        {% regroup object_list by asignatura as matriculas_list %}
+
+        <table class="tablaMatriculas table users">
+
+            <!-- Cabecera: con todas las asignaturas -->
+            <tr>
+            {% for asignatura in matriculas_list%}
+                <th class="asignaturas">{{ asignatura.grouper.nombre}}</th>
+            {% endfor %}
+            </tr>
+
+            {% for alumno in alumno_list %}
+                <tr class="{% cycle 'fila1' 'fila2' %}">
+
+                {% for asignatura in matriculas_list %}
+
+                    {% for v in asignatura.list %}
+
+                        {%if alumno.id == v.alumno.id %}
+                            {% define "Yes" as existe_matricula %}
+                            <td id="celda{{ v.id}}">
+                            <a style="cursor: pointer" id="matricula-button{{ v.id }}">X</a>
+                            <script>
+                                $('#matricula-button{{ v.id }}').click(function() {
+                                    //$('#form-modal-title').html("&nbsp;")
+
+                                    $('#form-modal-body').load(document.getElementById("url{{ v.id }}").value, function () {
+                                        $('#form-modal').modal('toggle');
+                                        $("body").addClass("overflow");
+                                        formAjaxSubmit('#form-modal-body form', '#form-modal');
+                                        $("body").removeClass("overflow");
+                                    });
+                            });
+                            </script>
+                        <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'eliminar-matricula' v.pk %}" readonly>
+
+
+                        {% elif existe_matricula is None and forloop.last%}
+                            <td></td> <!--celda en blanco-->
+
+                        {% endif %}
+
+                    {% endfor %}
+                {% endfor %}
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
     </div>
+
+
+    <!-- Ventana MODAL para las anotaciones -->
+
+    <div id="form-modal" tabindex="-1" class="modal fade ">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+
+                <div id="form-modal-body" class="modal-body">
+                    <p>Contenido del formulario</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 
 {% endblock %}

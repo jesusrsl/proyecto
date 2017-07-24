@@ -1,12 +1,6 @@
-{% extends 'base.html' %}
-
-{% block maincontent %}
-    <form action="" method="post">{% csrf_token %}
-        <p>¿Borrar la matricula de  <strong>{{ object.alumno.nombre}} {{ object.alumno.apellido1}} {{ object.alumno.apellido2}}</strong> en <strong>{{ object.asignatura.nombre }}</strong>?</p>
-        <br>
-        <div class="form-actions">
-        <button type="submit" class="btn btn-primary" >Confirmar</button>
-        <a class='btn btn-primary' href="{% url 'lista-matriculas' %}">Cancelar</a>
-        </div>
-    </form>
-{% endblock %}
+<form action="{% url 'eliminar-matricula' object.id %}"  method="post">{% csrf_token %}
+    <br>
+    <h4>¿Desea eliminar la matricula de  <strong>{{ object.alumno.nombre}} {{ object.alumno.apellido1}} {{ object.alumno.apellido2}}</strong> en <strong>{{ object.asignatura.nombre }}</strong>?</h4>
+    <br>
+    <button type="submit" class="btn btn-primary" >Confirmar</button>
+</form>

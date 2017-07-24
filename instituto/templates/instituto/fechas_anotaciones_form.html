@@ -52,7 +52,8 @@ $(document).ready(function() {
     <h2 style="margin-bottom:0px">Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
 
     {% if error %}
-        <p style="color: red;">{{ mensaje_error }}</p>
+        <br>
+        <p class="error help-inline">{{ mensaje_error }}</p>
     {% endif %}
 
     <form action="" name="fechas_anotaciones_form" id="fechas_anotaciones_form" class="form" method="post" role="form">{% csrf_token %}

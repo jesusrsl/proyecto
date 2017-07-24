@@ -28,7 +28,7 @@
                         {% else %}
                             {{field|addcss:"form-control"}}
                         {% endif %}
-                        <span class="help-inline">
+                        <span class="error help-inline">
                             {% for error in  field.errors %}{{ error }}{% endfor %}
                         </span>
                     </div>

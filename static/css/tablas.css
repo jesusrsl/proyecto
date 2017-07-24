@@ -27,23 +27,32 @@
  }
 
 /*TABLA DE ANOTACIONES*/
-table.tablaAnotaciones {
+table.tablaAnotaciones{
     /*border: #428BCA 1px solid;
     table-layout: fixed;
     overflow: hidden;*/
     white-space:nowrap;
     text-overflow: ellipsis;
+
+}
+ table.tablaMatriculas{
+    /*border: #428BCA 1px solid;
+    table-layout: fixed;
+    overflow: hidden;*/
+    white-space:nowrap;
+    text-overflow: ellipsis;
+     font-size: smaller;
 }
 
-.tablaAnotaciones tr.fila2{
+.tablaAnotaciones tr.fila2, .tablaMatriculas tr.fila2{
     background-color: #dff0d8;
 }
 
-.tablaAnotaciones tr.fila1{
+.tablaAnotaciones tr.fila1, .tablaMatriculas tr.fila1{
     background-color: white;
 }
 
-.tablaAnotaciones th.alumno{
+.tablaAnotaciones th.alumno, .tablaMatriculas th.alumno{
     width: 250px;
     border: #009688 1px solid;
     /*overflow: auto;*/
@@ -59,16 +68,24 @@ table.tablaAnotaciones {
     color: white;
 }
 
-.tablaAnotaciones th.fechas{
+.tablaAnotaciones th.fechas, .tablaMatriculas th.asignaturas{
     width: 80px;
     border: #009688 1px solid;
     /*overflow: auto;*/
     background-color: #009688;
     color: white;
+    text-align: center;
 }
 
-.tablaAnotaciones td{
+
+.tablaAnotaciones td, .tablaMatriculas td{
     border: #009688 0.5px solid;
+    text-align: center;
+}
+
+.tablaAnotaciones td.alumno, .tablaMatriculas td.alumno{
+    color: #009688;
+    text-align: left;
 }
 
 .tablaAnotaciones td.resumen{

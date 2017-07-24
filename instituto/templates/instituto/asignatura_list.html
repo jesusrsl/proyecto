@@ -3,7 +3,7 @@
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
     <li class="active">Asignaturas
-    {% if not todos %} {{ grupo.get_curso_display }} {{ grupo.unidad }}{% endif %}</li>
+    {% if filter_group != 0 %} {{ grupo.get_curso_display }} {{ grupo.unidad }}{% endif %}</li>
 {% endblock %}
 
 {% block maincontent %}
@@ -13,23 +13,23 @@
         <a href="{% url 'nueva-asignatura' %}"><i class="material-icons">add_box</i></a>
         {% endif %}
 
-        {% if todos %}
+        {% if filter_group == 0 %}
             <a href="{% url 'asignaturas-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
         {% else %}
-            <a href="{% url 'asignaturas-grupo-pdf' grupo.pk %}"><i class="material-icons">picture_as_pdf</i></a>
+            <a href="{% url 'asignaturas-grupo-pdf' filter_group %}"><i class="material-icons">picture_as_pdf</i></a>
         {% endif %}
     </h2>
 
-    <form action="{% url 'asignaturas-grupo' %}" class="form form-por-grupos" id="sel_grupo_form" method="post">{% csrf_token %}
+    <form action="{% url 'lista-asignaturas' %}" class="form form-por-grupos" id="sel_grupo_form" method="get">
 
         <div class="form-group">
             <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
             <div class="col-md-4">
                 <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
-                <option value="-1" {% if todos %}selected{% endif %}>Todos</option>
+                <option value="0" {% if filter_group == 0 %}selected{% endif %}>Todos</option>
                 {% for g in grupo_list %}
                     <option value="{{ g.id }}"
-                            {% if not todos and g.id == grupo.pk%}selected{% endif %}>
+                            {% if g.id == filter_group%}selected{% endif %}>
                         {{ g.get_curso_display }} {{ g.unidad }}</option>
                 {% endfor %}
                 </select>
