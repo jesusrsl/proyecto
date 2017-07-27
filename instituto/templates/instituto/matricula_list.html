@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load mis_filtros %}
 
 {% block js %}
+
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+
     <script>
 
     var formAjaxSubmit = function(form, modal) {
@@ -29,6 +37,15 @@
         });
     }
 
+    $(document).ready(function() {
+    $('#matriculas').DataTable({
+        "order": [[ 0, "asc" ]],
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
 
 
     </script>
@@ -44,25 +61,28 @@
 
 {% block maincontent %}
 
-    <h2>Matrículas
-    {% if request.user.is_superuser %}
-        <a href="{% url 'nueva-matricula-grupo' filter_group%}"><i class="material-icons">add_box</i></a>
-    {% endif %}
-    {% if filter_group != 0 %}
-        <a href="{% url 'matricula-grupo-pdf' filter_group%}"><i class="material-icons">picture_as_pdf</i></a>
-    {% endif %}
-    </h2>
+    <div class="col-md-6">
+        <h2>Matrículas
+        {% if request.user.is_superuser %}
+            <a data-toggle="tooltip" title="Añadir" href="{% url 'nueva-matricula-grupo' filter_group%}"><i class="material-icons">add_box</i></a>
+        {% endif %}
+        {% if filter_group != 0 %}
+            <a data-toggle="tooltip" title="Expotar a PDF" href="{% url 'matricula-grupo-pdf' filter_group%}"><i class="material-icons">picture_as_pdf</i></a>
+        {% endif %}
+        </h2>
+    </div>
 
+    <div class="col-md-3 col-md-offset-3" style="padding-right: 0">
     <form action="{% url 'lista-matriculas' %}"  class="form form-por-grupos" id="sel_grupo_form2" method="get">
 
         <div class="form-group">
-            <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
-            <div class="col-md-4">
+            <label class="col-md-5 control-label" for="grupo" style="text-align: right; padding-right: 0"> Grupo: </label>
+            <div class="col-md-5">
                 <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
-                <option value="0" {% if filter_group == 0 %}selected{% endif %}>Todos</option>
+                {% if filter_group == 0 %}<option value="0" selected>Todos</option>{% endif %}
                 {% for g in grupo_list %}
                     <option value="{{ g.id }}"
-                            {% if g.id == filter_group %}selected{% endif %}>
+                            {% if g.id == filter_group%}selected{% endif %}>
                         {{ g.get_curso_display }} {{ g.unidad }}</option>
                 {% endfor %}
                 </select>
@@ -74,55 +94,36 @@
             </div>
         </div>
     </form>
+    </div>
     <br>
 
+    {% if filter_group != 0 %}
 
-    <div id="lateral" class="table-responsive">
+    {% regroup object_list by asignatura as matriculas_list %}
 
-        <table class="tablaMatriculas table users">
-
-            <!-- Cabecera: con todas las fechas -->
-            <tr>
-            <th class="alumno">Alumno/a</th>
-            </tr>
-
-            {% for alumno in alumno_list %}
-
-                <tr class="{% cycle 'fila1' 'fila2' %}">
-                <td class="alumno">
-                {{ alumno.nombre | capfirst}} {{ alumno.apellido1 | capfirst}} {{ alumno.apellido2 | capfirst}}</td>
-
-
-                </tr>
-            {% endfor %}
-        </table>
-
-   </div>
-
-    <div id="principal" class="table-responsive">
-
-        {% regroup object_list by asignatura as matriculas_list %}
-
-        <table class="tablaMatriculas table users">
+    <table id="matriculas" class="display table table-responsive table-hover">
 
             <!-- Cabecera: con todas las asignaturas -->
-            <tr>
-            {% for asignatura in matriculas_list%}
-                <th class="asignaturas">{{ asignatura.grouper.nombre}}</th>
-            {% endfor %}
-            </tr>
+            <thead>
+                <tr>
+                <th>Alumno/a</th>
+                {% for asignatura in matriculas_list%}
+                    <th class="asignaturas">{{ asignatura.grouper.nombre}}</th>
+                {% endfor %}
+                </tr>
+            </thead>
 
             {% for alumno in alumno_list %}
-                <tr class="{% cycle 'fila1' 'fila2' %}">
-
+                <tr>
+                <td>{{ alumno.apellido1 }} {{ alumno.apellido2 }}, {{ alumno.nombre }}</td>
                 {% for asignatura in matriculas_list %}
 
                     {% for v in asignatura.list %}
 
                         {%if alumno.id == v.alumno.id %}
                             {% define "Yes" as existe_matricula %}
-                            <td id="celda{{ v.id}}">
-                            <a style="cursor: pointer" id="matricula-button{{ v.id }}">X</a>
+                            <td id="celda{{ v.id}}" style="text-align: center">
+                            <a style="cursor: pointer" id="matricula-button{{ v.id }}"><i class="material-icons">done</i></a>
                             <script>
                                 $('#matricula-button{{ v.id }}').click(function() {
                                     //$('#form-modal-title').html("&nbsp;")
@@ -151,7 +152,15 @@
             {% endfor %}
 
         </table>
-    </div>
+
+    {% else %}
+        <div class="col-md-8">
+        <h5 class="alert alert-info">La visualización de las matrículas de todo el alumnado del centro excede las dimensiones de su navegador.
+        <br><br>Por tanto, seleccione en la esquina superior derecha el grupo del que desea ver sus matrículas.
+        <br><br>De la misma forma, también puede añadir matrículas individuales, independientemente del grupo al que pertenezca el estudiante.</h5>
+        </div>
+    {% endif %}
+
 
 
     <!-- Ventana MODAL para las anotaciones -->

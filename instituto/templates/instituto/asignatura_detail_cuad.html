@@ -108,9 +108,11 @@ $(document).ready(function() {
         <div class="btn-group-sm enlaces-fecha">
             <label class="control-label"  for="columnas"> Distribución: </label>
             <select name="columnas" id="columnas" size="1" onchange="document.getElementById('anotaciones_form').submit()">
+                {% comment %}
                 <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
                 <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
                 <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
+                {% endcomment %}
                 <option {% if cols == 4 %}selected {% endif %} value="4">4</option>
                 <option {% if cols == 5 %}selected {% endif %} value="5">5</option>
                 <option {% if cols == 6 %}selected {% endif %} value="6">6</option>
@@ -121,17 +123,17 @@ $(document).ready(function() {
             <label class="control-label" for="datepicker"> Fecha: </label>
             <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
 
-            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')">
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')" data-toggle="tooltip" title="Vista cuadrícula">
                 <i class="material-icons">view_module</i>
             </button>
 
-            <button type="button" class="btn btn-primary btn-fab"  value="lista" onclick="cambiarVista('lista')">
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('lista')" data-toggle="tooltip" title="Vista lista">
                 <i class="material-icons">view_list</i>
             </button>
 
             <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
-            <button type="button" class="btn btn-primary btn-fab"  value="lista"
+            <button type="button" class="btn btn-primary btn-fab" data-toggle="tooltip" title="Anotaciones"
                     onclick="window.location.href='{% url "lista-anotaciones" object.id vista %}'">
                 <i class="material-icons">assessment</i>
             </button>
@@ -144,13 +146,13 @@ $(document).ready(function() {
     {% else %}
 
         <div id="mySidenav" class="sidenav">
-            <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
-            <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
-            <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
-            <a onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
-            <a onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
-            <a onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
-            <a onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
+            <a data-toggle="tooltip" title="Seleccionar todos" onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
+            <a data-toggle="tooltip" title="Borrar selección" onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
+            <a data-toggle="tooltip" title="Invertir selección" id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
+            <a data-toggle="tooltip" title="Falta"onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
+            <a data-toggle="tooltip" title="Trabaja" onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
+            <a data-toggle="tooltip" title="Positivo" onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
+            <a data-toggle="tooltip" title="Negativo" onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
         </div>
 
         <input type="hidden" id="nota" name="nota" value="sin anotacion">
@@ -166,12 +168,14 @@ $(document).ready(function() {
                 {% if cols == 1 %}<li id="alumno_{{ a.id }}" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
                 {% elif cols == 2 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-6 col-md-2r col-lg-2r">
                 {% elif cols == 3 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-4 col-md-3r col-lg-3r">
-                {% elif cols == 4 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-4r col-lg-4r">
-                {% elif cols == 5 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-3 col-md-5r col-lg-5r">
-                {% elif cols == 6 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4 col-md-6r col-lg-6r">
-                {% elif cols == 7 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-3 col-md-7r col-lg-7r">
-                {% elif cols == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-3 col-md-8r col-lg-8r">
+                {% elif cols == 4 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4r col-md-4r col-lg-4r">
+                {% elif cols == 5 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-5r col-md-5r col-lg-5r">
+                {% elif cols == 6 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-6r col-md-6r col-lg-6r">
+                {% elif cols == 7 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-5r col-md-7r col-lg-7r">
+                {% elif cols == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4r col-md-8r col-lg-8r">
                 {% endif %}
+
+
 
 
                 <div class="panel panel-primary" id="panel-alumno{{ a.id }}">
@@ -196,7 +200,7 @@ $(document).ready(function() {
 
                     <!-- detalle del alumno -->
                     <div class="panel-body" style="padding: 5px">
-                         <a style="cursor: pointer" id="anotacion-button{{ a.id }}">
+                         <a style="cursor: pointer" id="anotacion-button{{ a.id }}" data-toggle="tooltip" title="Editar">
                             {% if a.foto %}
                                 <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
                             {% else %}
@@ -282,7 +286,9 @@ $(document).ready(function() {
                     </div>
 
                 </div>
+
             </li>
+
 
         {% endfor %}
 

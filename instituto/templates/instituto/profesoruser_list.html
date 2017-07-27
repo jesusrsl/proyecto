@@ -1,4 +1,30 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block js %}
+
+   <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+    $('#profesorado').DataTable({
+        "order": [[ 0, "asc" ]],
+
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
+
+
+
+
+    </script>
+
+{% endblock %}
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
@@ -9,24 +35,48 @@
 
     <h2>Profesorado
         {% if request.user.is_superuser %}
-            <a href="{% url 'nuevo-profesor' %}"><i class="material-icons">add_box</i></a>
+            <a data-toggle="tooltip" title="Añadir" href="{% url 'nuevo-profesor' %}"><i class="material-icons">add_box</i></a>
         {% endif %}
-        <a href="{% url 'profesorado-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+        <a data-toggle="tooltip" title="Expotar a PDF" href="{% url 'profesorado-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
 
     </h2>
     <br>
 
-    <div class="list-group">
+    <table id="profesorado" class="display table table-responsive table-hover" width="100%">
+        <thead>
+            <tr>
+                <th>Profesor</th>
+                <th>Tutor/a</th>
+                <th>Administrador</th>
+                {% if request.user.is_superuser %}
+                    <th>Usuario</th>
+                {% endif %}
+                <th>E-mail</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for p in object_list %}
-            <div class="list-group-item">
-                <a href="{% url 'detalle-profesor' p.id %}">
-                {{ p.first_name | capfirst}} {{ p.last_name | capfirst}}
-                </a>
-            </div>
-
-            <div class="list-group-separator"></div>
+            <tr>
+                <td><a href="{% url 'detalle-profesor' p.id%}">
+                    {{ p.last_name }}, {{ p.first_name | capfirst}} </a></td>
+                <td>{% if p.grupo_set.all%}
+                    {{ p.grupo_set.first.get_curso_display }} {{ p.grupo_set.first.unidad }}
+                    {% else %}
+                    ---
+                {% endif %}</td>
+                <td>{% if p.is_superuser %}
+                    Sí
+                    {% else %}
+                    No
+                    {% endif %}
+                </td>
+                {% if request.user.is_superuser %}
+                    <td>{{ p.username }}</td>
+                {% endif %}
+                <td>{{ p.email }}</td>
+            </tr>
         {% endfor %}
-
-    </div>
+        </tbody>
+    </table>
 
 {% endblock %}

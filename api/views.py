@@ -44,6 +44,9 @@ class AlumnadoAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AlumnadoAsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
+#class AsignaturaProfesorViewSet(viewsets.ModelViewSet):
+
+
 """class AlumnoViewSet(viewsets.ModelViewSet):
     queryset = Alumno.objects.all()
     serializer_class = AlumnoSerializer"""

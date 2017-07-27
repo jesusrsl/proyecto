@@ -90,17 +90,17 @@ $(document).ready(function() {
             <label class="control-label" for="datepicker"> Fecha: </label>
             <input type="text" name="fecha" id="datepicker" step="1" value="{{ fecha }}" size="8">
 
-            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')">
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarVista('cuadricula')" data-toggle="tooltip" title="Vista cuadrícula">
                 <i class="material-icons">view_module</i>
             </button>
 
-            <button type="button" class="btn btn-primary btn-fab"  value="lista" onclick="cambiarVista('lista')">
+            <button type="button" class="btn btn-primary btn-fab"  onclick="cambiarVista('lista')" data-toggle="tooltip" title="Vista lista">
                 <i class="material-icons">view_list</i>
             </button>
 
             <input type="hidden" id="vista" name="vista" value="{{ vista }}" readonly>
 
-            <button type="button" class="btn btn-primary btn-fab"  value="lista"
+            <button type="button" class="btn btn-primary btn-fab"  data-toggle="tooltip" title="Anotaciones"
                     onclick="window.location.href='{% url "lista-anotaciones" object.id vista%}'">
                 <i class="material-icons">assessment</i>
             </button>
@@ -113,13 +113,13 @@ $(document).ready(function() {
     {% else %}
 
         <div id="mySidenav" class="sidenav">
-            <a onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
-            <a onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
-            <a id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
-            <a onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
-            <a onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
-            <a onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
-            <a onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
+            <a data-toggle="tooltip" title="Seleccionar todos" onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
+            <a data-toggle="tooltip" title="Borrar selección" onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
+            <a data-toggle="tooltip" title="Invertir selección" id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
+            <a data-toggle="tooltip" title="Falta"onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
+            <a data-toggle="tooltip" title="Trabaja" onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
+            <a data-toggle="tooltip" title="Positivo" onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
+            <a data-toggle="tooltip" title="Negativo" onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
         </div>
 
         <input type="hidden" id="nota" name="nota" value="sin anotacion">
@@ -155,7 +155,7 @@ $(document).ready(function() {
                 </td>
 
                 <td class="blue anotacion">
-                    <span class="glyphicon glyphicon-edit boton" id="anotacion-button{{ a.id }}"></span>
+                    <span data-toggle="tooltip" title="Editar" class="glyphicon glyphicon-edit boton" id="anotacion-button{{ a.id }}"></span>
 
                     <script>
                         $('#anotacion-button{{ a.id }}').click(function() {

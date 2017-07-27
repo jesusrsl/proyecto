@@ -12,10 +12,10 @@
     <h2>{{ object.get_curso_display }} {{ object.unidad}}
 
     {% if request.user.is_superuser %}
-        <a href="{% url 'editar-grupo' object.id %}"><i class="material-icons">mode_edit</i></a>
-        <a href="{% url 'eliminar-grupo' object.id %}"><i class="material-icons">delete</i></a>
+        <a data-toggle="tooltip" title="Editar" href="{% url 'editar-grupo' object.id %}"><i class="material-icons">mode_edit</i></a>
+        <a data-toggle="tooltip" title="Eliminar" href="{% url 'eliminar-grupo' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
-        <a href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
+        <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
     </h2>
 
     <br>

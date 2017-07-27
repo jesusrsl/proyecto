@@ -11,33 +11,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>aNota</title>
 
+    <link rel="shortcut icon" href="{% static 'favicon/favicon.ico' %}" type="image/x-icon">
+    <link rel="icon" href="{% static 'favicon/favicon.ico' %}" type="image/x-icon">
+
 
     <!-- Material Design fonts -->
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fonts_google.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/material_icons.css' %}">
 
-  <!-- Bootstrap -->
-  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap3.3.2.css' %}">
 
-  <!-- Bootstrap Material Design -->
-  <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-material-design.css' %}">
-  <link rel="stylesheet" type="text/css" href="{% static 'css/ripples.min.css'%}">
+    <!-- Bootstrap Material Design -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-material-design.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/ripples.min.css'%}">
 
 
     <!--jQuery UI CSS Framework-->
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="{% static 'css/jquery-ui.css' %}">
 
 
     <!-- SCRIPTS para datepicker, sortable....-->
     <script src="{% static 'js/forms.js' %}"></script>
-    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
 
+    {% comment %}
     <script type="text/javascript" src="http://momentjs.com/downloads/moment-with-locales.min.js"></script>
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="//netdna.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/jquery-1.12.3.js' %}"></script>
+    {% endcomment %}
+
+
+    <script src="{% static 'js/jquery-1.12.4.js' %}"></script>
+    <script src="{% static 'js/jquery-ui.js' %}"></script>
+    <script src="{% static 'js/bootstrap.js' %}"></script>
 
 
 
@@ -69,7 +75,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{% url "inicio" %}"><i class="material-icons">school</i> aNota</a>
+                <a class="navbar-brand" href="{% url "asignaturas-profesor" %}"><i class="material-icons">school</i> aNota</a>
             </div>
 
 
@@ -84,7 +90,7 @@
 
                         <ul class="dropdown-menu" role="menu">
                             <li><a href="{% url "lista-profesores" %}">Profesorado</a></li>
-                            <li><a href="{% url "lista-tutores" %}">Tutores/as</a></li>
+                            {% comment %}<li><a href="{% url "lista-tutores" %}">Tutores/as</a></li> {% endcomment %}
                             <li><a href="{% url "lista-grupos" %}">Grupos</a></li>
                             <li><a href="{% url "lista-asignaturas" %}">Asignaturas</a></li>
                             {% if request.user.is_superuser %}
@@ -219,6 +225,7 @@
 <script>
   $(function () {
     $.material.init();
+    //$('[data-toggle="tooltip"]').tooltip();
   });
 </script>
 

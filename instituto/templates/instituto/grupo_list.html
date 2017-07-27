@@ -1,4 +1,43 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block js %}
+
+   <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+    $('#grupos').DataTable({
+        "order": [[ 0, "asc" ], [ 1, 'asc' ]],
+
+        "columnDefs": [
+            {
+                "targets": [ 0 ],
+                "visible": false,
+                "searchable": false
+            },
+             {
+                "targets": [1],
+                "visible": false,
+                "searchable": false
+            }
+        ],
+
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
+
+
+
+
+    </script>
+
+{% endblock %}
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
@@ -9,22 +48,35 @@
 
     <h2>Grupos
         {% if request.user.is_superuser %}
-            <a href="{% url 'nuevo-grupo' %}"><i class="material-icons">add_box</i></a>
+            <a data-toggle="tooltip" title="Añadir" href="{% url 'nuevo-grupo' %}"><i class="material-icons">add_box</i></a>
         {% endif %}
-        <a href="{% url 'grupos-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+        <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupos-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
     </h2>
     <br>
 
-    <div class="list-group">
+   <table id="grupos" class="display table table-responsive table-hover" width="100%">
+        <thead>
+            <tr>
+                <th>Curso</th>
+                <th>Unidad</th>
+                <th>Grupo</th>
+                <th>Nº alumnos</th>
+                <th>Tutor/a</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for g in object_list %}
-            <div class="list-group-item">
-            <a href="{% url 'detalle-grupo' g.id %}">
-                {{ g.get_curso_display}} {{ g.unidad}}
-            </a>
-            </div>
-
-            <div class="list-group-separator" ></div>
+            <tr>
+                <td>{{ g.curso }}</td>
+                <td>{{ g.unidad }}</td>
+                <td><a href="{% url 'detalle-grupo' g.id%}">
+                    {{ g.get_curso_display }} {{ g.unidad }}</a>
+                </td>
+                <td>{{ g.alumno_set.all|length}}</td>
+                <td>{{ g.tutor.last_name}}, {{ g.tutor.first_name }}</td>
+            </tr>
         {% endfor %}
-    </div>
+        </tbody>
+    </table>
 
 {% endblock %}

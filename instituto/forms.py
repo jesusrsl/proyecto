@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from models import ProfesorUser, Alumno, Asignatura
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.db.models import Case, Count, When
 
 class RegisterForm(UserCreationForm):
 
@@ -55,7 +56,9 @@ class MatriculaForm(forms.Form):
         super(MatriculaForm, self).__init__(*args, **kwargs)
         if(int(qs) != 0):
             self.fields['alumnos'].queryset = Alumno.objects.filter(grupo_id=qs)
-            self.fields['asignaturas'].queryset = Asignatura.objects.filter(grupo_id=qs)
+            self.fields['asignaturas'].queryset = Asignatura.objects.annotate(
+                                importancia=Count(Case(When(grupo__id=qs, then=1)))
+                                ).order_by('-importancia')
         else:
             self.fields['alumnos'].queryset = Alumno.objects.all()
             self.fields['asignaturas'].queryset = Asignatura.objects.all()

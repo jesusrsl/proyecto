@@ -32,6 +32,7 @@ from .forms import RegisterForm, UpdateForm, MatriculaForm
 from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 
 
+
 # Create your views here.
 
 # Login User
@@ -120,11 +121,26 @@ def profesoradoPDF(request):
     profesorado.append(header)
 
     if request.user.is_superuser:
-        headings = ['Login', 'Nombre', 'Apellidos', 'E- mail']
-        info_profesorado = [(p.username, p.first_name, p.last_name, p.email) for p in ProfesorUser.objects.all()]
+        headings = ['Login', 'Nombre', 'Apellidos', 'E- mail', 'Tutor/a', 'Admin']
     else:
-        headings = ['Nombre', 'Apellidos', 'E- mail']
-        info_profesorado = [(p.first_name, p.last_name, p.email) for p in ProfesorUser.objects.all()]
+        headings = ['Nombre', 'Apellidos', 'E- mail', 'Tutor/a', 'Admin']
+
+    info_profesorado = []
+    for p in ProfesorUser.objects.all():
+        if request.user.is_superuser:
+            profesor = (p.username, p.first_name, p.last_name, p.email)
+        else:
+            profesor = (p.first_name, p.last_name, p.email)
+        if not p.grupo_set.exists():
+            profesor += ("---",)
+        else:
+            profesor += (p.grupo_set.first().get_curso_display() + " " + p.grupo_set.first().unidad,)
+        if p.is_superuser:
+                profesor += ("Sí",)
+        else:
+                profesor += ("No",)
+        info_profesorado.append(profesor)
+
 
     t = Table([headings] + info_profesorado)
     t.setStyle(TableStyle(
@@ -148,7 +164,7 @@ def profesoradoPDF(request):
     response.write(buff.getvalue())
     buff.close()
     return response
-
+"""
 @login_required
 def tutoriasPDF(request):
 
@@ -201,7 +217,7 @@ def tutoriasPDF(request):
     response.write(buff.getvalue())
     buff.close()
     return response
-
+"""
 @login_required
 def gruposPDF(request):
 
@@ -1032,7 +1048,7 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
 #Permisos: todos los profesores
 class ProfesorListView(LoginRequiredMixin, ListView):
     model = ProfesorUser
-    paginate_by = 10
+    #paginate_by = 10
 
 #Permiso: todos los profesores
 class ProfesorDetailView(LoginRequiredMixin, DetailView):
@@ -1113,6 +1129,7 @@ class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
         messages.success(self.request, self.success_message % obj.__dict__)
         return super(ProfesorDelete, self).delete(request, *args, **kwargs)
 
+"""
 #PROFESORES TUTORES
 #Permisos: todos los profesores
 class TutorListView(LoginRequiredMixin,ListView):
@@ -1123,12 +1140,13 @@ class TutorListView(LoginRequiredMixin,ListView):
     def get_queryset(self):
         queryset = super(TutorListView, self).get_queryset().filter(grupo__isnull=False).order_by('grupo')
         return queryset
+"""
 
 #ASIGNATURAS
 #Permisos: todos los profesores
 class AsignaturaListView(LoginRequiredMixin, ListView):
     model = Asignatura
-    paginate_by = 4
+    #paginate_by = 4
 
     def get_queryset(self):
         filter_group = self.request.GET.get('grupo', 0)
@@ -1143,6 +1161,7 @@ class AsignaturaListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(AsignaturaListView, self).get_context_data(**kwargs)
+
         filter_group = int(self.request.GET.get('grupo', 0))
         context['filter_group'] = filter_group
         grupos = Grupo.objects.all()
@@ -1297,7 +1316,7 @@ class AsignaturaDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class GrupoListView(LoginRequiredMixin, ListView):
     model = Grupo
-    paginate_by = 4
+    #paginate_by = 4
 
 #Permisos: todos los profesores
 class GrupoDetailView(LoginRequiredMixin, DetailView):
@@ -1400,7 +1419,7 @@ class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class AlumnoListView(LoginRequiredMixin, ListView):
     model = Alumno
-    paginate_by = 10
+    #paginate_by = 10
 
     def get_queryset(self):
         filter_group = self.request.GET.get('grupo', 0)
@@ -1512,7 +1531,7 @@ class MatriculaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = 'is_superuser'
 
     def get_queryset(self):
-        filter_group = self.request.GET.get('grupo', 0)
+        filter_group = self.request.GET.get('grupo', 1)
         try:
             grupo=Grupo.objects.get(pk=filter_group)
             if grupo is None:
@@ -1529,10 +1548,10 @@ class MatriculaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(MatriculaListView, self).get_context_data(**kwargs)
-        context['filter_group'] = int(self.request.GET.get('grupo', 0))
+        context['filter_group'] = int(self.request.GET.get('grupo', 1))
         grupos = Grupo.objects.all()
         try:
-            grupo=Grupo.objects.get(pk=int(self.request.GET.get('grupo', 0)))
+            grupo=Grupo.objects.get(pk=int(self.request.GET.get('grupo', 1)))
             if grupo is None:
                 alumnos = Alumno.objects.all()
                 context.update({'grupo_list': grupos, 'alumno_list': alumnos})

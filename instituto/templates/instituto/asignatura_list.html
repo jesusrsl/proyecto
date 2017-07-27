@@ -1,4 +1,37 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block js %}
+
+   <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+    $('#asignaturas').DataTable({
+        "order": [[ 1, "asc" ], [ 3, 'asc' ], [ 0, 'asc' ]],
+        responsive: true,
+        "columnDefs": [
+            {
+                "targets": [ 1 ],
+                "visible": false,
+                "searchable": false
+            }
+        ],
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
+
+
+
+
+    </script>
+
+{% endblock %}
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
@@ -8,23 +41,26 @@
 
 {% block maincontent %}
 
-    <h2>Asignaturas
+    <div class="col-md-6">
+        <h2>Asignaturas
         {% if request.user.is_superuser %}
-        <a href="{% url 'nueva-asignatura' %}"><i class="material-icons">add_box</i></a>
+        <a data-toggle="tooltip" title="Añadir" href="{% url 'nueva-asignatura' %}"><i class="material-icons">add_box</i></a>
         {% endif %}
 
         {% if filter_group == 0 %}
-            <a href="{% url 'asignaturas-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+            <a data-toggle="tooltip" title="Expotar a PDF" href="{% url 'asignaturas-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
         {% else %}
-            <a href="{% url 'asignaturas-grupo-pdf' filter_group %}"><i class="material-icons">picture_as_pdf</i></a>
+            <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'asignaturas-grupo-pdf' filter_group %}"><i class="material-icons">picture_as_pdf</i></a>
         {% endif %}
-    </h2>
+        </h2>
+    </div>
 
-    <form action="{% url 'lista-asignaturas' %}" class="form form-por-grupos" id="sel_grupo_form" method="get">
+    <div class="col-md-3 col-md-offset-3" style="padding-right: 0">
+        <form action="{% url 'lista-asignaturas' %}" class="form form-por-grupos" id="sel_grupo_form" method="get">
 
         <div class="form-group">
-            <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
-            <div class="col-md-4">
+            <label class="col-md-5 control-label" for="grupo" style="text-align: right; padding-right: 0"> Grupo: </label>
+            <div class="col-md-5">
                 <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
                 <option value="0" {% if filter_group == 0 %}selected{% endif %}>Todos</option>
                 {% for g in grupo_list %}
@@ -40,19 +76,33 @@
                 </a>
             </div>
         </div>
-    </form>
-    <br>
-    <div class="list-group">
-        {% for a in object_list %}
-            <div class="list-group-item">
-                <a href="{% url 'detalle-asignatura' a.id%}">
-                {{ a.nombre | capfirst}} impartida por {{ a.profesor.first_name | capfirst}} {{ a.profesor.last_name | capfirst}}
-                en {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
-                </a>
-            </div>
-
-            <div class="list-group-separator"></div>
-        {% endfor %}
+        </form>
     </div>
+    <br>
+
+
+    <table id="asignaturas" class="display table table-responsive table-hover" width="100%">
+        <thead>
+            <tr>
+                <th>Asignatura</th>
+                <th>Curso id</th>
+                <th>Curso</th>
+                <th>Unidad</th>
+                <th>Profesor</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for a in object_list %}
+            <tr>
+                <td><a href="{% url 'detalle-asignatura' a.id%}">
+                    {{ a.nombre | capfirst}} </a></td>
+                <td>{{ a.grupo.curso }}</td>
+                <td>{{ a.grupo.get_curso_display }} </td>
+                <td>{{ a.grupo.unidad }}</td>
+                <td>{{ a.profesor.last_name | capfirst}}, {{ a.profesor.first_name | capfirst}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
 {% endblock %}

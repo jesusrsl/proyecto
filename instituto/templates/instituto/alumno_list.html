@@ -1,5 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load mis_filtros %}
+{% block js %}
+
+   <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+    $('#alumnado').DataTable({
+        "order": [[ 1, "asc" ]],
+
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
+
+
+
+
+    </script>
+{% endblock %}
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
@@ -8,24 +33,27 @@
 {% endblock %}
 
 {% block maincontent %}
-    <h2>Alumnado
+    <div class="col-md-6">
+        <h2>Alumnado
         {% if request.user.is_superuser %}
-            <a href="{% url 'nuevo-alumno' %}"><i class="material-icons">add_box</i></a>
+            <a data-toggle="tooltip" title="Añadir" href="{% url 'nuevo-alumno' %}"><i class="material-icons">add_box</i></a>
         {% endif %}
 
         {% if filter_group == 0 %}
-            <a href="{% url 'grupos-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
+            <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupos-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
         {% else %}
-            <a href="{% url 'grupo-pdf' filter_group %}"><i class="material-icons">picture_as_pdf</i></a>
+            <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupo-pdf' filter_group %}"><i class="material-icons">picture_as_pdf</i></a>
         {% endif %}
 
-    </h2>
+        </h2>
+    </div>
 
-    <form action="{% url 'lista-alumnos' %}"  class="form form-por-grupos" id="sel_grupo_form1" method="get">
+    <div class="col-md-3 col-md-offset-3" style="padding-right: 0">
+        <form action="{% url 'lista-alumnos' %}"  class="form form-por-grupos" id="sel_grupo_form1" method="get">
 
         <div class="form-group">
-            <label class="col-md-2 control-label" for="grupo"> Grupo: </label>
-            <div class="col-md-4">
+            <label class="col-md-5 control-label" for="grupo" style="text-align: right; padding-right: 0"> Grupo: </label>
+            <div class="col-md-5">
                 <select class="form-control" style="font-size: small" name="grupo" id="grupo" size="1">
                 <option value="0" {% if filter_group == 0 %}selected{% endif %}>Todos</option>
                 {% for g in grupo_list %}
@@ -41,25 +69,42 @@
                 </a>
             </div>
         </div>
-    </form>
+        </form>
+    </div>
     <br>
 
-    <div class="list-group">
+    <table id="alumnado" class="display table table-responsive table-hover" width="100%">
+        <thead>
+            <tr>
+                <th>Fotografía</th>
+                <th>Alumno</th>
+                <th>E-mail</th>
+                <th>Edad</th>
+                <th>Grupo</th>
+                <th>Tutor</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for a in object_list %}
-            <div class="list-group-item">
-                {% if a.foto %}
-                    <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
-                {% else %}
-                    <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
+            <tr>
+                <td style="text-align: center">
+                    {% if a.foto %}
+                        <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
+                    {% else %}
+                        <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
                 {% endif %}
-            {{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}
-            <a href="{% url 'detalle-alumno' a.id %}">
-                {{ a.nombre | capfirst}} {{ a.apellido1 | capfirst}} {{ a.apellido2 | capfirst}}
-            </a>
-            </div>
+                </td>
+                <td><a href="{% url 'detalle-alumno' a.id%}">
+                    {{ a.apellido1 }} {{ a.apellido2 }}, {{ a.nombre | capfirst}} </a></td>
+                <td>{{ a.email }}</td>
+                <td>{{ a.fecha_nacimiento | edad }}</td>
+                <td>{{ a.grupo.get_curso_display }} {{ a.grupo.unidad }}</td>
 
-            <div class="list-group-separator"></div>
+                <td>{{ a.grupo.tutor.last_name | capfirst}}, {{ a.grupo.tutor.first_name | capfirst}}</td>
+            </tr>
         {% endfor %}
-    </div>
+        </tbody>
+    </table>
+
 
 {% endblock %}

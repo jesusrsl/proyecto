@@ -13,13 +13,13 @@
     <h2>{{ object.nombre | capfirst }}
 
     {% if object.profesor_id == request.user.id or request.user.is_superuser %}
-        <a href="{% url 'editar-asignatura' object.id %}"><i class="material-icons">mode_edit</i></a></a>
+        <a data-toggle="tooltip" title="Editar" href="{% url 'editar-asignatura' object.id %}"><i class="material-icons">mode_edit</i></a></a>
     {% endif %}
     {% if request.user.is_superuser %}
-        <a href="{% url 'eliminar-asignatura' object.id %}"><i class="material-icons">delete</i></a></a>
+        <a data-toggle="tooltip" title="Eliminar" href="{% url 'eliminar-asignatura' object.id %}"><i class="material-icons">delete</i></a></a>
     {% endif %}
 
-        <a href="{% url 'asignatura-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
+        <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'asignatura-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
     </h2>
 
     <br>

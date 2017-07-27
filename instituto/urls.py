@@ -29,8 +29,8 @@ urlpatterns = [
     url(r'^profesor/(?P<pk>\d+)/eliminar/$', views.ProfesorDelete.as_view(), name='eliminar-profesor'),
 
     #TUTORES
-    url(r'^tutores/$', views.TutorListView.as_view(), name='lista-tutores'),
-    url(r'^tutores/PDF/$', views.tutoriasPDF, name="tutorias-pdf"),
+    #url(r'^tutores/$', views.TutorListView.as_view(), name='lista-tutores'),
+    #url(r'^tutores/PDF/$', views.tutoriasPDF, name="tutorias-pdf"),
 
     #ASIGNATURAS
     url(r'^lista/asignaturas/$', views.AsignaturaListView.as_view(), name='lista-asignaturas'),

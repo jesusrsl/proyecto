@@ -12,6 +12,12 @@ class ProfesorUserResource(resources.ModelResource):
         model = ProfesorUser
         fields = ('username', 'first_name', 'last_name', 'email')
 
+class GrupoResource(resources.ModelResource):
+
+    class Meta:
+        model = Grupo
+        fields = ('curso', 'unidad', 'tutor__first_name', 'tutor__last_name')
+
 class AsignaturaResource(resources.ModelResource):
 
     class Meta:
@@ -31,6 +37,9 @@ class AlumnoResource(resources.ModelResource):
 
 class ProfesorUserAdmin(ImportExportModelAdmin):
     resource_class = ProfesorUserResource
+
+class GrupoAdmin(ImportExportModelAdmin):
+    resource_class = GrupoResource
 
 class AsignaturaAdmin(ImportExportModelAdmin):
     resource_class = AsignaturaResource
@@ -58,7 +67,7 @@ class AlumnoAdmin(admin.ModelAdmin):
 # Register your models here.
 
 admin.site.register(ProfesorUser, ProfesorUserAdmin) #se importa la lista de profesores, y cada usuario reseteará su contraseña
-admin.site.register(Grupo)  #¿los grupos se crean desde el Front-end, seleccionando el tutor?
+admin.site.register(Grupo, GrupoAdmin)  #¿los grupos se crean desde el Front-end, seleccionando el tutor?
 admin.site.register(Asignatura, AsignaturaAdmin)    #se importa la lista de asignaturas
 admin.site.register(Alumno, AlumnoAdmin)    #se importa la lista de alumnos
 admin.site.register(Matricula)  #el alumnado se matricula desde el Front-end
