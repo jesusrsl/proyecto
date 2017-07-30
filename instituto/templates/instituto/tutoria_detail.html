@@ -1,5 +1,30 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load mis_filtros %}
+{% block js %}
+
+   <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.15/css/dataTables.bootstrap.css'%}"/>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/jquery.dataTables.js'%}"></script>
+    <script type="text/javascript" src="{% static 'DataTables-1.10.15/js/dataTables.bootstrap.js'%}"></script>
+
+
+    <script>
+    $(document).ready(function() {
+    $('#tutoria').DataTable({
+        "order": [[ 1, "asc" ]],
+
+        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+        "language": {
+                "url": "{% static 'language/Spanish.json' %}"
+            }
+        } );
+    } );
+
+
+
+
+    </script>
+{% endblock %}
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
@@ -22,6 +47,7 @@
     <br>
 
     <div class="row well">
+        {% comment %}
         <h3 style="margin-top: 5px; margin-bottom: 20px">Alumnado:</h3>
         <div class="list-group">
             {% for a in object.alumno_set.all %}
@@ -46,6 +72,52 @@
                 <h5 class="alert alert-warning">Actualmente el grupo no tiene alumnado.</h5>
             {% endfor %}
         </div>
+        {% endcomment %}
+
+        <table id="tutoria" class="display table table-responsive table-hover" width="100%">
+        <thead>
+            <tr>
+                <th>Fotografía</th>
+                <th>Alumno</th>
+                <th>Edad</th>
+                <th>E-mail</th>
+                <th>Asignaturas</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for a in object.alumno_set.all  %}
+            <tr>
+                <td style="text-align: center">
+                    {% if a.foto %}
+                        <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
+                    {% else %}
+                        <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
+                {% endif %}
+                </td>
+                <td>
+                    {% if request.user.is_superuser or request.user.id == a.grupo.tutor.id %}
+                        <a href="{% url 'detalle-alumno-grupo' a.id %}">
+                        {{ a.apellido1 }} {{ a.apellido2 }}, {{ a.nombre | capfirst}}
+                        </a>
+                    {% else %}
+                        {{ a.apellido1 }} {{ a.apellido2 }}, {{ a.nombre | capfirst}}
+                    {% endif %}
+                </td>
+                <td>{{ a.fecha_nacimiento | edad }}</td>
+                <td>{{ a.email }}</td>
+                <td>
+                    {% for matricula in a.matricula_set.all %}
+                        {{ matricula.asignatura.nombre }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                 </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+
+
    </div>
     {% else %}
 

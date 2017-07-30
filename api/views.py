@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-from serializers import ProfesorUserSerializer, GrupoSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer, AlumnoSerializer, MatriculaSerializer, AnotacionSerializer
+from serializers import ProfesorUserSerializer, ProfesorDetailSerializer
+from serializers import GrupoSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer, AlumnoSerializer, MatriculaSerializer, AnotacionSerializer
 from rest_framework import viewsets
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -18,26 +19,38 @@ class ProfesorUserMixin(object):
     queryset = ProfesorUser.objects.all()
     serializer_class = ProfesorUserSerializer
 
+
 class ProfesorUserList(ProfesorUserMixin, ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     pass
 
-class ProfesorUserDetail(ProfesorUserMixin, RetrieveUpdateDestroyAPIView):
+class ProfesorUserDetail(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    pass
+    serializer_class = ProfesorDetailSerializer
+
+    def get_queryset(self):
+        profesor = self.kwargs['pk']
+        return ProfesorUser.objects.filter(pk=profesor)
+
 
 class GrupoViewSet(viewsets.ModelViewSet):
     queryset = Grupo.objects.all()
     serializer_class = GrupoSerializer
     permission_classes = (IsAuthenticated,)
 
-class AsignaturaViewSet(viewsets.ModelViewSet):
+class MisAsignaturaViewSet(viewsets.ModelViewSet):
     #queryset = Asignatura.objects.all()
     serializer_class = AsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Asignatura.objects.filter(profesor=self.request.user)
+
+class AsignaturaViewSet(viewsets.ModelViewSet):
+    queryset = Asignatura.objects.all()
+    serializer_class = AsignaturaSerializer
+    permission_classes = (IsAuthenticated,)
+
 
 class AlumnadoAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asignatura.objects.all()

@@ -6,9 +6,19 @@ from rest_framework import serializers
 
 
 class ProfesorUserSerializer(serializers.ModelSerializer):
+    grupo_set = serializers.StringRelatedField(many=True, read_only=True)
+
     class Meta:
         model = ProfesorUser
-        fields = ('pk', 'first_name', 'last_name', 'username', 'email')
+        fields = ('pk', 'first_name', 'last_name', 'username', 'email', 'is_superuser','grupo_set')
+        #fields = '__all__'
+
+class ProfesorDetailSerializer(serializers.ModelSerializer):
+    asignatura_set = serializers.StringRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = ProfesorUser
+        fields = ('pk', 'first_name', 'last_name','asignatura_set')
 
 class GrupoSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -20,11 +30,14 @@ class GrupoSerializer(serializers.HyperlinkedModelSerializer):
         model = Grupo
         fields = ('pk', 'url', 'cursoText', 'curso', 'unidad', 'tutor', 'tutorId')
 
-
 class AlumnoSerializer(serializers.ModelSerializer):
+    #anotacion_set = serializers.StringRelatedField(many=True, read_only=True)
+    grupo = serializers.StringRelatedField(read_only=True)
     class Meta:
         model = Alumno
         fields = ('pk', 'nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo', 'asignaturas')
+        #fields = ('pk', 'nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo', 'asignaturas', 'anotacion_set')
+
 
 class AsignaturaSerializer(serializers.HyperlinkedModelSerializer):
     profesor = ProfesorUserSerializer(read_only=True)
@@ -36,13 +49,14 @@ class AsignaturaSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Asignatura
-        fields = ('pk', 'url', 'nombre', 'profesorText', 'profesor', 'profesorId', 'grupoText', 'grupo', 'distribucion')
+        fields = ('pk', 'nombre', 'profesorText', 'profesor', 'profesorId', 'grupoText', 'grupo', 'distribucion')
 
 #Alumnado de la asignatura indicada
 class AlumnadoAsignaturaSerializer(serializers.ModelSerializer):
     grupo = GrupoSerializer
     grupoText = serializers.StringRelatedField(source='grupo')
     alumnos = AlumnoSerializer(many=True, read_only=True, source='alumno_set')
+    #anotaciones = AnotacionSerializer(many=True, read_only=True, source='anotacion_set')
     class Meta:
         model = Asignatura
         fields = ('pk', 'nombre', 'grupoText', 'alumnos', 'distribucion')

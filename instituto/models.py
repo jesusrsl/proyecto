@@ -118,8 +118,8 @@ class Asignatura(models.Model):
     distribucion = models.PositiveSmallIntegerField(default=6, validators=[MaxValueValidator(8), MinValueValidator(1)])
 
     def __unicode__(self):
-        return "%s %s %s %s %s" % (
-            self.nombre, self.profesor.first_name, self.profesor.last_name, self.grupo.get_curso_display(),
+        return "%s %s %s" % (
+            self.nombre,  self.grupo.get_curso_display(),
             self.grupo.unidad)
 
     #def __str__(self):
