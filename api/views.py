@@ -1,9 +1,13 @@
+from datetime import date, datetime
 from django.shortcuts import render, get_object_or_404
+from rest_framework.response import Response
+
 from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-from serializers import ProfesorUserSerializer, ProfesorDetailSerializer
-from serializers import GrupoSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer, AlumnoSerializer, MatriculaSerializer, AnotacionSerializer
+from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer
+from serializers import AlumnadoGrupoSerializer, MisAsignaturaSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
+from serializers import AlumnoSerializer, MatriculaSerializer, AnotacionSerializer
 from rest_framework import viewsets
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 # Create your views here.
@@ -38,9 +42,10 @@ class GrupoViewSet(viewsets.ModelViewSet):
     serializer_class = GrupoSerializer
     permission_classes = (IsAuthenticated,)
 
-class MisAsignaturaViewSet(viewsets.ModelViewSet):
+
+class MisAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
     #queryset = Asignatura.objects.all()
-    serializer_class = AsignaturaSerializer
+    serializer_class = MisAsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
@@ -51,13 +56,28 @@ class AsignaturaViewSet(viewsets.ModelViewSet):
     serializer_class = AsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
+class AlumnadoTutoriaViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AlumnadoGrupoSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Grupo.objects.filter(tutor=self.request.user)
 
 class AlumnadoAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asignatura.objects.all()
     serializer_class = AlumnadoAsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
-#class AsignaturaProfesorViewSet(viewsets.ModelViewSet):
+
+class AlumnadoGrupoViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Grupo.objects.all()
+    serializer_class = AlumnadoGrupoSerializer
+    permission_classes = (IsAuthenticated,)
+
+class GrupoListViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Grupo.objects.all()
+    serializer_class = GrupoListSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 """class AlumnoViewSet(viewsets.ModelViewSet):
@@ -86,3 +106,27 @@ class AlumnoList(AlumnoMixin, ListCreateAPIView):
 class AlumnoDetail(AlumnoMixin, RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     pass
+
+class AlumnoBorrarFoto(AlumnoMixin, RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        instance.foto=None      #se borra la foto del alumno
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+class DetailAsignatura(RetrieveAPIView):
+    serializer_class = DetailAsignaturaSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_context(self):
+        idAsignatura = self.kwargs['pk']
+        fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        return {"idAsignatura": idAsignatura, "fecha": fecha}
+
+    def get_queryset(self):
+        return Asignatura.objects.all()

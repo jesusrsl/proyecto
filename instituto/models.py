@@ -165,11 +165,18 @@ class Alumno(models.Model):
 
     def save(self):
 
+        try:
+            this = Alumno.objects.get(id=self.id)
+            if this.foto == self.foto:
+                self.foto = this.foto
+            else:
+                this.foto.delete(save=False)
+        except:
+            pass  # when new photo then we do nothing, normal case
+
         super(Alumno, self).save()
-
-        if self.foto != "":
+        if self.foto:
             image = Image.open(self.foto)
-
             size = (200, 200)
             image = image.resize(size, Image.ANTIALIAS)
             image.save(self.foto.path)

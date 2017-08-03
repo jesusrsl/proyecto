@@ -19,14 +19,13 @@
     <fieldset>
         {% for field in form %}
             {% if field.errors %}
-                <div class="form-group error">
+                {% if field.label != "Foto" %}<div class="form-group error">{% else %}<div class="error">{% endif %}
                     <label class="col-md-4 control-label">
                         {{ field.label }} {% if field.field.required %}*{% endif %}</label>
                     <div class="col-md-8">
                         {% if field.label == "Fecha de nacimiento"%}
                             {{field|addplaceholder:"DD/MM/AAAA"}}
                         {% elif field.label == "Foto" %}
-                            <input type="text" readonly class="form-control" placeholder="Examinar...">
                             {{ field }}
                         {% else %}
                             {{field|addcss:"form-control"}}
@@ -37,20 +36,16 @@
                     </div>
                 </div>
             {% else %}
-                <div class="form-group">
+                {% if field.label != "Foto" %}<div class="form-group">{% else %}<div>{% endif %}
                     <label class="col-md-4 control-label">
                         {{ field.label }} {% if field.field.required %}*{% endif %}</label>
                     <div class="col-md-8">
                         {% if field.label == "Fecha de nacimiento"%}
                             {{field|addplaceholder:"DD/MM/AAAA"}}
                         {% elif field.label == "Foto" %}
-                            <input type="text" readonly class="form-control" placeholder="Examinar...">
                             {{ field }}
                         {% else %}
                             {{field|addcss:"form-control"}}
-                        {% endif %}
-                        {% if field.help_text %}
-                            <p class="help-inline"><small>{{ field.help_text }}</small></p>
                         {% endif %}
                         {% if field.help_text %}
                             <p class="help-inline"><small>{{ field.help_text }}</small></p>

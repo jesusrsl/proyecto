@@ -96,7 +96,7 @@
                 </td>
                 <td>
                     {% if request.user.is_superuser or request.user.id == a.grupo.tutor.id %}
-                        <a href="{% url 'detalle-alumno-grupo' a.id %}">
+                        <a href="{% url 'detalle-alumno-tutoria' a.id %}">
                         {{ a.apellido1 }} {{ a.apellido2 }}, {{ a.nombre | capfirst}}
                         </a>
                     {% else %}

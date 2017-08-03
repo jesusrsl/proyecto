@@ -12,7 +12,10 @@ router = routers.DefaultRouter()
 router.register(r'grupos', views.GrupoViewSet)
 router.register(r'lista/asignaturas', views.AsignaturaViewSet, base_name='lista-asignaturas')
 router.register(r'asignaturas', views.MisAsignaturaViewSet, base_name='asignaturas')
-router.register(r'alumnado', views.AlumnadoAsignaturaViewSet)
+router.register(r'lista/grupos', views.GrupoListViewSet, base_name='lista-grupos')
+router.register(r'tutoria', views.AlumnadoTutoriaViewSet, base_name='tutoria')
+router.register(r'alumnado/asignaturas', views.AlumnadoAsignaturaViewSet, base_name='alumnado-asignaturas')
+router.register(r'alumnado/grupos', views.AlumnadoGrupoViewSet, base_name='alumnado-grupos')
 #router.register(r'alumnos', views.AlumnoViewSet)
 router.register(r'matriculas', views.MatriculaViewSet)
 router.register(r'anotaciones', views.AnotacionViewSet)
@@ -25,6 +28,11 @@ urlpatterns = [
 #ALUMNOS
     url(r'^alumnos/$', views.AlumnoList.as_view(), name='list-alumnos'),
     url(r'^alumno/(?P<pk>\d+)/$', views.AlumnoDetail.as_view(), name='detail-alumno'),
+    url(r'^alumno/(?P<pk>\d+)/borrar/foto$', views.AlumnoBorrarFoto.as_view(), name='borrar-foto-alumno'),
+#ALUMNADO-ASIGNATURA-ANOTACIONES
+url(r'^asignatura/(?P<pk>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$',
+        views.DetailAsignatura.as_view(), name='detail-asignatura'),
+
 ]
 
 
