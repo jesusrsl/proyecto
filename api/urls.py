@@ -30,8 +30,19 @@ urlpatterns = [
     url(r'^alumno/(?P<pk>\d+)/$', views.AlumnoDetail.as_view(), name='detail-alumno'),
     url(r'^alumno/(?P<pk>\d+)/borrar/foto$', views.AlumnoBorrarFoto.as_view(), name='borrar-foto-alumno'),
 #ALUMNADO-ASIGNATURA-ANOTACIONES
-url(r'^asignatura/(?P<pk>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$',
+    url(r'^asignatura/(?P<pk>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$',
         views.DetailAsignatura.as_view(), name='detail-asignatura'),
+
+#ANOTACIONES
+    url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.CreateAnotacion.as_view(), name='new-anotacion'),
+    url(r'^anotacion/(?P<pk>\d+)/editar/$', views.UpdateAnotacion.as_view(), name='edit-anotacion'),
+
+    #url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerFalta, name='put-falta'),
+    #url(r'^anotacion/trabaja/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerTrabaja, name='put-trabaja'),
+    #url(r'^anotacion/positivo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerPositivo, name='put-positivo'),
+    #url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerNegativo, name='put-negativo'),
+
+    #url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerAnotaciones, name='put-anotaciones'),
 
 ]
 

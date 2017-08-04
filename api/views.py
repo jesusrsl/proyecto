@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer
 from serializers import AlumnadoGrupoSerializer, MisAsignaturaSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
-from serializers import AlumnoSerializer, MatriculaSerializer, AnotacionSerializer
+from serializers import AlumnoSerializer, AlumnoShortSerializer, MatriculaSerializer, AnotacionSerializer, AnotacionShortSerializer
 from rest_framework import viewsets
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 # Create your views here.
@@ -107,26 +107,45 @@ class AlumnoDetail(AlumnoMixin, RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     pass
 
-class AlumnoBorrarFoto(AlumnoMixin, RetrieveUpdateAPIView):
+class AlumnoBorrarFoto(AlumnoMixin, UpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        instance.foto=None      #se borra la foto del alumno
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+    def perform_update(self, serializer):
+        serializer.save(foto=None)
 
-class DetailAsignatura(RetrieveAPIView):
+class DetailAsignaturaMixin(object):
+    queryset = Asignatura.objects.all()
     serializer_class = DetailAsignaturaSerializer
+
+class DetailAsignatura(DetailAsignaturaMixin, RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_serializer_context(self):
         idAsignatura = self.kwargs['pk']
         fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
-        return {"idAsignatura": idAsignatura, "fecha": fecha}
+        return {"idAsignatura": idAsignatura, "fecha": fecha, "request": self.request}
 
-    def get_queryset(self):
-        return Asignatura.objects.all()
+
+class CreateAnotacion(CreateAPIView):
+    queryset = Anotacion.objects.all()
+    serializer_class = AnotacionShortSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_create(self, serializer):
+        serializer.save(alumno=Alumno.objects.get(pk=self.kwargs['idAlumno']),
+                        asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura']),
+                        fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y') )
+
+class UpdateAnotacion(RetrieveUpdateAPIView):
+    queryset = Anotacion.objects.all()
+    serializer_class = AnotacionSerializer
+    permission_classes = (IsAuthenticated,)
+
+    pass
+
+    """def perform_update(self, serializer):
+        serializer.save(alumno=Alumno.objects.get(pk=self.kwargs['idAlumno']),
+                        asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura']),
+                        fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y') )"""
+
+

@@ -61,7 +61,7 @@ class AlumnadoGrupoSerializer(serializers.ModelSerializer):
         model = Grupo
         fields = ('pk', 'grupo', 'tutor', 'alumnos')
 
-class AsignaturaSerializer(serializers.HyperlinkedModelSerializer):
+class AsignaturaSerializer(serializers.ModelSerializer):
     profesor = ProfesorUserSerializer(read_only=True)
     profesorText = serializers.StringRelatedField(source='profesor')
     profesorId = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProfesorUser.objects.all(), source='profesor')
@@ -105,6 +105,11 @@ class AnotacionSerializer(serializers.ModelSerializer):
         model = Anotacion
         fields = ('pk', 'alumno', 'asignatura', 'fecha', 'falta', 'trabaja', 'positivos', 'negativos')
 
+class AnotacionShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Anotacion
+        fields = ('pk', 'falta', 'trabaja', 'positivos', 'negativos')
+
 class AnotacionesField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self, *args, **kwargs):
         """idAsignatura = self.kwargs['pk']
@@ -114,7 +119,6 @@ class AnotacionesField(serializers.PrimaryKeyRelatedField):
         return queryset
 
 class AlumnoShortSerializer(serializers.ModelSerializer):
-    #anotacion_set = AnotacionSerializer(many=True, read_only=True)
 
     anotacion = serializers.SerializerMethodField('obtenerAnotaciones')
 
@@ -129,7 +133,6 @@ class AlumnoShortSerializer(serializers.ModelSerializer):
             return serializer.data
         else:
             return None
-
 
     class Meta:
         model = Alumno
