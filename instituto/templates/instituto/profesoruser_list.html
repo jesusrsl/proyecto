@@ -59,8 +59,8 @@
             <tr>
                 <td><a href="{% url 'detalle-profesor' p.id%}">
                     {{ p.last_name }}, {{ p.first_name | capfirst}} </a></td>
-                <td>{% if p.grupo_set.all%}
-                    {{ p.grupo_set.first.get_curso_display }} {{ p.grupo_set.first.unidad }}
+                <td>{% if p.grupo %}
+                    {{ p.grupo.get_curso_display }} {{ p.grupo.unidad }}
                     {% else %}
                     ---
                 {% endif %}</td>

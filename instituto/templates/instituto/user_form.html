@@ -3,13 +3,7 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-profesores' %}">Profesorado</a></li>
-    {% if object.id != null %}
-        <li><a href="{% url 'detalle-profesor' object.id %}">{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</a></li>
-        <li class="active">Editar</li>
-    {% else %}
-        <li class="active">Nuevo</li>
-    {% endif %}
+    <li class="active">Actualizar información personal</li>
 {% endblock %}
 
 {% block maincontent %}
@@ -34,11 +28,7 @@
                     <label class="col-md-4 control-label">
                         {{ field.label }} {% if field.field.required %}*{% endif %}</label>
                     <div class="col-md-8">
-                        {% if field.label == "Es superusuario" %}
-                            {{field}}
-                        {% else %}
                             {{field|addcss:"form-control"}}
-                        {% endif %}
                         {% if field.help_text %}
                             <p class="help-inline"><small>{{ field.help_text }}</small></p>
                         {% endif %}
@@ -50,11 +40,7 @@
     <br>
         <div class="form-actions">
             <button type="submit" class="btn btn-primary" >Guardar</button>
-            {% if object.id != null %}
-                <a class='btn btn-default' href="{% url 'detalle-profesor' object.id%}">Cancelar</a>
-            {% else %}
-                <a class='btn btn-default' href="{% url 'lista-profesores'%}">Cancelar</a>
-            {% endif %}
+            <a class='btn btn-default' href="{% url 'asignaturas-profesor'%}">Cancelar</a>
         </div>
 
         </fieldset>

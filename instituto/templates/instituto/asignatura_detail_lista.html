@@ -3,81 +3,9 @@
 {% load static %}
 {% load mis_filtros %}
 
-
-{% block js %}
-    <script>
-
-    jQuery(function($){
-	$.datepicker.regional['es'] = {
-		closeText: 'Cerrar',
-		prevText: '&#x3c;Ant ',
-		nextText: ' Sig&#x3e;',
-		currentText: 'Hoy',
-		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
-		'Jul','Ago','Sep','Oct','Nov','Dic'],
-		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
-		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
-		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
-		weekHeader: 'Sm',
-		dateFormat: 'dd/mm/yy',
-		firstDay: 1,
-		isRTL: false,
-		showMonthAfterYear: false,
-		yearSuffix: ''};
-	$.datepicker.setDefaults($.datepicker.regional['es']);
-	$("#datepicker").datepicker({
-        showAnim: 'slideDown',
-        beforeShowDay: jQuery.datepicker.noWeekends,
-        onSelect: function(date, inst) {
-            document.getElementById('anotaciones_form').submit();
-        },
-    });
-});
-
-
-$(document).ready(function() {
-   $("#datepicker").datepicker();
- });
-
-
-    var formAjaxSubmit = function(form, modal) {
-     $(form).submit(function (e) {
-         e.preventDefault();
-         $.ajax({
-             type: $(this).attr('method'),
-             url: $(this).attr('action'),
-             data: $(this).serialize(),
-             success: function (xhr, ajaxOptions, thrownError) {
-                 if ( $(xhr).find('.has-error').length > 0 ) {
-                     $(modal).find('.modal-body').html(xhr);
-                     formAjaxSubmit(form, modal);
-                 } else {
-                     $(modal).modal('toggle');
-
-                     //alert("Anotación grabada correctamente")
-
-                     location.reload(); //se recarga la página
-
-                 }
-             },
-             error: function (xhr, ajaxOptions, thrownError) {
-                 // handle response errors here
-                }
-             });
-        });
-    }
-
-
-    </script>
-
-{% endblock %}
-
-
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Diario de clase</a></li>
     <li class="active">{{ object.nombre}}</li>
 {% endblock %}
 
@@ -116,7 +44,7 @@ $(document).ready(function() {
             <a data-toggle="tooltip" title="Seleccionar todos" onclick="seleccionar_checkbox(1)" id="todos"><i class="material-icons">select_all</i></a>
             <a data-toggle="tooltip" title="Borrar selección" onclick="seleccionar_checkbox(0)" id="ninguno"><i class="material-icons">all_out</i></a>
             <a data-toggle="tooltip" title="Invertir selección" id="invertir" onclick="invertir_seleccion()"><i class="material-icons">swap_vert</i></a>
-            <a data-toggle="tooltip" title="Falta"onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
+            <a data-toggle="tooltip" title="Falta" onclick="poner_falta()" id="falta"><i class="material-icons">watch_later</i></a>
             <a data-toggle="tooltip" title="Trabaja" onclick="poner_trabaja()" id="trabaja"><i class="material-icons">stars</i></a>
             <a data-toggle="tooltip" title="Positivo" onclick="poner_positivo()" id="positivo"><i class="material-icons">thumb_up</i></a>
             <a data-toggle="tooltip" title="Negativo" onclick="poner_negativo()" id="negativo"><i class="material-icons">thumb_down</i></a>
@@ -164,12 +92,12 @@ $(document).ready(function() {
                             $('#form-modal-body').load(document.getElementById("url{{ a.id }}").value, function () {
                                 $('#form-modal').modal('toggle');
                                 $("body").addClass("overflow");
-                                formAjaxSubmit('#form-modal-body form', '#form-modal');
+                                formAjaxSubmit('#form-modal-body form', '#form-modal', {{ a.id }});
                                 $("body").removeClass("overflow");
                             });
                         });
                     </script>
-                    <input type="hidden" id="url{{ a.id }}" name="url{{ a.id }}" value="{% url 'anotar' a.id object.id fecha %}" readonly>
+                    <input type="hidden" id="url{{ a.id }}" name="url{{ a.id }}" value="{% url 'anotar' a.id object.id vista fecha %}" readonly>
                 </td>
 
                  <!-- anotar al alumno/a -->
@@ -179,28 +107,48 @@ $(document).ready(function() {
                         {% define "Yes" as anotacion_creada %}
 
                         {% if anotacion.falta %}
-                            <td class="red anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                            <td class="red anotacion"><a class="boton" id="falta-button{{ a.id }}">F</a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
+                            <td class="blue anotacion"><a class="boton" id="falta-button{{ a.id }}">F</a></td>
                         {% endif %}
+                        <script>
+                            $('#falta-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-falta' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
 
                         {% if anotacion.trabaja %}
-                            <td class="green anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
+                            <td class="green anotacion"><a class="boton" id="trabaja-button{{ a.id }}">T</a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a></td>
+                            <td class="blue anotacion"><a class="boton" id="trabaja-button{{ a.id }}">T</a></td>
                         {% endif %}
+                        <script>
+                            $('#trabaja-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-trabaja' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
 
                         {% if anotacion.positivos %}
-                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">{{ anotacion.positivos }} <span class="glyphicon glyphicon-plus"></span> </a></td>
+                            <td class="orange anotacion"><a class="boton" id="positivo-button{{ a.id }}">{{ anotacion.positivos }} <span class="glyphicon glyphicon-plus"></span> </a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}"><span class="glyphicon glyphicon-plus"></span> </a></td>
+                            <td class="blue anotacion"><a class="boton" id="positivo-button{{ a.id }}"><span class="glyphicon glyphicon-plus"></span> </a></td>
                         {% endif %}
+                        <script>
+                            $('#positivo-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-positivo' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
 
                         {% if anotacion.negativos %}
-                            <td class="orange anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">{{ anotacion.negativos }} <span class="glyphicon glyphicon-minus"></span></a></td>
+                            <td class="orange anotacion"><a class="boton" id="negativo-button{{ a.id }}">{{ anotacion.negativos }} <span class="glyphicon glyphicon-minus"></span></a></td>
                         {% else %}
-                            <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}"><span class="glyphicon glyphicon-minus"></span></a></td>
+                            <td class="blue anotacion"><a class="boton" id="negativo-button{{ a.id }}"><span class="glyphicon glyphicon-minus"></span></a></td>
                         {% endif %}
+                        <script>
+                            $('#negativo-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-negativo' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
 
                         {% if anotacion.falta %}
                             {% if anotacion.trabaja or anotacion.positivos or anotacion.negativos %}
@@ -217,18 +165,61 @@ $(document).ready(function() {
 
                     {% elif anotacion_creada is None and forloop.last %} <!-- el alumno no tiene una anotación creada -->
 
-                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
-                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
-                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
-                        <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                        <td class="blue anotacion"><a class="boton" id="falta-button{{ a.id }}">F</a></td>
+                        <script>
+                            $('#falta-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-falta' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
+
+                        <td class="blue anotacion"><a class="boton" id="trabaja-button{{ a.id }}">T</a>
+                        <script>
+                            $('#trabaja-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-trabaja' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
+
+                        <td class="blue anotacion"><a class="boton" id="positivo-button{{ a.id }}"><span class="glyphicon glyphicon-plus"></span></a></td>
+                        <script>
+                            $('#positivo-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-positivo' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
+
+                        <td class="blue anotacion"><a class="boton" id="negativo-button{{ a.id }}"><span class="glyphicon glyphicon-minus"></span></a></td>
+                        <script>
+                            $('#negativo-button{{ a.id }}').click(function() {
+                                ponerValoracion("{% url 'poner-negativo' a.id object.id vista fecha%}", {{ a.id }});
+                            });
+                        </script>
 
                     {% endif %}
 
                 {% empty %} <!-- no hay ninguna anotación -->
-                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-falta' a.id object.id vista fecha %}">F</a></td>
-                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-trabaja' a.id object.id vista fecha %}">T</a>
-                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-positivo' a.id object.id vista fecha %}">+</a></td>
-                    <td class="blue anotacion"><a class="boton" href="{% url 'poner-negativo' a.id object.id vista fecha %}">-</a></td>
+                    <td class="blue anotacion"><a class="boton" id="falta-button{{ a.id }}">F</a></td>
+                    <script>
+                        $('#falta-button{{ a.id }}').click(function() {
+                             ponerValoracion("{% url 'poner-falta' a.id object.id vista fecha%}", {{ a.id }});
+                        });
+                    </script>
+                    <td class="blue anotacion"><a class="boton" id="trabaja-button{{ a.id }}">T</a>
+                    <script>
+                        $('#trabaja-button{{ a.id }}').click(function() {
+                             ponerValoracion("{% url 'poner-trabaja' a.id object.id vista fecha%}", {{ a.id }});
+                        });
+                    </script>
+                    <td class="blue anotacion"><a class="boton" id="positivo-button{{ a.id }}"><span class="glyphicon glyphicon-plus"></span></a></td>
+                    <script>
+                        $('#positivo-button{{ a.id }}').click(function() {
+                             ponerValoracion("{% url 'poner-positivo' a.id object.id vista fecha%}", {{ a.id }});
+                        });
+                    </script>
+                    <td class="blue anotacion"><a class="boton" id="negativo-button{{ a.id }}"><span class="glyphicon glyphicon-minus"></span></a></td>
+                    <script>
+                        $('#negativo-button{{ a.id }}').click(function() {
+                             ponerValoracion("{% url 'poner-negativo' a.id object.id vista fecha%}", {{ a.id }});
+                        });
+                    </script>
 
                 {% endfor %}
 
@@ -263,5 +254,89 @@ $(document).ready(function() {
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+
+{% endblock %}
+
+{% block js %}
+    <script>
+
+    jQuery(function($){
+	$.datepicker.regional['es'] = {
+		closeText: 'Cerrar',
+		prevText: '&#x3c;Ant ',
+		nextText: ' Sig&#x3e;',
+		currentText: 'Hoy',
+		monthNames: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+		'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+		monthNamesShort: ['Ene','Feb','Mar','Abr','May','Jun',
+		'Jul','Ago','Sep','Oct','Nov','Dic'],
+		dayNames: ['Domingo','Lunes','Martes','Mi&eacute;rcoles','Jueves','Viernes','S&aacute;bado'],
+		dayNamesShort: ['Dom','Lun','Mar','Mi&eacute;','Juv','Vie','S&aacute;b'],
+		dayNamesMin: ['Do','Lu','Ma','Mi','Ju','Vi','S&aacute;'],
+		weekHeader: 'Sm',
+		dateFormat: 'dd/mm/yy',
+		firstDay: 1,
+		isRTL: false,
+		showMonthAfterYear: false,
+		yearSuffix: ''};
+	$.datepicker.setDefaults($.datepicker.regional['es']);
+	$("#datepicker").datepicker({
+        showAnim: 'slideDown',
+        beforeShowDay: jQuery.datepicker.noWeekends,
+        onSelect: function(date, inst) {
+            document.getElementById('anotaciones_form').submit();
+        },
+    });
+});
+
+
+$(document).ready(function() {
+   $("#datepicker").datepicker();
+ });
+
+
+    var formAjaxSubmit = function(form, modal, num) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                      $(modal).modal('toggle');
+                     var contenidoTr='<tr class="' + $(xhr).find('#filaAlumno'+num).attr("class")
+                         + '" id="filaAlumno' + num + '">'+
+                         $(xhr).find('#filaAlumno'+num).html() +'</tr>';
+
+                     $('#filaAlumno'+num).replaceWith(contenidoTr);
+                     //location.reload(); //se recarga la página completa
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    };
+
+    var ponerValoracion = function(action, num) {
+        $.ajax({
+            type: 'POST',
+            url: action,
+            success: function (xhr, ajaxOptions, thrownError) {
+                var contenidoTr = '<tr class="' + $(xhr).find('#filaAlumno'+num).attr("class")
+                    + '" id="filaAlumno' + num + '">'+
+                    $(xhr).find('#filaAlumno'+num).html() +'</tr>';
+                $('#filaAlumno'+num).replaceWith(contenidoTr);
+            }
+        });
+    };
+
+
+    </script>
 
 {% endblock %}

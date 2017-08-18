@@ -95,7 +95,7 @@ class Grupo(models.Model):
     )
     curso = models.PositiveSmallIntegerField(choices=CURSO_CHOICES)
     unidad = models.CharField(max_length=10, blank=True)
-    tutor = models.ForeignKey(ProfesorUser, on_delete=models.PROTECT)
+    tutor = models.OneToOneField(ProfesorUser, on_delete=models.PROTECT)    #clave alterna
 
     def __unicode__(self):
         return "%s %s" % (self.get_curso_display(), self.unidad)
@@ -137,7 +137,7 @@ class Asignatura(models.Model):
 class Alumno(models.Model):
     nombre = models.CharField(max_length=50)
     apellido1 = models.CharField(max_length=50)
-    apellido2 = models.CharField(max_length=50)
+    apellido2 = models.CharField(max_length=50, blank=True)
     fecha_nacimiento = models.DateField()
     email = models.EmailField(null=True, blank=True)
     foto = models.ImageField(upload_to='fotografias/', blank=True)

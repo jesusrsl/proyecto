@@ -115,6 +115,7 @@ class AlumnoBorrarFoto(AlumnoMixin, UpdateAPIView):
 
 class DetailAsignaturaMixin(object):
     queryset = Asignatura.objects.all()
+    #ordering = ('matricula__orden',)
     serializer_class = DetailAsignaturaSerializer
 
 class DetailAsignatura(DetailAsignaturaMixin, RetrieveAPIView):

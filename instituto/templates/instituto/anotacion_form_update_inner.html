@@ -1,4 +1,4 @@
-<form class="form form-anotaciones" action="{% url 'editar-anotacion' object.id %}" method="post">{% csrf_token %}
+<form class="form form-anotaciones" action="{% url 'editar-anotacion' object.id vista %}" method="post">{% csrf_token %}
     <div class="form-group">
         <label class="col-md-4 control-label">{{ form.falta.label }}</label>
         <div class="col-md-5"><input type="checkbox" class="form-control-static" id="id_falta" name="falta"

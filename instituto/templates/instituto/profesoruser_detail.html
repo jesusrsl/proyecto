@@ -10,10 +10,8 @@
 
     <h2>{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}
 
-    {% if object.id == request.user.id or request.user.is_superuser %}
-        <a data-toggle="tooltip" title="Editar" href="{% url 'editar-profesor' object.id %}"><i class="material-icons">mode_edit</i></a>
-    {% endif %}
     {% if request.user.is_superuser %}
+        <a data-toggle="tooltip" title="Editar" href="{% url 'editar-profesor' object.id %}"><i class="material-icons">mode_edit</i></a>
         <a data-toggle="tooltip" title="Eliminar" href="{% url 'eliminar-profesor' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
     </h2>

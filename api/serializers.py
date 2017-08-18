@@ -136,6 +136,7 @@ class AlumnoShortSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Alumno
+        #ordering = ('pk',)
         fields = ('pk', 'nombre', 'apellido1', 'apellido2','foto', 'anotacion')
 
 #Alumnado de la asignatura indicada
@@ -146,3 +147,22 @@ class DetailAsignaturaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asignatura
         fields = ('pk', 'nombre', 'grupo', 'alumnos', 'distribucion')
+
+"""class DetailAsignaturaSerializer(serializers.ModelSerializer):
+    grupo = serializers.StringRelatedField()
+    alumnos = serializers.SerializerMethodField('obtenerAlumnado')
+
+    def obtenerAlumnado(self, obj):
+
+        alumnos = Asignatura.objects.get(pk=obj.pk).alumno_set.order_by('matricula__orden')
+
+        print alumnos
+        if alumnos:
+            serializer = AlumnoShortSerializer(alumnos, many=True, read_only=True)
+            return serializer.data
+        else:
+            return None
+
+    class Meta:
+        model = Asignatura
+        fields = ('pk', 'nombre', 'grupo', 'alumnos', 'distribucion')"""

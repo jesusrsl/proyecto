@@ -37,7 +37,7 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Diario de clase</a></li>
     {% if vista == "cuad" %}
         <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
     {% else %}
@@ -135,7 +135,7 @@
                                     });
                             });
                             </script>
-                        <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'editar-anotacion' v.pk %}" readonly>
+                        <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'editar-anotacion' v.pk vista %}" readonly>
 
 
                         {% if v.falta %}

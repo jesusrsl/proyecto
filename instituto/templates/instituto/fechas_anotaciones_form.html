@@ -37,7 +37,7 @@ $(document).ready(function() {
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'asignaturas-profesor' %}">Mis asignaturas</a></li>
+    <li><a href="{% url 'asignaturas-profesor' %}">Diario de clase</a></li>
     {% if vista == "cuad" %}
         <li><a href="{% url 'detalle-asignatura-cuad' idAsignatura fecha %}">{{ nombreAsignatura}}</a></li>
     {% else %}

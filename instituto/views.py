@@ -28,7 +28,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView, RedirectView
 
-from .forms import RegisterForm, UpdateForm, MatriculaForm
+from .forms import RegisterForm, UpdateForm, ProfesorUpdateForm, MatriculaForm
 from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 
 
@@ -131,10 +131,10 @@ def profesoradoPDF(request):
             profesor = (p.username, p.first_name, p.last_name, p.email)
         else:
             profesor = (p.first_name, p.last_name, p.email)
-        if not p.grupo_set.exists():
+        if not Grupo.objects.filter(tutor=p).exists():
             profesor += ("---",)
         else:
-            profesor += (p.grupo_set.first().get_curso_display() + " " + p.grupo_set.first().unidad,)
+            profesor += (p.grupo.get_curso_display() + " " + p.grupo.unidad,)
         if p.is_superuser:
                 profesor += ("Sí",)
         else:
@@ -198,7 +198,7 @@ def tutoriasPDF(request):
 
 
     headings = ['Tutor/a', 'Grupo']
-    info_tutorias = [(p.first_name + " " + p.last_name, p.grupo_set.first()) for p in ProfesorUser.objects.filter(grupo__isnull=False).order_by('grupo')]
+    info_tutorias = [(p.first_name + " " + p.last_name, p.grupo) for p in ProfesorUser.objects.filter(grupo__isnull=False).order_by('grupo')]
 
     t = Table([headings] + info_tutorias)
     t.setStyle(TableStyle(
@@ -1084,27 +1084,36 @@ class ProfesorCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
             return super(ProfesorCreate, self).form_valid(form)
 
 
-#Permiso: solo superusers y el propio usuario
-class ProfesorUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
+#Permiso: solo superusers
+class ProfesorUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = ProfesorUser
+    form_class = ProfesorUpdateForm
+    permission_required = 'is_superuser'
+    success_message = 'El docente %(first_name)s %(last_name)s  se ha modificado correctamente'
+
+#Permiso: el propio usuario
+class UserUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = ProfesorUser
     form_class = UpdateForm
+    template_name = 'instituto/user_form.html'
+    success_url = reverse_lazy('asignaturas-profesor')
 
-    success_message = 'El profesor %(first_name)s %(last_name)s  se ha modificado correctamente'
+    success_message = 'Su información personal se ha actualizado correctamente'
 
     def test_func(self):
-        return (self.request.user.is_superuser or int(self.request.user.id) == int(self.kwargs['pk']))
+        return (int(self.request.user.id) == int(self.kwargs['pk']))
 
 #Permiso: solo superusers
 class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = ProfesorUser
     success_url = reverse_lazy('lista-profesores')
-    success_message = 'El profesor %(first_name)s %(last_name)s  se ha eliminado correctamente'
-    warning_message = 'El profesor %(first_name)s %(last_name)s  no se ha podido eliminar porque tiene asignaturas o grupos relacionados'
+    success_message = 'El docente %(first_name)s %(last_name)s  se ha eliminado correctamente'
+    warning_message = 'El docente %(first_name)s %(last_name)s  no se ha podido eliminar porque tiene asignaturas o grupos relacionados'
 
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
-        messages.warning(self.request, 'No tiene permiso para eliminar profesores')
+        messages.warning(self.request, 'No tiene permiso para eliminar profesores/as')
         return super(ProfesorDelete, self).handle_no_permission()
 
     def post(self, request, *args, **kwargs):
@@ -1328,6 +1337,7 @@ class GrupoTutorDetailView(LoginRequiredMixin, DetailView):
     template_name = 'instituto/tutoria_detail.html'
 
     def get_object(self):
+        #NOTA: el grupo debe ser único, pero puede no existir. Si se usa el método get, podrá lanzar el error DoesNotExist.
         return Grupo.objects.filter(tutor=self.request.user).first()
 
 
@@ -1822,11 +1832,11 @@ class AnotacionCreateUpdate(LoginRequiredMixin, UserPassesTestMixin, RedirectVie
         try:
             anotacion=Anotacion.objects.filter(fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y'), alumno=Alumno.objects.get(pk=kwargs['idAlumno']), asignatura=Asignatura.objects.get(pk=kwargs['idAsignatura'])).first()
             if anotacion is None:
-                return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
+                return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'vista': kwargs['vista'], 'fecha': self.kwargs['fecha']})
             else:
-                return reverse('editar-anotacion', kwargs={'pk': anotacion.id,})
+                return reverse('editar-anotacion', kwargs={'pk': anotacion.id, 'vista': kwargs['vista']})
         except ObjectDoesNotExist:
-            return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
+            return reverse('nueva-anotacion', kwargs={'idAlumno': kwargs['idAlumno'], 'idAsignatura': kwargs['idAsignatura'], 'vista': kwargs['vista'], 'fecha': self.kwargs['fecha']})
 
     def test_func(self):
         return (int(self.request.user.id) == int(Asignatura.objects.get(pk=self.kwargs['idAsignatura']).profesor.id))
@@ -1857,8 +1867,15 @@ class AnotacionCreate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
 
     def get_context_data(self, **kwargs):
         context = super(AnotacionCreate, self).get_context_data(**kwargs)
-        context.update({'fecha': self.kwargs['fecha'], 'alumno': self.kwargs['idAlumno'], 'asignatura': self.kwargs['idAsignatura']})
+        context.update({'fecha': self.kwargs['fecha'], 'alumno': self.kwargs['idAlumno'], 'asignatura': self.kwargs['idAsignatura'], 'vista': self.kwargs['vista']})
         return context
+
+    def get_success_url(self):
+        if self.kwargs['vista'] == "cuad":
+            return reverse('detalle-asignatura-cuad', kwargs={'pk': self.kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
+        else:
+            return reverse('detalle-asignatura-lista',
+                           kwargs={'pk': self.kwargs['idAsignatura'], 'fecha': self.kwargs['fecha']})
 
     def form_valid(self, form):
         form.instance.alumno = Alumno.objects.get(pk=self.kwargs['idAlumno'])
@@ -1884,8 +1901,16 @@ class AnotacionUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
     #a partir del pk de anotacion pasado en la url, se obtiene el alumno y la asignatura y se anaden al contexto con el que renderizara la plantilla
     def get_context_data(self, **kwargs):
         context = super(AnotacionUpdate, self).get_context_data(**kwargs)
-        context.update({'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y'), 'alumno': Anotacion.objects.get(id=self.kwargs['pk']).alumno_id, 'asignatura': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id})
+        context.update({'vista':self.kwargs['vista'], 'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y'), 'alumno': Anotacion.objects.get(id=self.kwargs['pk']).alumno_id, 'asignatura': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id})
         return context
+
+    def get_success_url(self):
+        if self.kwargs['vista'] == "cuad":
+            return reverse('detalle-asignatura-cuad', kwargs={'pk': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id, 'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
+        else:
+            return reverse('detalle-asignatura-lista',
+                           kwargs={'pk': Anotacion.objects.get(id=self.kwargs['pk']).asignatura_id, 'fecha':datetime.strftime(Anotacion.objects.get(id=self.kwargs['pk']).fecha, '%d/%m/%Y')})
+
 
     def test_func(self):
         return (int(self.request.user.id) == int(Anotacion.objects.get(id=self.kwargs['pk']).asignatura.profesor.id))
@@ -1917,41 +1942,33 @@ class AnotacionDelete(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
 
 #Vistas para crear anotaciones individuales
 @login_required
+@csrf_exempt
 def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
     # se borran los alumnos seleccionados, si los hubiera
     request.session['lista'] = []
 
-    ha_faltado = False
     try:
         anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
             anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
             anotacion.save()
-            ha_faltado = True
         else:
             anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             falta = anotacion.first().falta
-            ha_faltado = not falta
             anotacion.update(falta=not falta)
 
     except ObjectDoesNotExist:
         pass
 
-    alumno = Alumno.objects.get(pk=idAlumno)
-    """if ha_faltado:
-        messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-    else:
-        messages.add_message(request, messages.SUCCESS, '[%s] Se le ha quitado la falta al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-    """
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 
-#funcion para poner falta al alumno (la tenga o no la tenga ya). No muestra mensaje ni redirige
+#funcion para poner falta al alumno (la tenga o no la tenga ya). No redirige
 @login_required
 def falta(request, idAlumno, idAsignatura, fecha):
 
@@ -1970,43 +1987,33 @@ def falta(request, idAlumno, idAsignatura, fecha):
         pass
 
 @login_required
+@csrf_exempt
 def ponerTrabaja(request, idAlumno, idAsignatura, vista, fecha):
 
     # se borran los alumnos seleccionados, si los hubiera
     request.session['lista'] = []
 
-    ha_trabajado = False
     try:
         anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
             anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), trabaja=True)
             anotacion.save()
-            ha_trabajado = True
         else:
             anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             trabaja = anotacion.first().trabaja
-            ha_trabajado = not trabaja
             anotacion.update(trabaja=not trabaja)
 
     except ObjectDoesNotExist:
         pass
 
-    alumno = Alumno.objects.get(pk=idAlumno)
-    """if ha_trabajado:
-        messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s ha trabajado correctamente' % (
-        fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-    else:
-        messages.add_message(request, messages.SUCCESS, '[%s] El alumno %s %s %s no ha trabajado correctamente' % (
-        fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-    """
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
-#funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No muestra mensaje ni redirige
+#funcion para poner que trabaja el alumno (lo tenga o no lo tenga ya indicado). No redirige
 @login_required
 def trabaja(request, idAlumno, idAsignatura, fecha):
 
@@ -2025,6 +2032,7 @@ def trabaja(request, idAlumno, idAsignatura, fecha):
         pass
 
 @login_required
+@csrf_exempt
 def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
 
     # se borran los alumnos seleccionados, si los hubiera
@@ -2032,15 +2040,12 @@ def ponerPositivo(request, idAlumno, idAsignatura, vista, fecha):
 
     positivo(request,idAlumno,idAsignatura, fecha)
 
-    alumno = Alumno.objects.get(pk=idAlumno)
-    #messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un positivo al alumno %s %s %s' %(fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
-#funcion para poner un positivo al alumno, sin mostrar mensaje ni redirigir
+#funcion para poner un positivo al alumno, sin redirigir
 @login_required
 def positivo(request, idAlumno, idAsignatura, fecha):
 
@@ -2066,6 +2071,7 @@ def positivo(request, idAlumno, idAsignatura, fecha):
 
 
 @login_required
+@csrf_exempt
 def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
 
     # se borran los alumnos seleccionados, si los hubiera
@@ -2073,15 +2079,12 @@ def ponerNegativo(request, idAlumno, idAsignatura, vista, fecha):
 
     negativo(request, idAlumno, idAsignatura, fecha)
 
-    alumno = Alumno.objects.get(pk=idAlumno)
-    #messages.add_message(request, messages.SUCCESS, '[%s] Se le ha puesto un negativo al alumno %s %s %s' % (fecha, alumno.nombre, alumno.apellido1, alumno.apellido2))
-
     if vista == "cuad":
         return HttpResponseRedirect(reverse('detalle-asignatura-cuad', args=(idAsignatura, fecha)))
     else:
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
-#funcion para poner un negativo al alumno, sin mostrar mensaje ni redirigir
+#funcion para poner un negativo al alumno, sin redirigir
 @login_required
 def negativo(request, idAlumno, idAsignatura, fecha):
 

@@ -15,6 +15,7 @@ class RegisterForm(UserCreationForm):
             'username': 'Obligatorio. Hasta 150 caracteres. Solo letras, números y @/./+/-/_',
         }
 
+#Formulario para la actualización de información personal
 class UpdateForm(forms.ModelForm):
     class Meta:
         model = ProfesorUser
@@ -29,16 +30,15 @@ class UpdateForm(forms.ModelForm):
         if instance and instance.id:
             self.fields['username'].widget.attrs['readonly'] = True
 
-"""
-class FechasForm(forms.Form):
-    inicio = forms.DateField()
-    fin = forms.DateField()
+#Formulario para actualizar un ProfesorUser (por parte de un administrador)
+class ProfesorUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ProfesorUser
+        fields = ['first_name', 'last_name', 'username', 'email', 'is_superuser']
+        help_texts = {
+            'username': 'Obligatorio. Hasta 150 caracteres. Solo letras, números y @/./+/-/_',
+        }
 
-class TestForm(forms.Form):
-    nombre = forms.CharField(max_length=50)
-    apellidos = forms.CharField(max_length=100)
-
-"""
 
 class MatriculaForm(forms.Form):
     alumnos = forms.ModelMultipleChoiceField(queryset=Alumno.objects.all(),
