@@ -153,8 +153,12 @@
 
                                 {% define "Yes" as anotacion_creada %}
 
-                                {% if anotacion.falta %}
-                                    <a style="cursor: pointer" id="falta-button{{ a.id }}"><span class="red">F</span></a>
+                                {% if anotacion.falta == 'I'%}
+                                    <a style="cursor: pointer" id="falta-button{{ a.id }}"><span class="red">I</span></a>
+                                {% elif anotacion.falta == 'J'%}
+                                    <a style="cursor: pointer" id="falta-button{{ a.id }}"><span class="red">J</span></a>
+                                {% elif anotacion.falta == 'R'%}
+                                    <a style="cursor: pointer" id="falta-button{{ a.id }}"><span class="red">R</span></a>
                                 {% else %}
                                     <a style="cursor: pointer" id="falta-button{{ a.id }}"><span class="blue">F</span></a>
                                 {% endif %}
@@ -198,7 +202,7 @@
                                 });
                                 </script>
 
-                                {% if anotacion.falta %}
+                                {% if anotacion.falta == 'I' or anotacion.falta == 'J' %}
                                     {% if anotacion.trabaja or anotacion.positivos or anotacion.negativos %}
                                         <!--ERROR: si ha faltado, no debe tener anotaciones -->
                                         <script>

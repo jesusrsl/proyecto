@@ -1,5 +1,7 @@
 <form class="form form-anotaciones" action="{% url 'nueva-anotacion' alumno asignatura vista fecha %}" method="post">{% csrf_token %}
 
+    {{ form.as_p }}
+    {% comment %}
         <div class="form-group">
             <label class="col-md-4 control-label">{{ form.falta.label }}</label>
             <div class="col-md-5"><input type="checkbox" class="form-control-static" id="id_falta" name="falta"></div>
@@ -16,7 +18,7 @@
             <label class="col-md-4 control-label">{{ form.negativos.label }}</label>
             <div class="col-md-5"><input class="form-control" id="id_negativos" min="0" name="negativos" type="number"></div>
         </div>
-
+    {% endcomment %}
 
     <button class="btn btn-primary" type="submit">Guardar</button>
 </form>

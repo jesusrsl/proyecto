@@ -796,8 +796,12 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
                 for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
 
                     if alumno.id == v['alumno_id']:
-                        if v['falta']:
-                            anotacion += " F"
+                        if v['falta'] == 'I':
+                            anotacion += " I"
+                        elif v['falta'] == 'J':
+                            anotacion += " J"
+                        elif v['falta'] == 'R':
+                            anotacion += " R"
                         if v['trabaja']:
                             anotacion += " T"
                         if v['positivos'] is not None and v['positivos'] != 0:
@@ -818,7 +822,7 @@ def anotacionesPorPagina(idAsignatura, listaFechas, inicio, fin, ultimaPag):
             resumen_anotaciones = ""
             for resumen in resumen_list:
                 if resumen[0] == alumno.id:
-                    resumen_anotaciones = "%dF, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+                    resumen_anotaciones = "%dI-%dJ-%dR, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4], resumen[5], resumen[6])
 
             fila.append(resumen_anotaciones)
 
@@ -915,8 +919,12 @@ def anotacionesCSV(request, idAsignatura, inicio, fin):
             for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
 
                 if alumno.id == v['alumno_id']:
-                    if v['falta']:
-                        anotacion += " F"
+                    if v['falta'] == 'I':
+                        anotacion += " I"
+                    elif v['falta'] == 'J':
+                        anotacion += " J"
+                    elif v['falta'] == 'R':
+                        anotacion += " R"
                     if v['trabaja']:
                         anotacion += " T"
                     if v['positivos'] is not None and v['positivos'] != 0:
@@ -937,7 +945,7 @@ def anotacionesCSV(request, idAsignatura, inicio, fin):
         resumen_anotaciones = ""
         for resumen in resumen_list:
             if resumen[0] == alumno.id:
-                resumen_anotaciones = "%dF %dT %d+ %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+                resumen_anotaciones = "%dI-%dJ-%dR %dT %d+ %d-" % (resumen[1], resumen[2], resumen[3], resumen[4], resumen[5], resumen[6])
                 #NOTA: no se pueden utilizar comas para separar la informacion de resumen
 
         fila.append(resumen_anotaciones)
@@ -1009,8 +1017,12 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
             for v in lista:  # lista contiene todas las valoraciones en una determinada fecha
 
                 if alumno.id == v['alumno_id']:
-                    if v['falta']:
-                        anotacion += " F"
+                    if v['falta'] == 'I':
+                        anotacion += " I"
+                    elif v['falta'] == 'J':
+                        anotacion += " J"
+                    elif v['falta'] == 'R':
+                        anotacion += " R"
                     if v['trabaja']:
                         anotacion += " T"
                     if v['positivos'] is not None and v['positivos'] != 0:
@@ -1031,7 +1043,7 @@ def anotacionesXLS(request, idAsignatura, inicio, fin):
         resumen_anotaciones = ""
         for resumen in resumen_list:
             if resumen[0] == alumno.id:
-                resumen_anotaciones = "%dF, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4])
+                resumen_anotaciones = "%dI-%dJ-%dR, %dT, %d+, %d-" % (resumen[1], resumen[2], resumen[3], resumen[4], resumen[5], resumen[6])
 
 
         fila.append(resumen_anotaciones)
@@ -1795,15 +1807,21 @@ def datosResumen(idAsignatura, inicio, fin):
     asignatura = Asignatura.objects.get(pk=idAsignatura)
     resumen_anotaciones = [] #lista de listas
     for alumno in asignatura.alumno_set.all():
-        numFaltas = 0
+        numInjustificadas = 0
+        numJustificadas = 0
+        numRetrasos = 0
         numTrabaja = 0
         numPositivos = 0
         numNegativos = 0
 
         for anotacion in Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin, asignatura=idAsignatura):
             if (anotacion.alumno_id == alumno.id):
-                if (anotacion.falta):
-                    numFaltas+=1
+                if (anotacion.falta=='I'):
+                    numInjustificadas+=1
+                elif (anotacion.falta == 'J'):
+                    numJustificadas += 1
+                elif (anotacion.falta == 'R'):
+                    numRetrasos += 1
                 if (anotacion.trabaja):
                     numTrabaja+=1
                 if (anotacion.positivos is not None):
@@ -1812,7 +1830,7 @@ def datosResumen(idAsignatura, inicio, fin):
                     numNegativos+=anotacion.negativos
 
         #se anyade una sublista con la informacion del alumno
-        resumen_anotaciones.append([alumno.id, numFaltas, numTrabaja, numPositivos, numNegativos])
+        resumen_anotaciones.append([alumno.id, numInjustificadas, numJustificadas, numRetrasos, numTrabaja, numPositivos, numNegativos])
 
     return resumen_anotaciones
 
@@ -1951,13 +1969,23 @@ def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
         anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
+            #La primera vez es falta injustificada
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta='I')
             anotacion.save()
         else:
             anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
             falta = anotacion.first().falta
-            anotacion.update(falta=not falta)
+            #se indica el siguiente tipo de falta, siguiendo el orden I, J, R, nada
+            if(falta=='I'):
+                anotacion.update(falta='J')
+            elif(falta=='J'):
+                anotacion.update(falta='R')
+            elif (falta == 'R'):
+                anotacion.update(falta='')
+            else:
+                anotacion.update(falta='I')
+
 
     except ObjectDoesNotExist:
         pass
@@ -1968,7 +1996,7 @@ def ponerFalta(request, idAlumno, idAsignatura, vista, fecha):
         return HttpResponseRedirect(reverse('detalle-asignatura-lista', args=(idAsignatura, fecha)))
 
 
-#funcion para poner falta al alumno (la tenga o no la tenga ya). No redirige
+#funcion para poner falta injustificada al alumno (la tenga o no la tenga ya). No redirige
 @login_required
 def falta(request, idAlumno, idAsignatura, fecha):
 
@@ -1976,12 +2004,12 @@ def falta(request, idAlumno, idAsignatura, fecha):
         anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                              asignatura=Asignatura.objects.get(pk=idAsignatura)).first()
         if anotacion is None:
-            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta=True)
+            anotacion = Anotacion(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno), asignatura=Asignatura.objects.get(pk=idAsignatura), falta='I')
             anotacion.save()
         else:
             anotacion = Anotacion.objects.filter(fecha=datetime.strptime(fecha, '%d/%m/%Y'), alumno=Alumno.objects.get(pk=idAlumno),
                                                  asignatura=Asignatura.objects.get(pk=idAsignatura))
-            anotacion.update(falta=True)
+            anotacion.update(falta='I')
 
     except ObjectDoesNotExist:
         pass

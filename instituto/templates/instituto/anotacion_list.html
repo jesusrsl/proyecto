@@ -1,40 +1,6 @@
 {% extends 'base.html' %}
 {% load mis_filtros %}
 
-{% block js %}
-    <script>
-
-    var formAjaxSubmit = function(form, modal) {
-     $(form).submit(function (e) {
-         e.preventDefault();
-         $.ajax({
-             type: $(this).attr('method'),
-             url: $(this).attr('action'),
-             data: $(this).serialize(),
-             success: function (xhr, ajaxOptions, thrownError) {
-                 if ( $(xhr).find('.has-error').length > 0 ) {
-                     $(modal).find('.modal-body').html(xhr);
-                     formAjaxSubmit(form, modal);
-                 } else {
-                     $(modal).modal('toggle');
-
-                     alert("Anotación editada correctamente.\n\nRecargue la página si desea visualizar los cambios.");
-
-                 }
-             },
-             error: function (xhr, ajaxOptions, thrownError) {
-                 // handle response errors here
-                }
-             });
-        });
-    }
-
-
-
-    </script>
-
-{% endblock %}
-
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
     <li><a href="{% url 'asignaturas-profesor' %}">Diario de clase</a></li>
@@ -117,7 +83,12 @@
                         {% define "Yes" as existe_anotacion %}
                         <td id="celda{{ v.id}}">
                         <a style="cursor: pointer" id="anotacion-button{{ v.id }}">
-                            {% if v.falta %} F {% endif %} {% if v.trabaja %} T {% endif %}
+                            {% if v.falta == 'I' %}I
+                            {% elif v.falta == 'J' %}J
+                            {% elif v.falta == 'R' %}R
+                            {% endif %}
+
+                            {% if v.trabaja %} T {% endif %}
 
                             {% if v.positivos is not None and v.positivos != 0%} {{ v.positivos }}+ {% endif %}
 
@@ -138,7 +109,7 @@
                         <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'editar-anotacion' v.pk vista %}" readonly>
 
 
-                        {% if v.falta %}
+                        {% if v.falta == 'I' or v.falta == 'J' %}
                             {% if v.trabaja or v.positivos or v.negativos %}
                                 <!--ERROR: si ha faltado, no debe tener anotaciones -->
                                 <script>
@@ -160,7 +131,7 @@
                 <!--datos de resumen -->
                 {% for resumen in resumen_list %}
                     {% if resumen.0 == alumno.id %} <!-- NOTA: el índice se pone con . y NO con [] -->
-                        <td class="resumen">{{ resumen.1 }} F, {{ resumen.2 }} T, {{ resumen.3 }} +, {{ resumen.4 }} -</td>
+                        <td class="resumen">{{ resumen.1 }}I-{{ resumen.2 }}J-{{ resumen.3 }}R, {{ resumen.4 }}T, {{ resumen.5 }}+, {{ resumen.6 }}-</td>
                     {% endif %}
 
                 {% endfor %}
@@ -192,5 +163,38 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+
+{% endblock %}
+
+{% block js %}
+    <script>
+
+    var formAjaxSubmit = function(form, modal) {
+     $(form).submit(function (e) {
+         e.preventDefault();
+         $.ajax({
+             type: $(this).attr('method'),
+             url: $(this).attr('action'),
+             data: $(this).serialize(),
+             success: function (xhr, ajaxOptions, thrownError) {
+                 if ( $(xhr).find('.has-error').length > 0 ) {
+                     $(modal).find('.modal-body').html(xhr);
+                     formAjaxSubmit(form, modal);
+                 } else {
+                     $(modal).modal('toggle');
+                    alert(xhr);
+                     alert("Anotación editada correctamente.\n\nRecargue la página si desea visualizar los cambios.");
+
+                 }
+             },
+             error: function (xhr, ajaxOptions, thrownError) {
+                 // handle response errors here
+                }
+             });
+        });
+    }
+
+
+    </script>
 
 {% endblock %}

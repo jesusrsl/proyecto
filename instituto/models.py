@@ -218,10 +218,18 @@ class Matricula(models.Model):
         verbose_name_plural = 'matriculas'
 
 class Anotacion(models.Model):
+    FALTA_CHOICES = (
+        ('', '----'),
+        ('I', 'Injustificada'),
+        ('J', 'Justificada'),
+        ('R', 'Retraso'),
+    )
+
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
     fecha = models.DateField(default=date.today)
-    falta = models.BooleanField(default=False)
+    falta = models.CharField(max_length=1, choices=FALTA_CHOICES, null=True, blank=True)
+    #falta = models.BooleanField(default=False)
     trabaja = models.BooleanField(default=False)
     positivos = models.PositiveIntegerField(null=True, blank=True)
     negativos = models.PositiveIntegerField(null=True, blank=True)
