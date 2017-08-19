@@ -93,12 +93,11 @@ urlpatterns = [
     #url(r'^anotaciones/(?P<idAsignatura>\d+)/PDF/$', views.anotacionesPDF, name="anotaciones-pdf"),
     #NOTA: es llamado desde fecha-anotaciones
 
-    #url(r'^anotacion/(?P<pk>\d+)/detalle/$', views.AnotacionDetailView.as_view(), name='detalle-anotacion'),
+    url(r'^anotar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista|td)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreateUpdate.as_view(), name='anotar'),
 
-    url(r'^anotar/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreateUpdate.as_view(), name='anotar'),
-
-    url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
-    url(r'^anotacion/(?P<pk>\d+)/(?P<vista>cuad|lista)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
+    url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista|td)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.AnotacionCreate.as_view(), name='nueva-anotacion'),
+    url(r'^anotacion/(?P<pk>\d+)/(?P<vista>cuad|lista|td)/editar/$', views.AnotacionUpdate.as_view(), name='editar-anotacion'),
+    url(r'^anotacion/(?P<pk>\d+)/td/$', views.AnotacionTdContent.as_view(), name='td-anotacion'),
     #url(r'^anotacion/(?P<pk>\d+)/eliminar/$', views.AnotacionDelete.as_view(), name='eliminar-anotacion'),
 
     url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<vista>cuad|lista)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$', views.ponerFalta, name='poner-falta'),

@@ -66,6 +66,7 @@ table.tablaAnotaciones{
    /*overflow: auto;*/
     background-color: #009688;
     color: white;
+    text-align: center;
 }
 
 .tablaAnotaciones th.fechas, .tablaMatriculas th.asignaturas{

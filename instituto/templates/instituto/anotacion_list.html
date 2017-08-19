@@ -64,8 +64,7 @@
                 <th class="fechas">{{ fecha.grouper |date:"d-m-y"}}</th>
 
             {% endfor %}
-            <th class="resumen">RESUMEN</th>
-
+                <th class="resumen">RESUMEN <span style="cursor:pointer" class="glyphicon glyphicon-refresh" onclick="location.reload()"></span></th>
             </tr>
 
 
@@ -101,12 +100,12 @@
                                     $('#form-modal-body').load(document.getElementById("url{{ v.id }}").value, function () {
                                         $('#form-modal').modal('toggle');
                                         $("body").addClass("overflow");
-                                        formAjaxSubmit('#form-modal-body form', '#form-modal');
+                                        formAjaxSubmit('#form-modal-body form', '#form-modal', {{ v.id }});
                                         $("body").removeClass("overflow");
                                     });
                             });
                             </script>
-                        <input type="hidden" id="url{{ v.id }}" name="url{{ a.id }}" value="{% url 'editar-anotacion' v.pk vista %}" readonly>
+                        <input type="hidden" id="url{{ v.id }}" name="url{{ v.id }}" value="{% url 'editar-anotacion' v.pk 'td' %}" readonly>
 
 
                         {% if v.falta == 'I' or v.falta == 'J' %}
@@ -131,7 +130,7 @@
                 <!--datos de resumen -->
                 {% for resumen in resumen_list %}
                     {% if resumen.0 == alumno.id %} <!-- NOTA: el índice se pone con . y NO con [] -->
-                        <td class="resumen">{{ resumen.1 }}I-{{ resumen.2 }}J-{{ resumen.3 }}R, {{ resumen.4 }}T, {{ resumen.5 }}+, {{ resumen.6 }}-</td>
+                        <td id="resumen{{ alumno.id}}" class="resumen">{{ resumen.1 }}I-{{ resumen.2 }}J-{{ resumen.3 }}R, {{ resumen.4 }}T, {{ resumen.5 }}+, {{ resumen.6 }}-</td>
                     {% endif %}
 
                 {% endfor %}
@@ -169,7 +168,7 @@
 {% block js %}
     <script>
 
-    var formAjaxSubmit = function(form, modal) {
+    var formAjaxSubmit = function(form, modal, num) {
      $(form).submit(function (e) {
          e.preventDefault();
          $.ajax({
@@ -182,9 +181,7 @@
                      formAjaxSubmit(form, modal);
                  } else {
                      $(modal).modal('toggle');
-                    alert(xhr);
-                     alert("Anotación editada correctamente.\n\nRecargue la página si desea visualizar los cambios.");
-
+                    $('#celda'+num).replaceWith(xhr);
                  }
              },
              error: function (xhr, ajaxOptions, thrownError) {
