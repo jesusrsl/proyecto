@@ -6,16 +6,16 @@ function seleccionar_checkbox(activar){
 
    if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
       if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
          if(document.getElementById("anotaciones_form").elements[i].name == nombre)
-            document.getElementById("anotaciones_form").elements[i].checked=activar
+            document.getElementById("anotaciones_form").elements[i].checked=activar;
 }
 
 
@@ -23,15 +23,15 @@ function invertir_seleccion(){
 
    if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
       if(document.getElementById("anotaciones_form").elements[i].name == nombre)
-         document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked
+         document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked;
 }
 
 /*function mostrar(bloq, activar) {
@@ -51,16 +51,54 @@ function cambiarVista(bloq) {
    //se deseleccionan todos los alumnos
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
       if(document.getElementById("anotaciones_form").elements[i].type == "checkbox")
-          document.getElementById("anotaciones_form").elements[i]=0
+          document.getElementById("anotaciones_form").elements[i]=0;
 
    if (bloq =="cuadricula"){
-      document.getElementById("vista").value = "cuad"
-      document.getElementById("anotaciones_form").submit()
+      document.getElementById("vista").value = "cuad";
+      document.getElementById("anotaciones_form").submit();
 
    }
    else {
-      document.getElementById("vista").value = "lista"
-      document.getElementById("anotaciones_form").submit()
+      document.getElementById("vista").value = "lista";
+      document.getElementById("anotaciones_form").submit();
+   }
+
+}
+
+function cambiarGrupoVista(bloq) {
+
+    var divLista = document.getElementById('grupoLista');
+    var divCuad = document.getElementById('grupoCuad');
+
+   if (bloq == "cuadricula"){
+       divLista.style.display='none';
+       divCuad.style.display='block';
+
+   }
+   else {
+       document.getElementById("vista").value = "lista";
+       divLista.style.display='block';
+       divCuad.style.display='none';
+   }
+
+}
+
+function cambiarTutoriaVista(bloq) {
+
+    var divLista = document.getElementById('grupoLista');
+    var divCuad = document.getElementById('grupoCuad');
+    var divDistribucion = document.getElementById('distribucion');
+
+   if (bloq == "cuadricula"){
+       divLista.style.display='none';
+       divCuad.style.display='block';
+       divDistribucion.style.display='inline-block';
+
+   }
+   else {
+       divLista.style.display='block';
+       divCuad.style.display='none';
+       divDistribucion.style.display='none';
    }
 
 }
@@ -69,16 +107,16 @@ function seleccionar_alumno(idAlumno){
 
     if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
    for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
        if(document.getElementById("anotaciones_form").elements[i].name == nombre)
            if(document.getElementById("anotaciones_form").elements[i].value == idAlumno)
-               document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked
+               document.getElementById("anotaciones_form").elements[i].checked=!document.getElementById("anotaciones_form").elements[i].checked;
 
 
 }
@@ -88,10 +126,10 @@ function poner_falta() {
 
     if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
@@ -113,10 +151,10 @@ function poner_trabaja() {
 
     if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
@@ -138,10 +176,10 @@ function poner_positivo() {
 
     if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)
@@ -163,10 +201,10 @@ function poner_negativo() {
 
     if (document.getElementById("vista").value=="cuad")
     {
-       nombre = "cuadriculaAlumnado"
+       nombre = "cuadriculaAlumnado";
     }
     else{
-      nombre = "listaAlumnado"
+      nombre = "listaAlumnado";
     }
 
     for (i=0;i<document.getElementById("anotaciones_form").elements.length;i++)

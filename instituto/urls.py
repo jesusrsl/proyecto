@@ -61,6 +61,7 @@ urlpatterns = [
     url(r'^grupos/PDF$', views.gruposPDF, name='grupos-pdf'),
     url(r'^grupo/(?P<pk>\d+)/detalle/$', views.GrupoDetailView.as_view(), name='detalle-grupo'),
     url(r'^tutoria/$', views.GrupoTutorDetailView.as_view(), name='grupo-tutoria'),
+    url(r'^tutoria/ordenar/$', views.ordenarTutoria, name='ordenar-tutoria'),
     url(r'^grupo/(?P<pk>\d+)/PDF/$', views.grupoPDF, name='grupo-pdf'),
     url(r'^grupo/nuevo/$', views.GrupoCreate.as_view(), name='nuevo-grupo'),
     url(r'^grupo/(?P<pk>\d+)/editar/$', views.GrupoUpdate.as_view(), name='editar-grupo'),

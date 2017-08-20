@@ -96,6 +96,7 @@ class Grupo(models.Model):
     curso = models.PositiveSmallIntegerField(choices=CURSO_CHOICES)
     unidad = models.CharField(max_length=10, blank=True)
     tutor = models.OneToOneField(ProfesorUser, on_delete=models.PROTECT)    #clave alterna
+    distribucion = models.PositiveSmallIntegerField(default=6, validators=[MaxValueValidator(8), MinValueValidator(1)])
 
     def __unicode__(self):
         return "%s %s" % (self.get_curso_display(), self.unidad)
@@ -142,8 +143,8 @@ class Alumno(models.Model):
     email = models.EmailField(null=True, blank=True)
     foto = models.ImageField(upload_to='fotografias/', blank=True)
     grupo = models.ForeignKey(Grupo, on_delete=models.PROTECT)
+    orden = models.PositiveIntegerField(default=0)
     asignaturas = models.ManyToManyField(Asignatura, through='Matricula')
-    #asignaturas = models.ManyToManyField(Asignatura, limit_choices_to = {'grupo':grupo})
 
     def __init__(self, *args, **kwargs):
         super(Alumno, self).__init__(*args, **kwargs)
@@ -164,6 +165,14 @@ class Alumno(models.Model):
         return reverse('detalle-alumno', kwargs={'pk': self.id})
 
     def save(self):
+
+        #se calcula el orden
+        if self.orden == 0:
+            max = 0
+            for m in Alumno.objects.filter(grupo=self.grupo):
+                if max <= m.orden:
+                    max = m.orden
+            self.orden = max + 1
 
         try:
             this = Alumno.objects.get(id=self.id)
@@ -190,11 +199,11 @@ def foto_delete(sender, instance, **kwargs):
     # Borra los ficheros de las fotos de los alumnos que se eliminan.
     instance.foto.delete(False)
 
+
 class Matricula(models.Model):
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     asignatura = models.ForeignKey(Asignatura, on_delete=models.PROTECT)
     orden = models.PositiveIntegerField(default=0)
-    #solo = models.BooleanField(default=False)
 
     def save(self):
         if self.orden == 0:

@@ -1193,7 +1193,7 @@ class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class TutorListView(LoginRequiredMixin,ListView):
     model = ProfesorUser
-    template_name = 'instituto/tutor_list.html'
+    template_name = 'instituto/tutor_list_OLD.html'
     paginate_by = 4
 
     def get_queryset(self):
@@ -1407,6 +1407,12 @@ class GrupoTutorDetailView(LoginRequiredMixin, DetailView):
     def get_object(self):
         #NOTA: el grupo debe ser único, pero puede no existir. Si se usa el método get, podrá lanzar el error DoesNotExist.
         return Grupo.objects.filter(tutor=self.request.user).first()
+
+    """#se le pasa la vista actual
+    def get_context_data(self, **kwargs):
+        context = super(GrupoTutorDetailView, self).get_context_data(**kwargs)
+        context.update({'vista': self.kwargs['vista']})
+        return context"""
 
 
 #Permiso: solo superusers
@@ -2284,5 +2290,17 @@ def ordenarAsignatura(request, pk):
 
         matricula.orden = int(str(index)) + 1
         matricula.save()
+
+    return HttpResponse('')
+
+@csrf_exempt
+def ordenarTutoria(request):
+
+    for index, alumno_pk in enumerate(request.POST.getlist('alumno[]')):
+        #alumno a ordenar
+        alumno = get_object_or_404(Alumno, pk=int(str(alumno_pk)))
+
+        alumno.orden = int(str(index)) + 1
+        alumno.save()
 
     return HttpResponse('')

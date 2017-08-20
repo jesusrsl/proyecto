@@ -34,6 +34,7 @@
 
 {% block maincontent %}
 
+    <div class="col-lg-3">
     <h2>{{ object.get_curso_display }} {{ object.unidad}}
 
     {% if request.user.is_superuser %}
@@ -42,14 +43,26 @@
     {% endif %}
         <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
     </h2>
+     </div>
+    <div class="btn-group-sm" style="text-align: right">
+        <h2>
+        <button type="button" class="btn btn-primary btn-fab" onclick="cambiarGrupoVista('cuadricula')" data-toggle="tooltip" title="Vista cuadrícula">
+            <i class="material-icons">view_module</i>
+        </button>
 
+        <button type="button" class="btn btn-primary btn-fab"  onclick="cambiarGrupoVista('lista')" data-toggle="tooltip" title="Vista lista">
+            <i class="material-icons">view_list</i>
+        </button>
+        </h2>
+    </div>
     <br>
 
      <div class="row well well-sm" style="padding-left: 50px;padding-right: 50px">
          <h4 style="margin-top: 5px; margin-bottom: 20px">Tutor/a:</h4>
          <a href="{% url 'detalle-profesor' object.tutor.id %}">{{ object.tutor.first_name }} {{ object.tutor.last_name }}</a>
      </div>
-    <div class="row well well-sm" style="padding-left: 50px;padding-right: 50px">
+
+    <div class="row well well-sm" style="padding-left: 50px;padding-right: 50px" id="grupoLista">
 
         <table id="grupo" class="display table table-responsive table-hover" width="100%">
         <thead>
@@ -87,6 +100,51 @@
     </table>
 
    </div>
+
+    <div class="row well" id="grupoCuad" style="display: none">
+
+
+        {% for a in object.alumno_set.all|dictsort:"orden" %}
+            {% if object.distribucion == 1 %}<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            {% elif object.distribucion == 2 %}<div class="col-xs-6 col-sm-6 col-md-2r col-lg-2r">
+            {% elif object.distribucion == 3 %}<div class="col-xs-4 col-sm-4 col-md-3r col-lg-3r">
+            {% elif object.distribucion == 4 %}<div class="col-xs-6 col-sm-4r col-md-4r col-lg-4r">
+            {% elif object.distribucion == 5 %}<div class="col-xs-6 col-sm-5r col-md-5r col-lg-5r">
+            {% elif object.distribucion == 6 %}<div class="col-xs-6 col-sm-6r col-md-6r col-lg-6r">
+            {% elif object.distribucion == 7 %}<div class="col-xs-6 col-sm-5r col-md-7r col-lg-7r">
+            {% elif object.distribucion == 8 %}<div class="col-xs-6 col-sm-4r col-md-8r col-lg-8r">
+            {% endif %}
+
+                <div class="panel panel-primary">
+
+                    <div class="panel-heading" style="height: 30px; padding: 8px 8px 8px 8px; white-space: nowrap; overflow: hidden;text-overflow: ellipsis;">
+                        <h4 class="panel-title" style="font-weight: bold; ">
+                            {% if object.distribucion <= 4%}
+                                {{ a.nombre|add:" "|add:a.apellido1|add:" "|add:a.apellido2 |truncatechars:30}}
+                            {% elif object.distribucion == 5%}
+                                {{ a.nombre|add:" "|add:a.apellido1|add:" "|add:a.apellido2 |truncatechars:25}}
+                            {% elif object.distribucion == 6 %}
+                                {{ a.nombre|add:" "|add:a.apellido1 | truncatechars:18}} {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% elif object.distribucion == 7 %}
+                                {{ a.nombre|truncatechars:12}} {{ a.apellido1 | first }}. {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% elif object.distribucion == 8 %}
+                                {{ a.nombre|truncatechars:8}} {{ a.apellido1 | first }}. {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <div class="panel-body" style="padding: 5px">
+                        {% if a.foto %}
+                            <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
+                        {% else %}
+                            <img src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
+                        {% endif %}
+                    </div>
+                </div>
+             </div>
+            {% empty %}
+            <p style="padding: 50px">Ningún alumno/a disponible</p>
+         {% endfor %}
+        </div>
 
 
 {% endblock %}

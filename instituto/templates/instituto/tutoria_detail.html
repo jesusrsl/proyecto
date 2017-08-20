@@ -10,18 +10,32 @@
 
     <script>
     $(document).ready(function() {
-    $('#tutoria').DataTable({
-        "order": [[ 1, "asc" ]],
+         $("#ordenable").sortable({
+            // Only make the .panel-heading child elements support dragging.
+            // Omit this to make then entire <li>...</li> draggable.
+            handle: '.panel-heading',
+            update: function (event, ui) {
+                //var ordenElementos = $(this).sortable("toArray").toString();
+                var data = $(this).sortable( "serialize");
+                //alert(data);
 
-        "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
-        "language": {
+                // POST to server using $.post or $.ajax
+                $.ajax({
+                    data: data,
+                    type: 'POST',
+                    url: "{% url 'ordenar-tutoria'%}"
+                });
+            }
+        });
+        $('#tutoria').DataTable({
+            "order": [[ 1, "asc" ]],
+
+            "lengthMenu": [[5, 10, 15, 20, -1], [5, 10, 15, 20, "Todos"]],
+            "language": {
                 "url": "{% static 'language/Spanish.json' %}"
             }
         } );
     } );
-
-
-
 
     </script>
 {% endblock %}
@@ -35,44 +49,49 @@
 
     {% if object %}
 
-    <h2>{{ object.get_curso_display }} {{ object.unidad}}
+     <div class="col-lg-3">
+     <h2>
+        {{ object.get_curso_display }} {{ object.unidad}}
 
     {% if request.user.is_superuser %}
         <a data-toggle="tooltip" title="Editar" href="{% url 'editar-grupo' object.id %}"><i class="material-icons">mode_edit</i></a>
         <a data-toggle="tooltip" title="Eliminar" href="{% url 'eliminar-grupo' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
         <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
-    </h2>
+     </h2>
+     </div>
+    <div class="btn-group-sm" style="text-align: right; padding-top: 15px">
+        <form action="" id="tutoria_form" method="post">{% csrf_token %}
+
+            <div id="distribucion" style="display: none">
+                <label class="control-label"  for="columnas"> Distribución: </label>
+                <select name="columnas" id="columnas" size="1" onchange="document.getElementById('tutoria_form').submit()">
+                    {% comment %}
+                    <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
+                    <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
+                    <option {% if cols == 3 %}selected {% endif %} value="3">3</option>
+                    {% endcomment %}
+                    <option {% if object.distribucion == 4 %}selected {% endif %} value="4">4</option>
+                    <option {% if object.distribucion == 5 %}selected {% endif %} value="5">5</option>
+                    <option {% if object.distribucion == 6 %}selected {% endif %} value="6">6</option>
+                    <option {% if object.distribucion == 7 %}selected {% endif %} value="7">7</option>
+                    <option {% if object.distribucion == 8 %}selected {% endif %} value="8">8</option>
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-fab" onclick="cambiarTutoriaVista('cuadricula')" data-toggle="tooltip" title="Vista cuadrícula">
+                <i class="material-icons">view_module</i>
+            </button>
+
+            <button type="button" class="btn btn-primary btn-fab"  onclick="cambiarTutoriaVista('lista')" data-toggle="tooltip" title="Vista lista">
+                <i class="material-icons">view_list</i>
+            </button>
+        </form>
+    </div>
 
     <br>
 
-    <div class="row well">
-        {% comment %}
-        <h3 style="margin-top: 5px; margin-bottom: 20px">Alumnado:</h3>
-        <div class="list-group">
-            {% for a in object.alumno_set.all %}
-                <div class="list-group-item">
-                {% if a.foto %}
-                    <img src="{{ a.foto.url }} " class="img-foto" alt="icon"/>
-                {% else %}
-                    <img src="{%static "sinfoto.png" %}" class="img-foto" alt="icon"/>
-                {% endif %}
-
-                {% if request.user.is_superuser or request.user.id == a.grupo.tutor.id %}
-                    <a href="{% url 'detalle-alumno-tutoria' a.id %}">
-                    {{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}
-                    </a>
-                {% else %}
-                    {{ a.nombre | capfirst }} {{ a.apellido1 | capfirst }} {{ a.apellido2 | capfirst }}
-                {% endif %}
-                </div>
-
-                <div class="list-group-separator" ></div>
-                {% empty %}
-                <h5 class="alert alert-warning">Actualmente el grupo no tiene alumnado.</h5>
-            {% endfor %}
-        </div>
-        {% endcomment %}
+        <div class="row well" id="grupoLista" style="display: block">
 
         <table id="tutoria" class="display table table-responsive table-hover" width="100%">
         <thead>
@@ -85,7 +104,8 @@
             </tr>
         </thead>
         <tbody>
-        {% for a in object.alumno_set.all  %}
+
+        {% for a in object.alumno_set.all %}
             <tr>
                 <td style="text-align: center">
                     {% if a.foto %}
@@ -116,9 +136,53 @@
     </table>
 
 
-
-
    </div>
+
+        <div class="row well" id="grupoCuad" style="display: none">
+
+         <ul id="ordenable" class="list-inline">
+
+        {% for a in object.alumno_set.all|dictsort:"orden" %}
+            {% if object.distribucion == 1 %}<li id="alumno_{{ a.id }}" class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            {% elif object.distribucion == 2 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-6 col-md-2r col-lg-2r">
+            {% elif object.distribucion == 3 %}<li id="alumno_{{ a.id }}" class="col-xs-4 col-sm-4 col-md-3r col-lg-3r">
+            {% elif object.distribucion == 4 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4r col-md-4r col-lg-4r">
+            {% elif object.distribucion == 5 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-5r col-md-5r col-lg-5r">
+            {% elif object.distribucion == 6 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-6r col-md-6r col-lg-6r">
+            {% elif object.distribucion == 7 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-5r col-md-7r col-lg-7r">
+            {% elif object.distribucion == 8 %}<li id="alumno_{{ a.id }}" class="col-xs-6 col-sm-4r col-md-8r col-lg-8r">
+            {% endif %}
+
+                <div class="panel panel-primary" id="panel-alumno{{ a.id }}">
+
+                    <div class="panel-heading" style="height: 30px; padding: 8px 8px 8px 8px; white-space: nowrap; overflow: hidden;text-overflow: ellipsis;">
+                        <h4 class="panel-title" style="font-weight: bold; ">
+                            {% if object.distribucion <= 4%}
+                                {{ a.nombre|add:" "|add:a.apellido1|add:" "|add:a.apellido2 |truncatechars:30}}
+                            {% elif object.distribucion == 5%}
+                                {{ a.nombre|add:" "|add:a.apellido1|add:" "|add:a.apellido2 |truncatechars:25}}
+                            {% elif object.distribucion == 6 %}
+                                {{ a.nombre|add:" "|add:a.apellido1 | truncatechars:18}} {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% elif object.distribucion == 7 %}
+                                {{ a.nombre|truncatechars:12}} {{ a.apellido1 | first }}. {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% elif object.distribucion == 8 %}
+                                {{ a.nombre|truncatechars:8}} {{ a.apellido1 | first }}. {% if a.apellido2 %}{{ a.apellido2 |first }}.{% endif %}
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <div class="panel-body" style="padding: 5px">
+                        {% if a.foto %}
+                            <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
+                        {% else %}
+                            <img src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
+                        {% endif %}
+                    </div>
+                </div>
+             </li>
+         {% endfor %}
+         </ul>
+        </div>
+
     {% else %}
 
         <h5 class="alert alert-warning">Actualmente no tutoriza ningún grupo</h5>
@@ -127,4 +191,3 @@
 
 
 {% endblock %}
-
