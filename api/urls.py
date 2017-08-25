@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 from django.conf.urls import url, include
 from django.contrib import admin
 from api import views
@@ -10,12 +11,15 @@ from rest_framework.urlpatterns import format_suffix_patterns
 router = routers.DefaultRouter()
 #router.register(r'profesores', views.ProfesorUserViewSet)
 router.register(r'grupos', views.GrupoViewSet)
-router.register(r'lista/asignaturas', views.AsignaturaViewSet, base_name='lista-asignaturas')
-router.register(r'asignaturas', views.MisAsignaturaViewSet, base_name='asignaturas')
-router.register(r'lista/grupos', views.GrupoListViewSet, base_name='lista-grupos')
+router.register(r'lista/asignaturas', views.AsignaturaViewSet, base_name='list-asignaturas')
+router.register(r'asignaturas', views.MisAsignaturasViewSet, base_name='asignaturas')
+router.register(r'lista/grupos', views.GrupoListViewSet, base_name='list-grupos')
+router.register(r'spinner/grupos', views.GrupoShortViewSet, base_name='spinner-grupos')
 router.register(r'tutoria', views.AlumnadoTutoriaViewSet, base_name='tutoria')
+router.register(r'orden/tutoria', views.AlumnadoOrdenadoTutoriaViewSet, base_name='tutoria-orden')
 router.register(r'alumnado/asignaturas', views.AlumnadoAsignaturaViewSet, base_name='alumnado-asignaturas')
 router.register(r'alumnado/grupos', views.AlumnadoGrupoViewSet, base_name='alumnado-grupos')
+router.register(r'alumnado/orden/grupos', views.AlumnadoOrdenadoGrupoViewSet, base_name='alumnado-orden-grupos')
 #router.register(r'alumnos', views.AlumnoViewSet)
 router.register(r'matriculas', views.MatriculaViewSet)
 router.register(r'anotaciones', views.AnotacionViewSet)
@@ -25,6 +29,15 @@ urlpatterns = [
 #PROFESORES
     url(r'^profesores/$', views.ProfesorUserList.as_view(), name='list-profesores'), #GET, POST
     url(r'^profesor/(?P<pk>\d+)/$', views.ProfesorUserDetail.as_view(), name='detail-profesor'), #GET, PUT, DELETE
+
+#GRUPOS
+    #cambiar el número de columnas del grupo
+    url(r'^grupo/(?P<pk>\d+)/distribucion/$', views.UpdateDistribucionGrupo.as_view(), name='distribucion-grupo'),
+    #cambiar la disposición u orden del alumnado dentro del grupo
+    url(r'^grupo/(?P<pk>\d+)/disposicion/$', views.UpdateDisposicionGrupo.as_view(), name='disposicion-grupo'),
+
+#ASIGNATURAS POR GRUPOS
+    url(r'^grupo/(?P<idGrupo>\d+)/asignaturas/$', views.AsignaturasGrupo.as_view(), name='list-asignaturas-grupo'), #GET, POST
 #ALUMNOS
     url(r'^alumnos/$', views.AlumnoList.as_view(), name='list-alumnos'),
     url(r'^alumno/(?P<pk>\d+)/$', views.AlumnoDetail.as_view(), name='detail-alumno'),
@@ -45,6 +58,3 @@ urlpatterns = [
     #url(r'^anotaciones/nueva/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerAnotaciones, name='put-anotaciones'),
 
 ]
-
-
-#urlpatterns = format_suffix_patterns(urlpatterns)

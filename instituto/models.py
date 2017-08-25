@@ -107,6 +107,9 @@ class Grupo(models.Model):
     def get_absolute_url(self):
         return reverse('lista-grupos')
 
+    def ordenar_alumnos(self):
+        return self.alumno_set.order_by('orden')
+
     class Meta:
         ordering = ['curso', 'unidad']
         verbose_name_plural = 'grupos'

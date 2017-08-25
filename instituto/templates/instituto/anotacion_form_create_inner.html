@@ -1,24 +1,27 @@
 <form class="form form-anotaciones" action="{% url 'nueva-anotacion' alumno asignatura vista fecha %}" method="post">{% csrf_token %}
 
-    {{ form.as_p }}
-    {% comment %}
         <div class="form-group">
             <label class="col-md-4 control-label">{{ form.falta.label }}</label>
-            <div class="col-md-5"><input type="checkbox" class="form-control-static" id="id_falta" name="falta"></div>
+            <div class="col-md-6" style="font-size: smaller"><select class="form-control" id="id_falta" name="falta">
+                                <option value="" selected="selected">----</option>
+                                <option value="I">Injustificada</option>
+                                <option value="J">Justificada</option>
+                                <option value="R">Retraso</option>
+                                </select></div>
         </div>
         <div class="form-group">
             <label class="col-md-4 control-label">{{ form.trabaja.label }}</label>
-            <div class="col-md-5"><input type="checkbox" class="form-control-static" id="id_trabaja" name="trabaja"></div>
+            <div class="col-md-6"><input type="checkbox" class="form-control" id="id_trabaja" name="trabaja" ></div>
         </div>
         <div class="form-group">
             <label class="col-md-4 control-label">{{ form.positivos.label }}</label>
-            <div class="col-md-5"><input class="form-control" id="id_positivos" min="0" name="positivos" type="number"></div>
+            <div class="col-md-6"><input class="form-control" id="id_positivos" min="0" name="positivos" type="number"></div>
         </div>
         <div class="form-group">
             <label class="col-md-4 control-label">{{ form.negativos.label }}</label>
-            <div class="col-md-5"><input class="form-control" id="id_negativos" min="0" name="negativos" type="number"></div>
+            <div class="col-md-6"><input class="form-control" id="id_negativos" min="0" name="negativos" type="number"></div>
         </div>
-    {% endcomment %}
+
 
     <button class="btn btn-primary" type="submit">Guardar</button>
 </form>

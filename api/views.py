@@ -1,13 +1,15 @@
+# This Python file uses the following encoding: utf-8
 from datetime import date, datetime
 from django.shortcuts import render, get_object_or_404
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer
-from serializers import AlumnadoGrupoSerializer, MisAsignaturaSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
-from serializers import AlumnoSerializer, AlumnoShortSerializer, MatriculaSerializer, AnotacionSerializer, AnotacionShortSerializer
+from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer, GrupoShortSerializer
+from serializers import AlumnadoGrupoSerializer, AlumnadoOrdenadoGrupoSerializer, MisAsignaturasSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
+from serializers import AlumnoSerializer, AlumnoOrdenSerializer, AlumnoAnotacionSerializer, MatriculaSerializer, AnotacionSerializer, AnotacionShortSerializer
 from rest_framework import viewsets
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 # Create your views here.
@@ -43,9 +45,9 @@ class GrupoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
 
-class MisAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
+class MisAsignaturasViewSet(viewsets.ReadOnlyModelViewSet):
     #queryset = Asignatura.objects.all()
-    serializer_class = MisAsignaturaSerializer
+    serializer_class = MisAsignaturasSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
@@ -56,12 +58,14 @@ class AsignaturaViewSet(viewsets.ModelViewSet):
     serializer_class = AsignaturaSerializer
     permission_classes = (IsAuthenticated,)
 
-class AlumnadoTutoriaViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = AlumnadoGrupoSerializer
+class AsignaturasGrupo(ListAPIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = AsignaturaSerializer
 
     def get_queryset(self):
-        return Grupo.objects.filter(tutor=self.request.user)
+        grupo = self.kwargs['idGrupo']
+        return Asignatura.objects.filter(grupo__id=grupo)
+
 
 class AlumnadoAsignaturaViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Asignatura.objects.all()
@@ -74,15 +78,60 @@ class AlumnadoGrupoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AlumnadoGrupoSerializer
     permission_classes = (IsAuthenticated,)
 
+class AlumnadoOrdenadoGrupoViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Grupo.objects.all()
+    serializer_class = AlumnadoOrdenadoGrupoSerializer
+    permission_classes = (IsAuthenticated,)
+
+class AlumnadoTutoriaViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AlumnadoGrupoSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Grupo.objects.filter(tutor=self.request.user)
+
+class AlumnadoOrdenadoTutoriaViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AlumnadoOrdenadoGrupoSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return Grupo.objects.filter(tutor=self.request.user)
+
 class GrupoListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Grupo.objects.all()
     serializer_class = GrupoListSerializer
     permission_classes = (IsAuthenticated,)
 
+class GrupoShortViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Grupo.objects.all()
+    serializer_class = GrupoShortSerializer
+    permission_classes = (IsAuthenticated,)
 
-"""class AlumnoViewSet(viewsets.ModelViewSet):
-    queryset = Alumno.objects.all()
-    serializer_class = AlumnoSerializer"""
+class UpdateDistribucionGrupo(UpdateAPIView):
+    queryset = Grupo.objects.all()
+    serializer_class = GrupoShortSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        #se actualiza la distribución (pasada por PUT)
+        grupo = Grupo.objects.get(pk=self.kwargs['pk'])
+        serializer.save(tutor=grupo.tutor, curso=grupo.curso, unidad=grupo.unidad, distribucion=self.request.data['distribucion'])
+
+class UpdateDisposicionGrupo(UpdateAPIView):
+    queryset = Grupo.objects.all()
+    serializer_class = GrupoShortSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        grupo = Grupo.objects.get(pk=self.kwargs['pk'])
+        #se actualiza el orden del alumnado
+        for index, alumno_pk in enumerate(self.request.data['alumnos']):
+            # alumno a ordenar
+            alumno = get_object_or_404(Alumno, pk=int(str(alumno_pk)))
+            alumno.orden = int(str(index)) + 1
+            alumno.save()
+        serializer.save(tutor=grupo.tutor, curso=grupo.curso, unidad=grupo.unidad)
+
 
 class MatriculaViewSet(viewsets.ModelViewSet):
     queryset = Matricula.objects.all()

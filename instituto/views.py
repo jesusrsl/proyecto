@@ -18,6 +18,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import FileResponse
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.db.models.deletion import ProtectedError
@@ -30,7 +31,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 
 from .forms import RegisterForm, UpdateForm, ProfesorUpdateForm, MatriculaForm
 from .models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-
+from django.http import FileResponse, Http404
 
 
 # Create your views here.
@@ -89,12 +90,11 @@ def base(request):
 def acerca(request):
     return render(request, 'about.html')
 
-@login_required
-def profesoradoPDF(request):
 
+def profesoradoPDF(request):
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "profesorado.pdf"
-    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+    response['Content-Disposition'] = 'attachment; filename="%s"' % pdf_name
 
     buff = BytesIO()
     doc = SimpleDocTemplate(buff,
@@ -218,12 +218,11 @@ def tutoriasPDF(request):
     buff.close()
     return response
 """
-@login_required
 def gruposPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "grupos.pdf"
-    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+    response['Content-Disposition'] = 'attachment; filename="%s"' % pdf_name
 
     buff = BytesIO()
     doc = SimpleDocTemplate(buff,
@@ -269,7 +268,6 @@ def gruposPDF(request):
     buff.close()
     return response
 
-@login_required
 def grupoPDF(request, pk):
 
     response = HttpResponse(content_type='application/pdf')
@@ -325,6 +323,61 @@ def grupoPDF(request, pk):
     buff.close()
     return response
 
+def tutoriaPDF(request):
+
+    response = HttpResponse(content_type='application/pdf')
+    grupo = Grupo.objects.get(tutor=request.user)
+    nombre = grupo.get_curso_display()
+    if grupo.unidad != "":
+        nombre = nombre + " " +  grupo.unidad
+    pdf_name = "tutoria-%s.pdf" % nombre.replace(" ","-")
+    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+
+    buff = BytesIO()
+    doc = SimpleDocTemplate(buff,
+                            pagesize=A4,
+                            showBoundary=0,
+                            rightMargin=40,
+                            leftMargin=40,
+                            topMargin=60,
+                            bottomMargin=20,
+                            title = u"Tutoría %s" % (grupo.get_curso_display() + " " +  grupo.unidad),
+                            author = request.user.username,
+                            pageBreakQuick = 1,
+                            )
+
+    contenido = []
+
+    # definicion de estilos
+    styles = getSampleStyleSheet()
+    # estilo para el titulo de cabecera
+    h1 = styles['Heading1']
+    h1.alignment = 1  # centrado
+    h1.spaceAfter = 30
+    # estilo para el cuerpo
+    styles = getSampleStyleSheet()
+    c1 = styles['Normal']
+    c1.alignment = TA_LEFT
+    c1.leftIndent = 50
+    c1.spaceAfter = 20
+    c1.fontName = 'Times-Roman'
+
+
+    header = Paragraph(u"Tutoría %s" %(grupo.get_curso_display() + " " +  grupo.unidad), h1)
+    contenido.append(header)
+
+    texto = Paragraph("Tutor/a: %s" % (grupo.tutor.first_name + " " + grupo.tutor.last_name), c1)
+    contenido.append(texto)
+
+    t = grupoPorPagina(grupo.pk)
+
+    contenido.append(t)
+
+    doc.build(contenido)
+    response.write(buff.getvalue())
+    buff.close()
+    return response
+
 def grupoPorPagina(pk):
     grupo = Grupo.objects.get(pk=pk)
 
@@ -348,12 +401,11 @@ def edad(nac):
     years = str(int(diff/365))
     return years
 
-@login_required
 def asignaturasPDF(request):
 
     response = HttpResponse(content_type='application/pdf')
     pdf_name = "asignaturas.pdf"
-    response['Content-Disposition'] = 'attachment; filename=%s' % pdf_name
+    response['Content-Disposition'] = 'attachment; filename="%s"' % pdf_name
 
     buff = BytesIO()
     doc = SimpleDocTemplate(buff,
@@ -403,7 +455,7 @@ def asignaturasPDF(request):
     buff.close()
     return response
 
-@login_required
+
 def asignaturaPDF(request, pk):
 
     response = HttpResponse(content_type='application/pdf')
@@ -1413,6 +1465,18 @@ class GrupoTutorDetailView(LoginRequiredMixin, DetailView):
         context = super(GrupoTutorDetailView, self).get_context_data(**kwargs)
         context.update({'vista': self.kwargs['vista']})
         return context"""
+
+#vista para que el tutor cambie la distribución de su clase
+@login_required
+@csrf_exempt
+def cambiarTutoria(request):
+
+    if "columnas" in request.POST:
+        grupo = Grupo.objects.get(tutor=request.user)
+        grupo.distribucion = request.POST.get('columnas')
+        grupo.save()
+
+    return HttpResponseRedirect(reverse('grupo-tutoria'))
 
 
 #Permiso: solo superusers

@@ -9,7 +9,8 @@
 
 
     <script>
-    $(document).ready(function() {
+
+    function ordenar(){
          $("#ordenable").sortable({
             // Only make the .panel-heading child elements support dragging.
             // Omit this to make then entire <li>...</li> draggable.
@@ -27,6 +28,9 @@
                 });
             }
         });
+    }
+
+    function tabla(){
         $('#tutoria').DataTable({
             "order": [[ 1, "asc" ]],
 
@@ -35,7 +39,27 @@
                 "url": "{% static 'language/Spanish.json' %}"
             }
         } );
+    }
+
+    $(document).ready(function() {
+        ordenar();
+        tabla();
     } );
+
+    var cambiarTutoria = function(){
+        $.ajax({
+                type: 'POST',
+                data: { columnas: $('#columnas').val() },
+                url: "{% url "cambiar-tutoria" %}",
+                success: function (xhr, ajaxOptions, thrownError) {
+                    //alert($(xhr).find('#grupoCuad').html());
+                    var contenidoDiv = '<div class="row well" id="grupoCuad" style="display: block">'
+                        + $(xhr).find('#grupoCuad').html() +'</div>';
+                    $('#grupoCuad').replaceWith(contenidoDiv);
+                    ordenar();
+                }
+            });
+    };
 
     </script>
 {% endblock %}
@@ -57,7 +81,7 @@
         <a data-toggle="tooltip" title="Editar" href="{% url 'editar-grupo' object.id %}"><i class="material-icons">mode_edit</i></a>
         <a data-toggle="tooltip" title="Eliminar" href="{% url 'eliminar-grupo' object.id %}"><i class="material-icons">delete</i></a>
     {% endif %}
-        <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'grupo-pdf' object.id %}"><i class="material-icons">picture_as_pdf</i></a>
+        <a data-toggle="tooltip" title="Exportar a PDF" href="{% url 'tutoria-pdf' %}"><i class="material-icons">picture_as_pdf</i></a>
      </h2>
      </div>
     <div class="btn-group-sm" style="text-align: right; padding-top: 15px">
@@ -65,7 +89,7 @@
 
             <div id="distribucion" style="display: none">
                 <label class="control-label"  for="columnas"> Distribución: </label>
-                <select name="columnas" id="columnas" size="1" onchange="document.getElementById('tutoria_form').submit()">
+                <select name="columnas" id="columnas" size="1">
                     {% comment %}
                     <option {% if cols == 1 %}selected {% endif %} value="1">1</option>
                     <option {% if cols == 2 %}selected {% endif %} value="2">2</option>
@@ -77,6 +101,11 @@
                     <option {% if object.distribucion == 7 %}selected {% endif %} value="7">7</option>
                     <option {% if object.distribucion == 8 %}selected {% endif %} value="8">8</option>
                 </select>
+                <script>
+                    $('#columnas').change(function() {
+                        cambiarTutoria();
+                    });
+                </script>
             </div>
 
             <button type="button" class="btn btn-primary btn-fab" onclick="cambiarTutoriaVista('cuadricula')" data-toggle="tooltip" title="Vista cuadrícula">
@@ -171,11 +200,13 @@
                         </h4>
                     </div>
                     <div class="panel-body" style="padding: 5px">
+                        <a href="{% url 'detalle-alumno-tutoria' a.id %}">
                         {% if a.foto %}
                             <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
                         {% else %}
                             <img src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
                         {% endif %}
+                        </a>
                     </div>
                 </div>
              </li>

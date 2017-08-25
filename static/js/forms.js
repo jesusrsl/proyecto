@@ -76,7 +76,6 @@ function cambiarGrupoVista(bloq) {
 
    }
    else {
-       document.getElementById("vista").value = "lista";
        divLista.style.display='block';
        divCuad.style.display='none';
    }
