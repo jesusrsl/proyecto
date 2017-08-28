@@ -22,7 +22,7 @@ router.register(r'alumnado/grupos', views.AlumnadoGrupoViewSet, base_name='alumn
 router.register(r'alumnado/orden/grupos', views.AlumnadoOrdenadoGrupoViewSet, base_name='alumnado-orden-grupos')
 #router.register(r'alumnos', views.AlumnoViewSet)
 router.register(r'matriculas', views.MatriculaViewSet)
-router.register(r'anotaciones', views.AnotacionViewSet)
+#router.register(r'anotaciones', views.AnotacionViewSet)
 
 urlpatterns = [
     url(r'', include(router.urls)),
@@ -50,7 +50,8 @@ urlpatterns = [
     url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.CreateAnotacion.as_view(), name='new-anotacion'),
     url(r'^anotacion/(?P<pk>\d+)/editar/$', views.UpdateAnotacion.as_view(), name='edit-anotacion'),
 
-    #url(r'^anotacion/falta/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerFalta, name='put-falta'),
+    url(r'^anotaciones/PDF/$', views.ver_anotaciones, name='anotaciones-pdf'),
+    url(r'^anotacion/falta/$',views.poner_anotaciones, name='put-falta'),
     #url(r'^anotacion/trabaja/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerTrabaja, name='put-trabaja'),
     #url(r'^anotacion/positivo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerPositivo, name='put-positivo'),
     #url(r'^anotacion/negativo/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.ponerNegativo, name='put-negativo'),

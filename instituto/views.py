@@ -728,8 +728,6 @@ def matriculasPorPagina(idGrupo, listaAsignaturas):
     return tabla
 
 
-
-@login_required
 def anotacionesPDF(request, idAsignatura, inicio, fin):
 
     response = HttpResponse(content_type='application/pdf')
@@ -2306,8 +2304,7 @@ def ponerAnotaciones(request, idAsignatura, vista, fecha):
 
     if lista is not None and request.POST.get('nota') == "falta":
         for alumno in lista:
-            falta\
-                (request, alumno, idAsignatura, fecha)
+            falta(request, alumno, idAsignatura, fecha)
         #messages.add_message(request, messages.SUCCESS, '[%s] Falta(s) puesta(s) correctamente' % fecha)
 
     elif lista is not None and request.POST.get('nota') == "trabaja":

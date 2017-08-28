@@ -1,10 +1,14 @@
 # This Python file uses the following encoding: utf-8
 from datetime import date, datetime
 from django.shortcuts import render, get_object_or_404
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
+from instituto.views import anotacionesPDF, falta, trabaja, positivo, negativo
 from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer, GrupoShortSerializer
 from serializers import AlumnadoGrupoSerializer, AlumnadoOrdenadoGrupoSerializer, MisAsignaturasSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
 from serializers import AlumnoSerializer, AlumnoOrdenSerializer, AlumnoAnotacionSerializer, MatriculaSerializer, AnotacionSerializer, AnotacionShortSerializer
@@ -199,3 +203,45 @@ class UpdateAnotacion(RetrieveUpdateAPIView):
                         fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y') )"""
 
 
+@api_view(['GET', 'POST'])
+def ver_anotaciones(request):
+        idAsignatura=request.data['idAsignatura']
+        f_inicio = request.data['inicio']
+        f_fin = request.data['fin']
+        try:
+            inicio = datetime.strptime(f_inicio, '%d/%m/%Y')
+            fin = datetime.strptime(f_fin, '%d/%m/%Y')
+            anotaciones = Anotacion.objects.filter(fecha__gte=inicio, fecha__lte=fin,
+                                                   asignatura=Asignatura.objects.get(pk=idAsignatura)).order_by('fecha',
+                                                                                                                'alumno')
+            if anotaciones.count() == 0:  # no existen anotaciones en esas fechas
+                content = {'No existen anotaciones en las fechas indicadas. Por favor, inténtelo de nuevo.'}
+                return Response(content, status=status.HTTP_204_NO_CONTENT)
+            else:
+                return anotacionesPDF(request, idAsignatura, inicio, fin)
+        except ValueError:
+            content = {'No existen anotaciones en las fechas indicadas. Por favor, inténtelo de nuevo.'}
+            return Response(content, status=status.HTTP_204_NO_CONTENT)
+
+#def falta(request, idAlumno, idAsignatura, fecha)
+@api_view(['GET', 'POST'])
+def poner_anotaciones(request):
+    valoracion = request.data['valoracion']
+    idAsignatura = request.data['idAsignatura']
+    fecha = request.data['fecha']
+    jsonObject = []
+    for alumno in request.data['alumnos']:
+        if valoracion == "falta":
+            falta(request, alumno, idAsignatura, fecha)
+        elif valoracion == "trabaja":
+            trabaja(request, alumno, idAsignatura, fecha)
+        elif valoracion == "positivo":
+            positivo(request, alumno, idAsignatura, fecha)
+        elif valoracion == "negativo":
+            negativo(request, alumno, idAsignatura, fecha)
+
+        anotacion = Anotacion.objects.filter(alumno=alumno, asignatura=Asignatura.objects.get(pk=idAsignatura),fecha=datetime.strptime(fecha, '%d/%m/%Y'))
+        serializer = AnotacionSerializer(anotacion.first())
+        jsonObject.append(serializer.data)
+
+    return Response(jsonObject, status=status.HTTP_200_OK)
