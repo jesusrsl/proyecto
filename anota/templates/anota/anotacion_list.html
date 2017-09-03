@@ -15,8 +15,22 @@
 
 {% block maincontent %}
 
-    <h2>Anotaciones de la asignatura {{ nombreAsignatura }}</h2>
-    <hr>
+    <div class="btn-group-sm enlaces-fecha">
+            <button type="button" class="btn btn-primary btn-fab"
+                    onclick="window.location.href='{% url 'detalle-asignatura-cuad' idAsignatura fecha %}'" data-toggle="tooltip" title="Vista cuadrícula">
+                <i class="material-icons">view_module</i>
+            </button>
+
+            <button type="button" class="btn btn-primary btn-fab"
+                    onclick="window.location.href='{% url 'detalle-asignatura-lista' idAsignatura fecha %}'" data-toggle="tooltip" title="Vista lista">
+                <i class="material-icons">view_list</i>
+            </button>
+
+            <button type="button" class="btn btn-primary btn-fab" data-toggle="tooltip" title="Anotaciones"
+                    onclick="">
+                <i class="material-icons">assessment</i>
+            </button>
+    </div>
 
     <div id="lateral" class="table-responsive">
 

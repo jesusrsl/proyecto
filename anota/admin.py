@@ -1,6 +1,8 @@
 # This Python file uses the following encoding: utf-8
 from django.contrib import admin
-from django.forms import ModelForm
+from import_export import fields
+from import_export.widgets import ForeignKeyWidget
+
 from .models import ProfesorUser, Grupo, Asignatura, Alumno, Matricula, Anotacion
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -10,27 +12,75 @@ class ProfesorUserResource(resources.ModelResource):
 
     class Meta:
         model = ProfesorUser
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email')
+
 
 class GrupoResource(resources.ModelResource):
 
+    tutor = fields.Field(
+        column_name='tutor',
+        attribute='tutor',
+        widget=ForeignKeyWidget(ProfesorUser, 'username'))
+
+
     class Meta:
         model = Grupo
-        fields = ('curso', 'unidad', 'tutor__first_name', 'tutor__last_name')
+        fields = ('id', 'curso', 'unidad', 'tutor')
+
+class GrupoForeignKeyWidget(ForeignKeyWidget):
+    def get_queryset(self, value, row):
+        if len(row["unidad"]) > 0:
+            return self.model.objects.filter(
+                curso=row["curso"],
+                unidad=row["unidad"]
+            )
+        else:
+            print "aqui"
+            return self.model.objects.filter(
+                curso=row["curso"],
+                unidad=""
+            )
+
 
 class AsignaturaResource(resources.ModelResource):
+    profesor = fields.Field(
+        column_name='profesor',
+        attribute='profesor',
+        widget=ForeignKeyWidget(ProfesorUser, 'username'))
+
+    curso = fields.Field(
+        column_name='curso',
+        attribute='grupo',
+        widget=GrupoForeignKeyWidget(Grupo, 'curso'))
+
+    unidad = fields.Field(
+        column_name='unidad',
+        attribute='grupo',
+        widget=GrupoForeignKeyWidget(Grupo, 'unidad'))
 
     class Meta:
         model = Asignatura
-        fields = ('nombre', 'profesor__first_name', 'profesor__last_name', 'grupo__curso', 'grupo__unidad',)
+        exclude = ('grupo',)
+        fields = ('id', 'nombre', 'profesor', 'grupo', 'curso', 'unidad',)
         #exclude = ('campo_a_excluir',)
         #export_order = ('id', 'profesor', 'nombre')
 
+
 class AlumnoResource(resources.ModelResource):
+    curso = fields.Field(
+        column_name='curso',
+        attribute='grupo',
+        widget=GrupoForeignKeyWidget(Grupo, 'curso'))
+
+    unidad = fields.Field(
+        column_name='unidad',
+        attribute='grupo',
+        widget=GrupoForeignKeyWidget(Grupo, 'unidad'))
 
     class Meta:
         model = Alumno
-        fields = ('nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'grupo__curso', 'grupo__unidad', )
+        exclude = ('grupo', )
+        fields = ('id', 'nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'grupo', 'curso', 'unidad')
         #exclude = ('campo_a_excluir',)
         #export_order = ('id', 'profesor', 'nombre')
 

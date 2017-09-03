@@ -3,6 +3,11 @@
     margin-bottom: 5px;
 }
 
+.enlaces-fecha-left {
+    text-align: left;
+    margin-bottom: 5px;
+}
+
 #ordenable .panel-heading {
         cursor: move;
     }

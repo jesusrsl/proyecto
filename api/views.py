@@ -1,5 +1,7 @@
 # This Python file uses the following encoding: utf-8
 from datetime import date, datetime
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -7,10 +9,12 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
-from instituto.views import anotacionesPDF, falta, trabaja, positivo, negativo
-from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer, GrupoShortSerializer
-from serializers import AlumnadoGrupoSerializer, AlumnadoOrdenadoGrupoSerializer, MisAsignaturasSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
+from anota.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
+from anota.views import anotacionesPDF, falta, trabaja, positivo, negativo
+from serializers import ProfesorUserSerializer, ProfesorDetailSerializer, GrupoSerializer, GrupoListSerializer, GrupoShortSerializer, \
+    DetailAsignaturaOrdenSerializer
+from serializers import AlumnadoGrupoSerializer, AlumnadoOrdenadoGrupoSerializer
+from serializers import AsignaturaShortSerializer, MisAsignaturasSerializer, DetailAsignaturaSerializer, AsignaturaSerializer, AlumnadoAsignaturaSerializer
 from serializers import AlumnoSerializer, AlumnoOrdenSerializer, AlumnoAnotacionSerializer, MatriculaSerializer, AnotacionSerializer, AnotacionShortSerializer
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView
@@ -137,6 +141,36 @@ class UpdateDisposicionGrupo(UpdateAPIView):
         serializer.save(tutor=grupo.tutor, curso=grupo.curso, unidad=grupo.unidad)
 
 
+class UpdateDistribucionAsignatura(UpdateAPIView):
+    queryset = Asignatura.objects.all()
+    serializer_class = AsignaturaShortSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        #se actualiza la distribución (pasada por PUT)
+        asignatura = Asignatura.objects.get(pk=self.kwargs['pk'])
+        serializer.save(nombre=asignatura.nombre, profesor=asignatura.profesor, grupo=asignatura.grupo, distribucion=self.request.data['distribucion'])
+
+class UpdateDisposicionAsignatura(UpdateAPIView):
+    queryset = Asignatura.objects.all()
+    serializer_class = AsignaturaShortSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def perform_update(self, serializer):
+        asignatura = Asignatura.objects.get(pk=self.kwargs['pk'])
+        #se actualiza el orden del alumnado
+        for index, alumno_pk in enumerate(self.request.data['alumnos']):
+            # alumno a ordenar
+            alumno = get_object_or_404(Alumno, pk=int(str(alumno_pk)))
+
+            # matricula cuyo orden se va a cambiar
+            matricula = Matricula.objects.get(asignatura=asignatura, alumno=alumno)
+
+            matricula.orden = int(str(index)) + 1
+            matricula.save()
+        serializer.save(nombre=asignatura.nombre, profesor=asignatura.profesor, grupo=asignatura.grupo)
+
+
 class MatriculaViewSet(viewsets.ModelViewSet):
     queryset = Matricula.objects.all()
     serializer_class = MatriculaSerializer
@@ -179,6 +213,19 @@ class DetailAsignatura(DetailAsignaturaMixin, RetrieveAPIView):
         fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
         return {"idAsignatura": idAsignatura, "fecha": fecha, "request": self.request}
 
+class DetailAsignaturaOrdenMixin(object):
+    queryset = Asignatura.objects.all()
+    #ordering = ('matricula__orden',)
+    serializer_class = DetailAsignaturaOrdenSerializer
+
+class DetailAsignaturaOrden(DetailAsignaturaOrdenMixin, RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get_serializer_context(self):
+        idAsignatura = self.kwargs['pk']
+        fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        return {"idAsignatura": idAsignatura, "fecha": fecha, "request": self.request}
+
 
 class CreateAnotacion(CreateAPIView):
     queryset = Anotacion.objects.all()
@@ -186,9 +233,21 @@ class CreateAnotacion(CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def perform_create(self, serializer):
-        serializer.save(alumno=Alumno.objects.get(pk=self.kwargs['idAlumno']),
-                        asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura']),
-                        fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y') )
+        alumno = Alumno.objects.get(pk=self.kwargs['idAlumno'])
+        asignatura = Asignatura.objects.get(pk=self.kwargs['idAsignatura'])
+        fecha = datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y')
+        try:
+            anotacion=Anotacion.objects.filter(alumno=alumno, asignatura=asignatura, fecha=fecha).first()
+            if anotacion is None:
+                serializer.save(alumno=Alumno.objects.get(pk=self.kwargs['idAlumno']),
+                                asignatura=Asignatura.objects.get(pk=self.kwargs['idAsignatura']),
+                                fecha=datetime.strptime(self.kwargs['fecha'], '%d/%m/%Y'))
+            else:
+                return Response("Ya existe una anotacion para el alumno en la fecha indicada", status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response("Ya existe una anotacion para el alumno en la fecha indicada",
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 class UpdateAnotacion(RetrieveUpdateAPIView):
     queryset = Anotacion.objects.all()

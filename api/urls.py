@@ -36,6 +36,12 @@ urlpatterns = [
     #cambiar la disposición u orden del alumnado dentro del grupo
     url(r'^grupo/(?P<pk>\d+)/disposicion/$', views.UpdateDisposicionGrupo.as_view(), name='disposicion-grupo'),
 
+#DISTRIBUCIÓN de ASIGNATURAS
+    #cambiar el número de columnas de la asignatura
+    url(r'^asignatura/(?P<pk>\d+)/distribucion/$', views.UpdateDistribucionAsignatura.as_view(), name='distribucion-asignatura'),
+    #cambiar la disposición u orden del alumnado dentro de la asignatura
+    url(r'^asignatura/(?P<pk>\d+)/disposicion/$', views.UpdateDisposicionAsignatura.as_view(), name='disposicion-asignatura'),
+
 #ASIGNATURAS POR GRUPOS
     url(r'^grupo/(?P<idGrupo>\d+)/asignaturas/$', views.AsignaturasGrupo.as_view(), name='list-asignaturas-grupo'), #GET, POST
 #ALUMNOS
@@ -45,6 +51,8 @@ urlpatterns = [
 #ALUMNADO-ASIGNATURA-ANOTACIONES
     url(r'^asignatura/(?P<pk>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/detalle/$',
         views.DetailAsignatura.as_view(), name='detail-asignatura'),
+    url(r'^asignatura/(?P<pk>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/orden/$',
+        views.DetailAsignaturaOrden.as_view(), name='detail-asignatura-orden'),
 
 #ANOTACIONES
     url(r'^anotacion/nueva/(?P<idAlumno>\d+)/(?P<idAsignatura>\d+)/(?P<fecha>(0?[1-9]|[12][0-9]|3[01])/(0?[1-9]|1[012])/((19|20)\d\d))/$',views.CreateAnotacion.as_view(), name='new-anotacion'),

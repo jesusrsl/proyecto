@@ -122,7 +122,7 @@
 
                     <!-- detalle del alumno -->
                     <div class="panel-body" style="padding: 5px">
-                         <a style="cursor: pointer" id="anotacion-button{{ a.id }}" data-toggle="tooltip" title="Editar">
+                         <a data-toggle="tooltip" title="{{ a.nombre }} {{ a.apellido1 }} {{ a.apellido2 }}" style="cursor: pointer" id="anotacion-button{{ a.id }}" data-toggle="tooltip" title="Editar">
                             {% if a.foto %}
                                 <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
                             {% else %}

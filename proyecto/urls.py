@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from instituto import views
+from anota import views
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_jwt.views import obtain_jwt_token
@@ -24,7 +24,7 @@ from rest_framework_jwt.views import obtain_jwt_token
 
 urlpatterns = [
     url(r'^$',views.base, name='inicio'),
-    url(r'^instituto/', include('instituto.urls')),
+    url(r'^anota/', include('anota.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include('api.urls')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),

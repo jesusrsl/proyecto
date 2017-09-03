@@ -73,7 +73,7 @@
                 {% if request.user.is_superuser %}
                     <td>{{ p.username }}</td>
                 {% endif %}
-                <td>{{ p.email }}</td>
+                <td>{% if p.email %}{{ p.email }}{% endif %}</td>
             </tr>
         {% endfor %}
         </tbody>

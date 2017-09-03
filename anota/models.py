@@ -81,20 +81,20 @@ class Aula(models.Model):
 
 class Grupo(models.Model):
     CURSO_CHOICES = (
-        (0, '1º ESO'),
-        (1, '2º ESO'),
-        (2, '3º ESO'),
-        (3, '4º ESO'),
-        (4, '1º BACH'),
-        (5, '2º BACH'),
-        (6, '1º CFGM'),
-        (7, '2º CFGM'),
-        (8, '1º CFGS'),
-        (9, '2º CFGS'),
-        (10, 'otros'),
+        (1, '1º ESO'),
+        (2, '2º ESO'),
+        (3, '3º ESO'),
+        (4, '4º ESO'),
+        (5, '1º BACH'),
+        (6, '2º BACH'),
+        (7, '1º CFGM'),
+        (8, '2º CFGM'),
+        (9, '1º CFGS'),
+        (10, '2º CFGS'),
+        (11, 'otros'),
     )
     curso = models.PositiveSmallIntegerField(choices=CURSO_CHOICES)
-    unidad = models.CharField(max_length=10, blank=True)
+    unidad = models.CharField(max_length=10)
     tutor = models.OneToOneField(ProfesorUser, on_delete=models.PROTECT)    #clave alterna
     distribucion = models.PositiveSmallIntegerField(default=6, validators=[MaxValueValidator(8), MinValueValidator(1)])
 
@@ -113,6 +113,7 @@ class Grupo(models.Model):
     class Meta:
         ordering = ['curso', 'unidad']
         verbose_name_plural = 'grupos'
+        unique_together = ('curso', 'unidad',)
 
 
 class Asignatura(models.Model):
@@ -133,9 +134,13 @@ class Asignatura(models.Model):
     def get_absolute_url(self):
         return reverse('lista-asignaturas')
 
+    def ordenar_alumnos(self):
+        return self.alumno_set.order_by('matricula__orden')
+
     class Meta:
         ordering = ['grupo','nombre','profesor']
         verbose_name_plural = 'asignaturas'
+        unique_together = ('nombre', 'grupo',)
 
 
 class Alumno(models.Model):
@@ -228,6 +233,7 @@ class Matricula(models.Model):
     class Meta:
         ordering = ['asignatura','orden']
         verbose_name_plural = 'matriculas'
+        unique_together = ('alumno', 'asignatura',)
 
 class Anotacion(models.Model):
     FALTA_CHOICES = (
@@ -263,3 +269,4 @@ class Anotacion(models.Model):
     class Meta:
         ordering = ['asignatura','fecha', 'alumno']
         verbose_name_plural = 'anotaciones'
+        unique_together = ('alumno', 'asignatura', 'fecha')

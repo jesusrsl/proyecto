@@ -12,6 +12,8 @@
 
     <form class="form form-alumno" enctype="multipart/form-data" method="post" role="form">{% csrf_token %}
 
+    <span style="color:#a93226"> {{ form.non_field_errors }} </span>
+
     <fieldset>
         {% for field in form %}
             {% if field.errors %}

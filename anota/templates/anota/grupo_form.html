@@ -14,7 +14,11 @@
 
 {% block maincontent %}
 
+
     <form class="form form-grupo" method="post" role="form">{% csrf_token %}
+
+    <span style="color:#a93226"> {{ form.non_field_errors }} </span>
+
 
     <fieldset>
 

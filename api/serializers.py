@@ -2,7 +2,7 @@
 import os, sys
 from collections import OrderedDict
 
-from instituto.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
+from anota.models import ProfesorUser, Asignatura, Grupo, Alumno, Matricula, Anotacion
 from rest_framework import serializers
 from datetime import date, datetime
 
@@ -105,6 +105,14 @@ class AsignaturaSerializer(serializers.ModelSerializer):
         model = Asignatura
         fields = ('pk', 'nombre', 'profesorText', 'profesor', 'profesorId', 'grupoText', 'grupo', 'distribucion')
 
+
+#Utilización: cambiar la distribución de la asignatura
+class AsignaturaShortSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Asignatura
+        fields = ('pk', 'distribucion')
+
 #Utilización: listar las asignaturas del usuario (diario de clase)
 class MisAsignaturasSerializer(serializers.ModelSerializer):
     #alumnos = AlumnoSerializer(many=True, read_only=True, source='alumno_set')
@@ -126,11 +134,12 @@ class AlumnadoAsignaturaSerializer(serializers.ModelSerializer):
         fields = ('pk', 'nombre', 'grupoText', 'alumnos', 'distribucion')
 
 
-class MatriculaSerializer(serializers.HyperlinkedModelSerializer):
+
+class MatriculaSerializer(serializers.ModelSerializer):
     alumno = serializers.PrimaryKeyRelatedField(queryset=Alumno.objects.all())
     class Meta:
         model = Matricula
-        fields = ('url', 'alumno', 'asignatura', 'orden')
+        fields = ('alumno', 'asignatura', 'orden')
 
 #Serializadores para realizar las anotaciones
 class AnotacionSerializer(serializers.ModelSerializer):
@@ -180,6 +189,14 @@ class AlumnoAnotacionSerializer(serializers.ModelSerializer):
 class DetailAsignaturaSerializer(serializers.ModelSerializer):
     grupo = serializers.StringRelatedField()
     alumnos = AlumnoAnotacionSerializer(many=True, read_only=True, source='alumno_set')
+
+    class Meta:
+        model = Asignatura
+        fields = ('pk', 'nombre', 'grupo', 'alumnos', 'distribucion')
+
+class DetailAsignaturaOrdenSerializer(serializers.ModelSerializer):
+    grupo = serializers.StringRelatedField()
+    alumnos = AlumnoAnotacionSerializer(many=True, read_only=True, source='ordenar_alumnos')
 
     class Meta:
         model = Asignatura

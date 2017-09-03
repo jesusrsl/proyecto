@@ -3,18 +3,20 @@
 
 {% block breadcrumbs %}
     <li><a href="{% url 'inicio'%}">Inicio</a></li>
-    <li><a href="{% url 'lista-profesores' %}">Profesorado</a></li>
+    <li><a href="{% url 'lista-asignaturas' %}">Asignaturas</a></li>
     {% if object.id != null %}
-        <li><a href="{% url 'detalle-profesor' object.id %}">{{ object.first_name | capfirst }} {{ object.last_name | capfirst }}</a></li>
+        <li><a href="{% url 'detalle-asignatura' object.id %}">{{ object.nombre}}</a></li>
         <li class="active">Editar</li>
     {% else %}
-        <li class="active">Nuevo</li>
+        <li class="active">Nueva</li>
     {% endif %}
 {% endblock %}
 
 {% block maincontent %}
 
-    <form class="form form-profesor"  method="post" role="form">{% csrf_token %}
+    <form class="form form-asignatura"  method="post" role="form">{% csrf_token %}
+
+    <span style="color:#a93226"> {{ form.non_field_errors }} </span>
 
     <fieldset>
 
@@ -24,7 +26,7 @@
                     <label class="col-md-4 control-label">
                         {{ field.label }} {% if field.field.required %}*{% endif %}</label>
                     <div class="col-md-8">{{field|addcss:"form-control"}}
-                        <span class="error help-inline">
+                        <span class="help-inline">
                             {% for error in  field.errors %}{{ error }}{% endfor %}
                         </span>
                     </div>
@@ -33,14 +35,9 @@
                 <div class="form-group">
                     <label class="col-md-4 control-label">
                         {{ field.label }} {% if field.field.required %}*{% endif %}</label>
-                    <div class="col-md-8">
-                        {% if field.label == "Es superusuario" %}
-                            {{field}}
-                        {% else %}
-                            {{field|addcss:"form-control"}}
-                        {% endif %}
+                    <div class="col-md-8">{{field|addcss:"form-control"}}
                         {% if field.help_text %}
-                            <p class="help-inline"><small>{{ field.help_text }}</small></p>
+                            <p class="error help-inline"><small>{{ field.help_text }}</small></p>
                         {% endif %}
                     </div>
                 </div>
@@ -51,13 +48,12 @@
         <div class="form-actions">
             <button type="submit" class="btn btn-primary" >Guardar</button>
             {% if object.id != null %}
-                <a class='btn btn-default' href="{% url 'detalle-profesor' object.id%}">Cancelar</a>
+                <a class='btn btn-default' href="{% url 'detalle-asignatura' object.id%}">Cancelar</a>
             {% else %}
-                <a class='btn btn-default' href="{% url 'lista-profesores'%}">Cancelar</a>
+                <a class='btn btn-default' href="{% url 'lista-asignaturas'%}">Cancelar</a>
             {% endif %}
         </div>
 
         </fieldset>
-</form>
-
+    </form>
 {% endblock %}

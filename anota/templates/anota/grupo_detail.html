@@ -34,7 +34,7 @@
 
 {% block maincontent %}
 
-    <div class="col-lg-3">
+    <div class="col-lg-4">
     <h2>{{ object.get_curso_display }} {{ object.unidad}}
 
     {% if request.user.is_superuser %}
@@ -93,7 +93,7 @@
                     {% endif %}
                 </td>
                 <td>{{ a.fecha_nacimiento | edad }}</td>
-                <td>{{ a.email }}</td>
+                <td>{% if a.email %}{{ a.email }}{% endif %}</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -134,9 +134,9 @@
                     </div>
                     <div class="panel-body" style="padding: 5px">
                         {% if a.foto %}
-                            <img src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
+                            <img data-toggle="tooltip" title="{{ a.nombre }} {{ a.apellido1 }} {{ a.apellido2 }}" src="{{ a.foto.url }} " class="img-circle foto-alumno"/>
                         {% else %}
-                            <img src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
+                            <img data-toggle="tooltip" title="{{ a.nombre }} {{ a.apellido1 }} {{ a.apellido2 }}" src="{%static "sinfoto.png" %}" class="img-circle foto-alumno"/>
                         {% endif %}
                     </div>
                 </div>

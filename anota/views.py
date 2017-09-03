@@ -1122,14 +1122,14 @@ class ProfesorCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     form_class = RegisterForm
     #fields = ['username', 'password', 'first_name', 'last_name', 'email']
     success_message = 'El docente %(first_name)s %(last_name)s se ha grabado correctamente' # %(field_name)s
-    warning_message = 'El docente %(first_name)s %(last_name)s ya se encuentra dado de alta en el sistema'
+    #warning_message = 'El docente %(first_name)s %(last_name)s ya se encuentra dado de alta en el sistema'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para crear nuevos profesores')
         return super(ProfesorCreate, self).handle_no_permission()
 
-    #se evitan profesores duplicados
+    """#se evitan profesores duplicados
     def form_valid(self, form):
         first_name = form.instance.first_name
         last_name = form.instance.last_name
@@ -1143,7 +1143,7 @@ class ProfesorCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
                                                                            last_name=last_name))
                 return HttpResponseRedirect(reverse('lista-profesores'))
         except ObjectDoesNotExist:
-            return super(ProfesorCreate, self).form_valid(form)
+            return super(ProfesorCreate, self).form_valid(form)"""
 
 
 #Permiso: solo superusers
@@ -1152,13 +1152,13 @@ class ProfesorUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
     form_class = ProfesorUpdateForm
     permission_required = 'is_superuser'
     success_message = 'El docente %(first_name)s %(last_name)s  se ha modificado correctamente'
-    warning_message = 'Los datos proporcionados ya corresponden al docente %(first_name)s %(last_name)s'
+    #warning_message = 'Los datos proporcionados ya corresponden al docente %(first_name)s %(last_name)s'
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para modificar los detalles del profesorado')
         return super(ProfesorUpdate, self).handle_no_permission()
 
-    #se evitan profesores duplicados (con mismo nombre y apellido)
+    """#se evitan profesores duplicados (con mismo nombre y apellido)
     def form_valid(self, form):
         first_name = form.instance.first_name
         last_name = form.instance.last_name
@@ -1172,19 +1172,19 @@ class ProfesorUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessage
                                                                            last_name=last_name))
                 return HttpResponseRedirect(reverse('lista-profesores'))
         except ObjectDoesNotExist:
-            return super(ProfesorUpdate, self).form_valid(form)
+            return super(ProfesorUpdate, self).form_valid(form)"""
 
 #Permiso: el propio usuario
 class UserUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = ProfesorUser
     form_class = UpdateForm
-    template_name = 'instituto/user_form.html'
+    template_name = 'anota/user_form.html'
     success_url = reverse_lazy('asignaturas-profesor')
 
     success_message = 'Su información personal se ha actualizado correctamente'
-    warning_message = 'Los datos proporcionados ya corresponden al docente %(first_name)s %(last_name)s'
+    #warning_message = 'Los datos proporcionados ya corresponden al docente %(first_name)s %(last_name)s'
 
-    # se evitan profesores duplicados (con mismo nombre y apellido)
+    """# se evitan profesores duplicados (con mismo nombre y apellido)
     def form_valid(self, form):
         first_name = form.instance.first_name
         last_name = form.instance.last_name
@@ -1198,7 +1198,7 @@ class UserUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, U
                                                                            last_name=last_name))
                 return HttpResponseRedirect(reverse('asignaturas-profesor'))
         except ObjectDoesNotExist:
-            return super(UserUpdate, self).form_valid(form)
+            return super(UserUpdate, self).form_valid(form)"""
 
     def test_func(self):
         return (int(self.request.user.id) == int(self.kwargs['pk']))
@@ -1243,7 +1243,7 @@ class ProfesorDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 #Permisos: todos los profesores
 class TutorListView(LoginRequiredMixin,ListView):
     model = ProfesorUser
-    template_name = 'instituto/tutor_list_OLD.html'
+    template_name = 'anota/tutor_list_OLD.html'
     paginate_by = 4
 
     def get_queryset(self):
@@ -1285,7 +1285,7 @@ class AsignaturaListView(LoginRequiredMixin, ListView):
 #Permisos: el propio profesor
 class AsignaturasProfesorListView(LoginRequiredMixin, ListView):
     model = Asignatura
-    template_name = 'instituto/asignatura_profesor_list.html'
+    template_name = 'anota/asignatura_profesor_list.html'
 
     def get_queryset(self):
         queryset = super(AsignaturasProfesorListView, self).get_queryset().filter(profesor=self.request.user)
@@ -1306,7 +1306,7 @@ class AsignaturaDetailView(LoginRequiredMixin, DetailView):
 #Permisos: el propio profesor
 class AsignaturaCuadView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Asignatura
-    template_name = 'instituto/asignatura_detail_cuad.html'
+    template_name = 'anota/asignatura_detail_cuad.html'
 
     def get_context_data(self, **kwargs):
         context = super(AsignaturaCuadView, self).get_context_data(**kwargs)
@@ -1331,7 +1331,7 @@ class AsignaturaCuadView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 #Permisos: el propio profesor
 class AsignaturaListaView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Asignatura
-    template_name = 'instituto/asignatura_detail_lista.html'
+    template_name = 'anota/asignatura_detail_lista.html'
 
     def get_context_data(self, **kwargs):
         context = super(AsignaturaListaView, self).get_context_data(**kwargs)
@@ -1354,14 +1354,14 @@ class AsignaturaCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessa
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha grabado correctamente'
-    warning_message = 'Ya existe la asignatura %(nombre)s en %(curso)s %(unidad)s. Utilice un nombre diferente.'
+    #warning_message = 'Ya existe la asignatura %(nombre)s en %(curso)s %(unidad)s. Utilice un nombre diferente.'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
         messages.warning(self.request, 'No tiene permiso para crear nuevas asignaturas')
         return super(AsignaturaCreate, self).handle_no_permission()
 
-    #se evitan asignaturas duplicadas
+    """#se evitan asignaturas duplicadas
     def form_valid(self, form):
         nombre = form.instance.nombre
         grupo = form.instance.grupo
@@ -1376,16 +1376,16 @@ class AsignaturaCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessa
                                                                            unidad=grupo.unidad))
                 return HttpResponseRedirect(reverse('lista-asignaturas'))
         except ObjectDoesNotExist:
-            return super(AsignaturaCreate, self).form_valid(form)
+            return super(AsignaturaCreate, self).form_valid(form)"""
 
 #Permiso: solo superusers y el propio profesor
 class AsignaturaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Asignatura
     fields = '__all__'
     success_message = 'La asignatura %(nombre)s se ha modificado correctamente'
-    warning_message = 'Problemas al actualizar: ya existe la asignatura %(nombre)s en %(curso)s %(unidad)s. Utilice un nombre diferente.'
+    #warning_message = 'Problemas al actualizar: ya existe la asignatura %(nombre)s en %(curso)s %(unidad)s. Utilice un nombre diferente.'
 
-    # se evitan asignaturas duplicadas
+    """# se evitan asignaturas duplicadas
     def form_valid(self, form):
         nombre = form.instance.nombre
         grupo = form.instance.grupo
@@ -1400,7 +1400,7 @@ class AsignaturaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMi
                                                                            unidad=grupo.unidad))
                 return HttpResponseRedirect(reverse('lista-asignaturas'))
         except ObjectDoesNotExist:
-            return super(AsignaturaUpdate, self).form_valid(form)
+            return super(AsignaturaUpdate, self).form_valid(form)"""
 
     def test_func(self):
         return (self.request.user.is_superuser or int(self.request.user.id) == int(Asignatura.objects.get(pk=self.kwargs['pk']).profesor.id))
@@ -1452,7 +1452,7 @@ class GrupoDetailView(LoginRequiredMixin, DetailView):
 # Permisos: el propio tutor
 class GrupoTutorDetailView(LoginRequiredMixin, DetailView):
     model = Grupo
-    template_name = 'instituto/tutoria_detail.html'
+    template_name = 'anota/tutoria_detail.html'
 
     def get_object(self):
         #NOTA: el grupo debe ser único, pero puede no existir. Si se usa el método get, podrá lanzar el error DoesNotExist.
@@ -1482,7 +1482,7 @@ class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
     model = Grupo
     fields = '__all__'
     success_message = 'El grupo %(curso_elegido)s %(unidad)s se ha grabado correctamente'
-    warning_message = 'Ya existe el grupo %(curso)s %(unidad)s en el centro'
+    #warning_message = 'Ya existe el grupo %(curso)s %(unidad)s en el centro'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
@@ -1495,7 +1495,7 @@ class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
             curso_elegido=self.object.get_curso_display(),
         )
 
-    #se evitan grupos duplicados
+    """#se evitan grupos duplicados
     def form_valid(self, form):
         curso = form.instance.curso
         unidad = form.instance.unidad
@@ -1509,14 +1509,14 @@ class GrupoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
                                                                            unidad=unidad))
                 return HttpResponseRedirect(reverse('lista-grupos'))
         except ObjectDoesNotExist:
-            return super(GrupoCreate, self).form_valid(form)
+            return super(GrupoCreate, self).form_valid(form)"""
 
 #Permiso: solo superusers
 class GrupoUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Grupo
     fields = '__all__'
     success_message = 'El grupo %(curso_elegido)s %(unidad)s se ha modificado correctamente'
-    warning_message = 'Problemas al actualizar: ya existe el grupo %(curso)s %(unidad)s en el centro'
+    #warning_message = 'Problemas al actualizar: ya existe el grupo %(curso)s %(unidad)s en el centro'
     permission_required = 'is_superuser'
 
     def handle_no_permission(self):
@@ -1528,7 +1528,7 @@ class GrupoUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
             cleaned_data,
             curso_elegido=self.object.get_curso_display(),
         )
-    #se evitan grupos duplicados
+    """#se evitan grupos duplicados
     def form_valid(self, form):
         curso = form.instance.curso
         unidad = form.instance.unidad
@@ -1542,7 +1542,7 @@ class GrupoUpdate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMix
                                                                            unidad=unidad))
                 return HttpResponseRedirect(reverse('lista-grupos'))
         except ObjectDoesNotExist:
-            return super(GrupoUpdate, self).form_valid(form)
+            return super(GrupoUpdate, self).form_valid(form)"""
 
 #Permiso: solo superusers
 class GrupoDelete(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
@@ -1615,11 +1615,11 @@ class AlumnoDetailView(LoginRequiredMixin, DetailView):
 
 class AlumnoTutoriaDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
-    template_name = 'instituto/alumno_tutoria_detail.html'
+    template_name = 'anota/alumno_tutoria_detail.html'
 
 class AlumnoGrupoDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
-    template_name = 'instituto/alumno_grupo_detail.html'
+    template_name = 'anota/alumno_grupo_detail.html'
 
 #Permiso: solo superusers
 class AlumnoCreate(LoginRequiredMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView):
@@ -1645,7 +1645,7 @@ class AlumnoUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin,
 #Permiso: solo superusers y el profesor/a tutor
 class AlumnoTutoriaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Alumno
-    template_name = 'instituto/alumno_tutoria_form.html'
+    template_name = 'anota/alumno_tutoria_form.html'
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
 
@@ -1659,7 +1659,7 @@ class AlumnoTutoriaUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessag
 #Permiso: solo superusers y el profesor/a tutor
 class AlumnoGrupoUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
     model = Alumno
-    template_name = 'instituto/alumno_grupo_form.html'
+    template_name = 'anota/alumno_grupo_form.html'
     fields = ['nombre', 'apellido1', 'apellido2', 'fecha_nacimiento', 'email', 'foto', 'grupo']
     success_message = 'El alumno %(nombre)s %(apellido1)s %(apellido2)s se ha modificado correctamente'
 
@@ -1827,9 +1827,9 @@ def matricularGrupo(request, idGrupo):
 
     if int(idGrupo) > 0:
         grupo = Grupo.objects.get(pk=idGrupo)
-        return render(request, 'instituto/matricula_form.html', {'form': form, 'idGrupo': idGrupo, 'grupo': grupo})
+        return render(request, 'anota/matricula_form.html', {'form': form, 'idGrupo': idGrupo, 'grupo': grupo})
     else:
-        return render(request, 'instituto/matricula_form.html', {'form': form, 'idGrupo': idGrupo})
+        return render(request, 'anota/matricula_form.html', {'form': form, 'idGrupo': idGrupo})
 
 
 """#Permiso: solo superusers
@@ -1927,7 +1927,7 @@ def anotacionesFechas(request, idAsignatura, vista):
                 error = True
                 mensaje_error = "No existen anotaciones en las fechas indicadas. Por favor, inténtelo de nuevo."
             elif "ver_anotaciones" in request.POST:
-                return render(request, 'instituto/anotacion_list.html', {'fecha': fecha, 'vista': vista, 'object_list':anotaciones, 'nombreAsignatura': asignatura.nombre, 'idAsignatura': idAsignatura,'alumno_list': asignatura.alumno_set.all, 'resumen_list':resumen })
+                return render(request, 'anota/anotacion_list.html', {'fecha': fecha, 'vista': vista, 'object_list':anotaciones, 'nombreAsignatura': asignatura.nombre, 'idAsignatura': idAsignatura, 'alumno_list': asignatura.alumno_set.all, 'resumen_list':resumen})
             elif "anotaciones_pdf" in request.POST:
                 #return HttpResponseRedirect(reverse('anotaciones-pdf', args=(idAsignatura)))
                 return anotacionesPDF(request, idAsignatura, inicio, fin)
@@ -1941,7 +1941,7 @@ def anotacionesFechas(request, idAsignatura, vista):
             mensaje_error = "Por favor, introduzca fechas de inicio y fin validas."
 
 
-    return render(request, 'instituto/fechas_anotaciones_form.html', {'error':error, 'mensaje_error':mensaje_error, 'vista': vista, 'nombreAsignatura': asignatura.nombre, 'idAsignatura':idAsignatura, 'fecha': fecha})
+    return render(request, 'anota/fechas_anotaciones_form.html', {'error':error, 'mensaje_error':mensaje_error, 'vista': vista, 'nombreAsignatura': asignatura.nombre, 'idAsignatura':idAsignatura, 'fecha': fecha})
 
 def datosResumen(idAsignatura, inicio, fin):
 
@@ -2007,7 +2007,7 @@ class AjaxTemplateMixin(object):
 # Permiso: solo el propio profesor
 class AnotacionCreate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, AjaxTemplateMixin, CreateView):
     model = Anotacion
-    template_name = 'instituto/anotacion_form_create.html'
+    template_name = 'anota/anotacion_form_create.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
     #success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s grabada correctamente'
 
@@ -2040,7 +2040,7 @@ class AnotacionCreate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
 # Permiso: solo el propio profesor
 class AnotacionUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, AjaxTemplateMixin, UpdateView):
     model = Anotacion
-    template_name = 'instituto/anotacion_form_update.html'
+    template_name = 'anota/anotacion_form_update.html'
     fields = ['falta', 'trabaja', 'positivos', 'negativos']
     #success_message = '[%(fecha_str)s] Anotacion del alumno %(nombre_alumno)s %(apellido1_alumno)s %(apellido2_alumno)s editada correctamente'
 
@@ -2072,7 +2072,7 @@ class AnotacionUpdate(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMix
 #Esta vista se utiliza para ver el resultado de la anotación editada desde la tabla de anotaciones
 class AnotacionTdContent(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Anotacion
-    template_name = 'instituto/anotacion_td_content.html'
+    template_name = 'anota/anotacion_td_content.html'
 
     def test_func(self):
         return (int(self.request.user.id) == int(Anotacion.objects.get(pk=self.kwargs['pk']).asignatura.profesor.id))
